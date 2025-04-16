@@ -43,8 +43,8 @@ class PayMyBoooking extends Page
                     ->required()
                     ->label('Proof of Payment')
                     ->openable()
-                    ->disk('public')
-                    ->directory('payments')
+                    ->disk('public_uploads_payment')
+                    ->directory('/')
                     ->image()
                     ->hint('Please upload the proof of payment for gcash.'),
             ])

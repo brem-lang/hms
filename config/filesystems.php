@@ -60,6 +60,22 @@ return [
             'report' => false,
         ],
 
+        'public_uploads_suite' => [
+            'driver' => 'local',
+            'root' => public_path('suite-photo'),
+            'url' => env('APP_URL').'/suite-photo',
+            'visibility' => 'public',
+            'throw' => false,
+        ],
+
+        'public_uploads_payment' => [
+            'driver' => 'local',
+            'root' => public_path('payment-photo'),
+            'url' => env('APP_URL').'/payment-photo',
+            'visibility' => 'public',
+            'throw' => false,
+        ],
+
     ],
 
     /*

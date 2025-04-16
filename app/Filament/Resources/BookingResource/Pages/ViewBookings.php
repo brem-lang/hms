@@ -40,8 +40,8 @@ class ViewBookings extends Page
                     ->columnSpanFull()
                     ->label('Proof of Payment')
                     ->required()
-                    ->disk('public')
-                    ->directory('payments')
+                    ->disk('public_uploads_payment')
+                    ->directory('/')
                     ->hint('Please upload the proof of payment for gcash.'),
             ])
             ->columns(2)

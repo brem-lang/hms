@@ -15,7 +15,7 @@
                                         class="grid grid-cols-[--cols-default] lg:grid-cols-[--cols-lg] fi-fo-component-ctn gap-6">
                                         <div>
                                             <div>
-                                                <img src="{{ asset('storage/' . $record->room->image) }}"
+                                                <img src="{{ asset('suite-photo/' . $record->room->image) }}"
                                                     alt="Image 1">
                                             </div>
                                         </div>

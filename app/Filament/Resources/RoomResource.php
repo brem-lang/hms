@@ -14,6 +14,7 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 class RoomResource extends Resource
 {
@@ -37,9 +38,9 @@ class RoomResource extends Resource
                         Section::make()
                             ->schema([
                                 FileUpload::make('image')
-                                    ->disk('public')
-                                    ->directory('images')
                                     ->required()
+                                    ->disk('public_uploads_suite')
+                                    ->directory('/')
                                     ->image()
                                     ->label('Image'),
                             ]),
@@ -99,7 +100,8 @@ class RoomResource extends Resource
                 // Tables\Actions\BulkActionGroup::make([
                 //     Tables\Actions\DeleteBulkAction::make(),
                 // ]),
-            ]);
+            ])
+            ->modifyQueryUsing(fn (Builder $query) => $query->latest());
     }
 
     public static function getRelations(): array

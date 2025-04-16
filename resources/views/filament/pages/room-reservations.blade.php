@@ -16,7 +16,7 @@
                                         class="grid grid-cols-[--cols-default] lg:grid-cols-[--cols-lg] fi-fo-component-ctn gap-6">
                                         <div>
                                             <div>
-                                                <img src="{{ asset('storage/' . $record['standard']['image']) }}"
+                                                <img src="{{ asset('suite-photo/' . $record['standard']['image']) }}"
                                                     alt="Image 1">
                                             </div>
                                             {{-- <div class="slider-container">
@@ -159,7 +159,7 @@
                                         class="grid grid-cols-[--cols-default] lg:grid-cols-[--cols-lg] fi-fo-component-ctn gap-6">
                                         <div>
                                             <div>
-                                                <img src="{{ asset('storage/' . $record['deluxe']['image']) }}"
+                                                <img src="{{ asset('suite-photo/' . $record['deluxe']['image']) }}"
                                                     alt="Image 1">
                                             </div>
                                             {{-- <div class="slider-container">
@@ -303,7 +303,7 @@
                                         class="grid grid-cols-[--cols-default] lg:grid-cols-[--cols-lg] fi-fo-component-ctn gap-6">
                                         <div>
                                             <div>
-                                                <img src="{{ asset('storage/' . $record['executive']['image']) }}"
+                                                <img src="{{ asset('suite-photo/' . $record['executive']['image']) }}"
                                                     alt="Image 1">
                                             </div>
                                             {{-- <div class="slider-container">

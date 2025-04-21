@@ -82,7 +82,7 @@ class RoomResource extends Resource
                                     ->reorderableWithDragAndDrop(false)
                                     ->columnSpanFull()
                                     ->schema([
-                                        TextInput::make('hours')->required(),
+                                        TextInput::make('item')->required(),
                                         TextInput::make('price')->required()->numeric()->prefix('₱'),
                                     ])
                                     ->columns(2),

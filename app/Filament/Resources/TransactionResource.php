@@ -71,7 +71,7 @@ class TransactionResource extends Resource
                 //     Tables\Actions\DeleteBulkAction::make(),
                 // ]),
             ])
-            ->modifyQueryUsing(fn (Builder $query) => $query->latest());
+            ->modifyQueryUsing(fn (Builder $query) => $query->whereHas('booking', fn ($query) => $query->where('status', 'completed'))->latest());
     }
 
     public static function getRelations(): array

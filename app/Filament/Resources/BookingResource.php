@@ -31,10 +31,15 @@ class BookingResource extends Resource
     {
         return $form
             ->schema([
-                DatePicker::make('date')
+                DatePicker::make('start_date')
                     ->required()
                     ->minDate(now()->startOfDay())
+                    ->live()
                     ->reactive(),
+                DatePicker::make('end_date')
+                    ->live()
+                    ->required()
+                    ->minDate(now()->startOfDay()),
                 Select::make('status')
                     ->label('Status')
                     ->options([

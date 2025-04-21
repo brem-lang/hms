@@ -40,6 +40,16 @@ class SuiteRoomsRelationManager extends RelationManager
             ->columns([
                 Tables\Columns\TextColumn::make('name')->searchable(),
                 Tables\Columns\TextColumn::make('price')->money('PHP ')->searchable(),
+                Tables\Columns\TextColumn::make('is_occupied')->label('Occupied')
+                    ->formatStateUsing(function ($state) {
+                        return $state ? 'Yes' : 'No';
+                    })
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('is_active')->label('Status')
+                    ->formatStateUsing(function ($state) {
+                        return $state ? 'Yes' : 'No';
+                    })
+                    ->sortable(),
             ])
             ->filters([
                 SelectFilter::make('is_active')

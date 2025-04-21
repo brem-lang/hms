@@ -59,4 +59,9 @@ class User extends Authenticatable
     {
         return $this->role === 'staff';
     }
+
+    public function isFrontDesk()
+    {
+        return $this->role === 'front-desk';
+    }
 }

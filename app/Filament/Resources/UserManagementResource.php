@@ -55,7 +55,7 @@ class UserManagementResource extends Resource
                             ->label('Role')
                             ->options([
                                 'admin' => 'Admin',
-                                'staff' => 'Staff',
+                                'front-desk' => 'Front Desk',
                                 'customer' => 'Customer',
                             ])
                             ->required(),
@@ -75,7 +75,7 @@ class UserManagementResource extends Resource
                     ->badge()->color(fn (string $state): string => match ($state) {
                         'admin' => 'success',
                         'customer' => 'gray',
-                        'staff' => 'warning',
+                        'front-desk' => 'warning',
                     })->formatStateUsing(fn (string $state): string => __(ucfirst($state)))
                     ->searchable(),
             ])

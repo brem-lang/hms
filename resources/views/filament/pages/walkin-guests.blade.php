@@ -48,7 +48,7 @@
                                                 @foreach ($record['standard']['items'] ?? [] as $item)
                                                     <ul class="features-list"
                                                         style="list-style-type: none; padding: 0;">
-                                                        <li>₱ {{ $item['price'] }} - {{ $item['hours'] }}</li>
+                                                        <li>₱ {{ $item['price'] }} - {{ $item['item'] }}</li>
                                                     </ul>
                                                 @endforeach
                                                 {{-- <ul class="features-list" style="list-style-type: none; padding: 0;">
@@ -164,7 +164,7 @@
                                                 @foreach ($record['deluxe']['items'] ?? [] as $item)
                                                     <ul class="features-list"
                                                         style="list-style-type: none; padding: 0;">
-                                                        <li>₱ {{ $item['price'] }} - {{ $item['hours'] }}</li>
+                                                        <li>₱ {{ $item['price'] }} - {{ $item['item'] }}</li>
                                                     </ul>
                                                 @endforeach
                                                 {{-- <ul class="features-list" style="list-style-type: none; padding: 0;">
@@ -281,7 +281,7 @@
                                                 @foreach ($record['executive']['items'] ?? [] as $item)
                                                     <ul class="features-list"
                                                         style="list-style-type: none; padding: 0;">
-                                                        <li>₱ {{ $item['price'] }} - {{ $item['hours'] }}</li>
+                                                        <li>₱ {{ $item['price'] }} - {{ $item['item'] }}</li>
                                                     </ul>
                                                 @endforeach
                                                 {{-- <ul class="features-list" style="list-style-type: none; padding: 0;">

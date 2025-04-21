@@ -2,6 +2,7 @@
 
 namespace App\Providers\Filament;
 
+use App\Livewire\Register;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -56,10 +57,9 @@ class AppPanelProvider extends PanelProvider
             ])
             ->spa()
             ->databaseNotifications()
+            ->registration(Register::class)
             ->databaseNotificationsPolling('30s')
-            ->brandName('Test App');
-        // ->brandLogo(asset('images/logo1.jpg'))
-        // ->darkModeBrandLogo(asset('images/logo1.jpg'));
-
+            ->brandName('Millenium Suites ')
+            ->brandLogo(fn () => view('filament.logo'));
     }
 }

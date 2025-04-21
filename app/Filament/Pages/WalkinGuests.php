@@ -3,12 +3,10 @@
 namespace App\Filament\Pages;
 
 use App\Filament\Resources\BookingResource;
-use App\Filament\Resources\MyBookingResource;
 use App\Models\Booking;
 use App\Models\Room;
 use App\Models\SuiteRoom;
 use App\Models\Transaction;
-use App\Models\User;
 use Carbon\Carbon;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
@@ -19,13 +17,16 @@ use Filament\Forms\Contracts\HasForms;
 use Filament\Forms\Form;
 use Filament\Forms\Get;
 use Filament\Forms\Set;
-use Filament\Notifications\Actions\Action;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Illuminate\Support\Facades\DB;
 
-class RoomReservations extends Page implements HasForms
+class WalkinGuests extends Page implements HasForms
 {
+    protected static ?string $navigationIcon = 'heroicon-o-document-text';
+
+    protected static string $view = 'filament.pages.walkin-guests';
+
     use InteractsWithForms;
 
     public ?array $standardSuiteData = [];
@@ -37,10 +38,6 @@ class RoomReservations extends Page implements HasForms
     public ?array $functionHallData = [];
 
     public $record = [];
-
-    protected static ?string $navigationIcon = 'heroicon-o-document-text';
-
-    protected static string $view = 'filament.pages.room-reservations';
 
     public function mount()
     {
@@ -56,7 +53,7 @@ class RoomReservations extends Page implements HasForms
 
     public static function canAccess(): bool
     {
-        return auth()->user()->isCustomer();
+        return ! auth()->user()->isCustomer();
     }
 
     protected function getForms(): array
@@ -345,7 +342,8 @@ class RoomReservations extends Page implements HasForms
 
         $data = $this->saving($data);
 
-        redirect(MyBookingResource::getUrl('payment', ['record' => $data]));
+        redirect(BookingResource::getUrl('view', ['record' => $data]));
+
         // redirect('/app/room-reservations');
 
     }
@@ -358,7 +356,7 @@ class RoomReservations extends Page implements HasForms
 
         $data = $this->saving($data);
 
-        redirect(MyBookingResource::getUrl('payment', ['record' => $data]));
+        redirect(BookingResource::getUrl('view', ['record' => $data]));
         // redirect('/app/room-reservations');
     }
 
@@ -370,7 +368,7 @@ class RoomReservations extends Page implements HasForms
 
         $data = $this->saving($data);
 
-        redirect(MyBookingResource::getUrl('payment', ['record' => $data]));
+        redirect(BookingResource::getUrl('view', ['record' => $data]));
         // redirect('/app/room-reservations');
     }
 
@@ -382,7 +380,7 @@ class RoomReservations extends Page implements HasForms
 
         $data = $this->saving($data);
 
-        redirect(MyBookingResource::getUrl('payment', ['record' => $data]));
+        redirect(BookingResource::getUrl('view', ['record' => $data]));
         // redirect('/app/room-reservations');
     }
 
@@ -399,7 +397,7 @@ class RoomReservations extends Page implements HasForms
             DB::beginTransaction();
 
             $data = Booking::create([
-                'type' => 'online_booking',
+                'type' => 'walkin_booking',
                 'user_id' => auth()->user()->id,
                 'room_id' => $data['suiteId'],
                 'status' => 'pending',
@@ -428,20 +426,6 @@ class RoomReservations extends Page implements HasForms
                 ->icon('heroicon-o-check-circle')
                 ->body('Booking has been created successfully.')
                 ->send();
-
-            Notification::make()
-                ->success()
-                ->title('Booking Created')
-                ->icon('heroicon-o-check-circle')
-                ->body(auth()->user()->name.' has booked '.$data->room->name)
-                ->actions([
-                    Action::make('view')
-                        ->label('View')
-                        ->url(fn () => BookingResource::getUrl('view', ['record' => $data->id]))
-                    // ->openUrlInNewTab()
-                    ,
-                ])
-                ->sendToDatabase(User::where('role', '!=', 'customer')->get());
         } catch (\Exception $e) {
             DB::rollBack();
 

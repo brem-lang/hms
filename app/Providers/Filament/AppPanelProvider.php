@@ -58,7 +58,8 @@ class AppPanelProvider extends PanelProvider
             ->databaseNotifications()
             ->databaseNotificationsPolling('30s')
             ->brandName('Test App');
-        // ->brandLogo(asset('images/logo-clear.png'))
-        // ->darkModeBrandLogo(asset('images/logo-clear.png'));
+        // ->brandLogo(asset('images/logo1.jpg'))
+        // ->darkModeBrandLogo(asset('images/logo1.jpg'));
+
     }
 }

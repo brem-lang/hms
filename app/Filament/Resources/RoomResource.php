@@ -3,15 +3,18 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\RoomResource\Pages;
+use App\Filament\Resources\RoomResource\RelationManagers\SuiteRoomsRelationManager;
 use App\Models\Room;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Group;
+use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
+use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
@@ -73,6 +76,16 @@ class RoomResource extends Resource
                                     ->label('Total Rooms')
                                     ->required()
                                     ->maxLength(255),
+
+                                Repeater::make('items')
+                                    ->reorderable(false)
+                                    ->reorderableWithDragAndDrop(false)
+                                    ->columnSpanFull()
+                                    ->schema([
+                                        TextInput::make('hours')->required(),
+                                        TextInput::make('price')->required()->numeric()->prefix('₱'),
+                                    ])
+                                    ->columns(2),
                             ])
                             ->columns(2),
                     ])
@@ -86,9 +99,14 @@ class RoomResource extends Resource
         return $table
             ->paginated([0])
             ->columns([
-                TextColumn::make('name'),
-                TextColumn::make('available_rooms'),
-                TextColumn::make('total_rooms'),
+                ImageColumn::make('image')
+                    ->square()
+                    ->disk('public_uploads_suite'),
+                TextColumn::make('name')->searchable(),
+                TextColumn::make('suite_rooms_available_count')
+                    ->label('Available Rooms')
+                    ->searchable(),
+                TextColumn::make('total_rooms')->searchable(),
             ])
             ->filters([
                 //
@@ -101,13 +119,13 @@ class RoomResource extends Resource
                 //     Tables\Actions\DeleteBulkAction::make(),
                 // ]),
             ])
-            ->modifyQueryUsing(fn (Builder $query) => $query->latest());
+            ->modifyQueryUsing(fn (Builder $query) => $query->withCount('suite_rooms_available')->latest());
     }
 
     public static function getRelations(): array
     {
         return [
-            //
+            SuiteRoomsRelationManager::class,
         ];
     }
 

@@ -45,14 +45,20 @@
                                         <div style="font-size: 14px; display: flex;width: 100%;">
                                             <div class="column" style="padding: 0 10px; word-break: break-word;">
                                                 <h1>Rates</h1>
-                                                <ul class="features-list" style="list-style-type: none; padding: 0;">
+                                                @foreach ($record['standard']['items'] ?? [] as $item)
+                                                    <ul class="features-list"
+                                                        style="list-style-type: none; padding: 0;">
+                                                        <li>₱ {{ $item['price'] }} - {{ $item['hours'] }}</li>
+                                                    </ul>
+                                                @endforeach
+                                                {{-- <ul class="features-list" style="list-style-type: none; padding: 0;">
                                                     <li>₱ 300.00 - 3 hours stay</li>
                                                     <li>₱ 500.00 - 6 hours stay</li>
                                                     <li>₱ 800.00 - 12 hours stay</li>
                                                     <li>₱ 1200.00 - Overnight stay</li>
                                                     <li>₱ 100.00 - Extension / hour</li>
                                                     <li>₱ 700.00 - Extra Person w/ Extra Bed</li>
-                                                </ul>
+                                                </ul> --}}
                                             </div>
                                         </div>
                                         <div style="font-size: 14px; display: flex;width: 100%;">
@@ -155,14 +161,20 @@
                                         <div style="font-size: 14px; display: flex;width: 100%;">
                                             <div class="column" style="padding: 0 10px; word-break: break-word;">
                                                 <h1>Rates</h1>
-                                                <ul class="features-list" style="list-style-type: none; padding: 0;">
+                                                @foreach ($record['deluxe']['items'] ?? [] as $item)
+                                                    <ul class="features-list"
+                                                        style="list-style-type: none; padding: 0;">
+                                                        <li>₱ {{ $item['price'] }} - {{ $item['hours'] }}</li>
+                                                    </ul>
+                                                @endforeach
+                                                {{-- <ul class="features-list" style="list-style-type: none; padding: 0;">
                                                     <li>₱ 350.00 - 3 hours stay</li>
                                                     <li>₱ 550.00 - 6 hours stay</li>
                                                     <li>₱ 850.00 - 12 hours stay</li>
                                                     <li>₱ 1400.00 - Overnight stay</li>
                                                     <li>₱ 100.00 - Extension / hour</li>
                                                     <li>₱ 700.00 - Extra Person w/ Extra Bed</li>
-                                                </ul>
+                                                </ul> --}}
                                             </div>
                                         </div>
                                         <div style="font-size: 14px; display: flex;width: 100%;">
@@ -266,14 +278,20 @@
                                         <div style="font-size: 14px; display: flex;width: 100%;">
                                             <div class="column" style="padding: 0 10px; word-break: break-word;">
                                                 <h1>Rates</h1>
-                                                <ul class="features-list" style="list-style-type: none; padding: 0;">
+                                                @foreach ($record['executive']['items'] ?? [] as $item)
+                                                    <ul class="features-list"
+                                                        style="list-style-type: none; padding: 0;">
+                                                        <li>₱ {{ $item['price'] }} - {{ $item['hours'] }}</li>
+                                                    </ul>
+                                                @endforeach
+                                                {{-- <ul class="features-list" style="list-style-type: none; padding: 0;">
                                                     <li>₱ 400.00 - 3 hours stay</li>
                                                     <li>₱ 600.00 - 6 hours stay</li>
                                                     <li>₱ 900.00 - 12 hours stay</li>
                                                     <li>₱ 1600.00 - Overnight stay</li>
                                                     <li>₱ 150.00 - Extension / hour</li>
                                                     <li>₱ 700.00 - Extra Person w/ Extra Bed</li>
-                                                </ul>
+                                                </ul> --}}
                                             </div>
                                         </div>
                                         <div style="font-size: 14px; display: flex;width: 100%;">

@@ -4,13 +4,15 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\BookingResource\Pages;
 use App\Models\Booking;
+use App\Models\User;
+use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
-use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Actions\Action as ActionsAction;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 
@@ -29,9 +31,10 @@ class BookingResource extends Resource
     {
         return $form
             ->schema([
-                // TextInput::make('notes')
-                //     ->label('Notes')
-                //     ->maxLength(255),
+                DatePicker::make('date')
+                    ->required()
+                    ->minDate(now()->startOfDay())
+                    ->reactive(),
                 Select::make('status')
                     ->label('Status')
                     ->options([
@@ -39,7 +42,8 @@ class BookingResource extends Resource
                         'completed' => 'Completed',
                         'cancelled' => 'Cancelled',
                     ]),
-            ]);
+            ])
+            ->columns(2);
     }
 
     public static function table(Table $table): Table
@@ -57,15 +61,17 @@ class BookingResource extends Resource
                     ->toggleable()
                     ->searchable(),
                 TextColumn::make('start_date')
+                    ->label('Start Date')
                     ->date('F d, Y h:i A')->timezone('Asia/Manila')
                     ->searchable()
                     ->toggleable()
                     ->sortable(),
-                TextColumn::make('duration')
-                    ->label('Duration')
-                    ->sortable()
+                TextColumn::make('end_date')
+                    ->label('End Date')
+                    ->date('F d, Y h:i A')->timezone('Asia/Manila')
+                    ->searchable()
                     ->toggleable()
-                    ->searchable(),
+                    ->sortable(),
                 TextColumn::make('status')
                     ->toggleable()
                     ->badge()->color(fn (string $state): string => match ($state) {
@@ -75,9 +81,25 @@ class BookingResource extends Resource
                     })
                     ->formatStateUsing(fn (string $state): string => __(ucfirst($state)))
                     ->searchable(),
+                TextColumn::make('type')
+                    ->label('Booking Type')
+                    ->toggleable()
+                    ->formatStateUsing(function ($state) {
+                        return $state === 'online_booking' ? 'Online' : 'Walk-in';
+                    })
+                    ->searchable(),
             ])
             ->filters([
-                //
+                SelectFilter::make('user_id')
+                    ->label('Guest')
+                    ->options(User::where('role', 'customer')->get()->pluck('name', 'id')),
+                SelectFilter::make('status')
+                    ->label('Status')
+                    ->options([
+                        'pending' => 'Pending',
+                        'completed' => 'Completed',
+                        'cancelled' => 'Cancelled',
+                    ]),
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),

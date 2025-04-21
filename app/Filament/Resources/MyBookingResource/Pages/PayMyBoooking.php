@@ -69,15 +69,37 @@ class PayMyBoooking extends Page
                         'cancelled' => 'danger',
                     })
                     ->formatStateUsing(fn (string $state): string => __(ucfirst($state))),
-                TextEntry::make('start_date')->label('Start Date')
-                    ->dateTime(),
-                TextEntry::make('end_date')->label('End Date')
-                    ->dateTime(),
-                TextEntry::make('duration')->label('Duration Hrs'),
+                TextEntry::make('start_date')->dateTime()->label('Start Date'),
+                TextEntry::make('end_date')->dateTime()->label('End Date'),
                 TextEntry::make('created_at')->dateTime()->label('Date of Booking'),
+                TextEntry::make('days')->label('Days'),
+                TextEntry::make('duration')->label('Duration Hrs'),
+                TextEntry::make('no_persons')->label('Number of Persons'),
+                TextEntry::make('check_in_date')->dateTime()->label('Check In Time')
+                    ->formatStateUsing(function ($state) {
+                        return \Carbon\Carbon::parse($state)->format('F j, Y h:i A');
+                    }),
+                TextEntry::make('check_out_date')->dateTime()->label('Check Out Time')
+                    ->formatStateUsing(function ($state) {
+                        return \Carbon\Carbon::parse($state)->format('F j, Y h:i A');
+                    }),
                 TextEntry::make('amount_to_pay')->label('Payment')->prefix('₱ '),
+                TextEntry::make('room.name')->label('Suite Type'),
+                TextEntry::make('suiteRoom.name')
+                    ->formatStateUsing(fn ($state) => ucfirst($state))
+                    ->label('Room'),
             ])
             ->columns(3);
+    }
+
+    public function notesInfoList(Infolist $infolist): Infolist
+    {
+        return $infolist
+            ->record($this->record)
+            ->schema([
+                TextEntry::make('notes'),
+            ])
+            ->columns(1);
     }
 
     public function pay()
@@ -85,6 +107,8 @@ class PayMyBoooking extends Page
         $data = $this->form->getState();
 
         $this->record->proof_of_payment = $data['proof_of_payment'];
+
+        $this->record->is_proof_send = true;
 
         $this->record->save();
 
@@ -106,6 +130,8 @@ class PayMyBoooking extends Page
             ])
             ->sendToDatabase(User::where('role', '!=', 'customer')->get());
 
-        $this->dispatch('close-modal', id: 'confirm-modal');
+        // $this->dispatch('close-modal', id: 'confirm-modal');
+
+        redirect(MyBookingResource::getUrl('payment', ['record' => $this->record->id]));
     }
 }

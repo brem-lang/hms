@@ -18,8 +18,11 @@ return new class extends Migration
             $table->string('status');
             $table->dateTime('start_date');
             $table->dateTime('end_date');
+            $table->dateTime('check_in_date')->nullable();
+            $table->dateTime('check_out_date')->nullable();
             $table->integer('duration');
             $table->string('proof_of_payment')->nullable();
+            $table->string('type')->nullable();
             $table->boolean('can_pay')->default(false);
             $table->double('amount_to_pay')->nullable();
             $table->string('notes')->nullable();

@@ -106,37 +106,46 @@
                                 </div> --}}
                                 {{ $this->infoList }}
                                 <br />
+                                {{ $this->notesInfoList }}
+                                <br />
                                 {{ $this->form }}
                                 <br />
                                 <div class="text-right">
                                     @if ($record->status == 'pending')
-                                        <x-filament::modal id="confirm-modal" width="md" alignment="center"
-                                            icon="heroicon-o-check" icon-color="success">
-                                            <x-slot name="trigger">
-                                                <x-filament::button>
+
+                                        @if ($record->is_proof_send)
+                                            <x-filament::button size="md" color="primary" disabled>
+                                                Waiting for Confirmation...
+                                            </x-filament::button>
+                                        @else
+                                            <x-filament::modal id="confirm-modal" width="md" alignment="center"
+                                                icon="heroicon-o-check" icon-color="success">
+                                                <x-slot name="trigger">
+                                                    <x-filament::button>
+                                                        Confirm Payment
+                                                    </x-filament::button>
+                                                </x-slot>
+                                                <x-slot name="heading">
                                                     Confirm Payment
-                                                </x-filament::button>
-                                            </x-slot>
-                                            <x-slot name="heading">
-                                                Confirm Payment
-                                            </x-slot>
+                                                </x-slot>
 
-                                            <x-slot name="description">
-                                                Are you sure you would like to do this?
-                                            </x-slot>
+                                                <x-slot name="description">
+                                                    Are you sure you would like to do this?
+                                                </x-slot>
 
-                                            <x-slot name="footerActions">
-                                                <x-filament::button size="md" color="primary" class="w-full"
-                                                    wire:click.prevent="pay">
-                                                    Confirm
-                                                </x-filament::button>
-                                                <x-filament::button color="gray" outlined size="md"
-                                                    class="w-full"
-                                                    x-on:click.prevent="$dispatch('close-modal', {id: 'confirm-modal'})">
-                                                    Cancel
-                                                </x-filament::button>
-                                            </x-slot>
-                                        </x-filament::modal>
+                                                <x-slot name="footerActions">
+                                                    <x-filament::button size="md" color="primary" class="w-full"
+                                                        wire:click.prevent="pay">
+                                                        Confirm
+                                                    </x-filament::button>
+                                                    <x-filament::button color="gray" outlined size="md"
+                                                        class="w-full"
+                                                        x-on:click.prevent="$dispatch('close-modal', {id: 'confirm-modal'})">
+                                                        Cancel
+                                                    </x-filament::button>
+                                                </x-slot>
+                                            </x-filament::modal>
+                                        @endif
                                     @else
                                         <x-filament::button size="md" color="primary" disabled>
                                             Completed

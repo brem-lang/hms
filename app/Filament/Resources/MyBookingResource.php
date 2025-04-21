@@ -4,10 +4,12 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\MyBookingResource\Pages;
 use App\Models\Booking;
+use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Actions\Action;
+use Filament\Tables\Actions\DeleteAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
@@ -29,7 +31,11 @@ class MyBookingResource extends Resource
     {
         return $form
             ->schema([
-                //
+                DatePicker::make('date')
+                    ->columnSpanFull()
+                    ->required()
+                    ->minDate(now()->startOfDay())
+                    ->reactive(),
             ]);
     }
 
@@ -38,16 +44,19 @@ class MyBookingResource extends Resource
         return $table
             ->paginated([10, 25, 50])
             ->columns([
-                TextColumn::make('user.name')
-                    ->sortable()
-                    ->toggleable()
-                    ->searchable(),
                 TextColumn::make('room.name')
                     ->label('Room Type')
                     ->sortable()
                     ->toggleable()
                     ->searchable(),
-                TextColumn::make('created_at')
+                TextColumn::make('start_date')
+                    ->label('Start Date')
+                    ->date('F d, Y h:i A')->timezone('Asia/Manila')
+                    ->searchable()
+                    ->toggleable()
+                    ->sortable(),
+                TextColumn::make('end_date')
+                    ->label('End Date')
                     ->date('F d, Y h:i A')->timezone('Asia/Manila')
                     ->searchable()
                     ->toggleable()
@@ -73,11 +82,32 @@ class MyBookingResource extends Resource
                         'pending' => 'Pending',
                         'completed' => 'Completed',
                         'cancelled' => 'Cancelled',
-                    ])
-                    ->default('pending'),
+                    ]),
             ])
             ->actions([
-                // Tables\Actions\EditAction::make(),
+                Tables\Actions\EditAction::make()
+                    ->hidden(function ($record) {
+                        return $record->status !== 'pending';
+                    }),
+                // DeleteAction::make()
+                //     ->hidden(function ($record) {
+                //         return $record->status !== 'pending';
+                //     }),
+                Action::make('cancel_booking')
+                    ->icon('heroicon-o-x-circle')
+                    ->requiresConfirmation()
+                    ->label('Cancel')
+                    ->action(function ($record) {
+                        $record->status = 'cancelled';
+                        $record->save();
+                    })
+                    ->color('danger')
+                    ->hidden(function ($record) {
+                        return $record->status !== 'pending';
+                    })
+                    ->visible(function ($record) {
+                        return \Carbon\Carbon::parse($record->start_date)->greaterThan(now()->addDays(1));
+                    }),
                 Action::make('payment')
                     ->label('Pay')
                     ->icon('heroicon-o-credit-card')

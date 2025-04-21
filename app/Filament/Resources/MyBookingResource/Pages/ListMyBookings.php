@@ -4,6 +4,7 @@ namespace App\Filament\Resources\MyBookingResource\Pages;
 
 use App\Filament\Resources\MyBookingResource;
 use Filament\Actions;
+use Filament\Actions\Action;
 use Filament\Resources\Pages\ListRecords;
 
 class ListMyBookings extends ListRecords
@@ -14,6 +15,8 @@ class ListMyBookings extends ListRecords
     {
         return [
             // Actions\CreateAction::make(),
+            Action::make('New Booking')
+                ->url('/app/room-reservations'),
         ];
     }
 }

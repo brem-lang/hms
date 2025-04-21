@@ -50,8 +50,20 @@ class DatabaseSeeder extends Seeder
             'name' => 'Executive Suite',
             'image' => 'images/executive.jpg',
             'status' => 1,
-            'available_rooms' => 7,
-            'total_rooms' => 7,
+            'available_rooms' => 13,
+            'total_rooms' => 13,
+        ]);
+
+        Room::create([
+            'name' => 'Function Hall',
+            'image' => 'images/functionhall.jpg',
+            'status' => 1,
+            'available_rooms' => 4,
+            'total_rooms' => 4,
+        ]);
+
+        $this->call([
+            SuitRoomSeeder::class,
         ]);
     }
 }

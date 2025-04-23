@@ -8,6 +8,10 @@ class SuiteRoom extends Model
 {
     protected $guarded = [];
 
+    protected $casts = [
+        'items' => 'array',
+    ];
+
     public function room()
     {
         return $this->belongsTo(Room::class);

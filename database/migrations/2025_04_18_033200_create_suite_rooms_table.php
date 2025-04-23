@@ -18,6 +18,7 @@ return new class extends Migration
             $table->double('price')->default(0);
             $table->boolean('is_active')->default(false);
             $table->boolean('is_occupied')->default(false);
+            $table->json('items')->nullable();
             $table->timestamps();
         });
     }

@@ -336,6 +336,16 @@ class WalkinGuests extends Page implements HasForms
 
     public function standardSuiteSubmit()
     {
+        if (empty($this->record['standard']['items'])) {
+            Notification::make()
+                ->danger()
+                ->title('Error')
+                ->body('No Rates Found')
+                ->send();
+
+            return;
+        }
+
         $data = $this->standardSuiteForm->getState();
 
         $data['suiteId'] = 1;
@@ -350,6 +360,16 @@ class WalkinGuests extends Page implements HasForms
 
     public function deluxeSuiteSubmit()
     {
+        if (empty($this->record['deluxe']['items'])) {
+            Notification::make()
+                ->danger()
+                ->title('Error')
+                ->body('No Rates Found')
+                ->send();
+
+            return;
+        }
+
         $data = $this->deluxeSuiteForm->getState();
 
         $data['suiteId'] = 2;
@@ -362,6 +382,16 @@ class WalkinGuests extends Page implements HasForms
 
     public function executiveSuiteSubmit()
     {
+        if (empty($this->record['executive']['items'])) {
+            Notification::make()
+                ->danger()
+                ->title('Error')
+                ->body('No Rates Found')
+                ->send();
+
+            return;
+        }
+
         $data = $this->executiveSuiteForm->getState();
 
         $data['suiteId'] = 3;
@@ -451,122 +481,154 @@ class WalkinGuests extends Page implements HasForms
     {
         $value = 0;
 
-        if ($suiteId == 1) {
-            if ($hours <= 3) {
-                $value = 300;
-            } elseif ($hours <= 6) {
-                $value = 500;
-            } elseif ($hours <= 12) {
-                $value = 800;
-            } elseif ($hours <= 24) {
-                $value = 1200;
-            } else {
-                // Check if $hours is a whole multiple of 24 (like 48, 72, etc.)
-                if (fmod($hours, 24) == 0.0) {
-                    $value = ($hours / 24) * 1200;
-                } else {
-                    // Base for 24 hours, add ₱100/hour for the extra hours beyond 24
-                    $value = 1200 + (($hours - 24) * 100);
-                }
-            }
+        $suite = Room::where('id', $suiteId)->first();
 
-            // Add ₱100 for each hour beyond the fixed tier, only for under 24 hrs
-            if ($hours > 3 && $hours < 6) {
-                $value = 300 + (($hours - 3) * 100);
-            } elseif ($hours > 6 && $hours < 12) {
-                $value = 500 + (($hours - 6) * 100);
-            } elseif ($hours > 12 && $hours < 24) {
-                $value = 800 + (($hours - 12) * 100);
+        if ($hours <= 3) {
+            $value = $suite->items[0]['price'];
+        } elseif ($hours <= 6) {
+            $value = $suite->items[1]['price'];
+        } elseif ($hours <= 12) {
+            $value = $suite->items[2]['price'];
+        } elseif ($hours <= 24) {
+            $value = $suite->items[3]['price'];
+        } else {
+            if (fmod($hours, 24) == 0.0) {
+                $value = ($hours / 24) * $suite->items[3]['price'];
+            } else {
+                $value = $suite->items[3]['price'] + (($hours - 24) * $suite->items[4]['price']);
             }
         }
-        // deluxe
-        if ($suiteId == 2) {
-            if ($hours <= 3) {
-                $value = 350;
-            } elseif ($hours <= 6) {
-                $value = 550;
-            } elseif ($hours <= 12) {
-                $value = 850;
-            } elseif ($hours <= 24) {
-                $value = 1400;
-            } else {
-                // Check if $hours is a whole multiple of 24 (like 48, 72, etc.)
-                if (fmod($hours, 24) == 0.0) {
-                    $value = ($hours / 24) * 1400;
-                } else {
-                    // Base for 24 hours, add ₱100/hour for the extra hours beyond 24
-                    $value = 1400 + (($hours - 24) * 100);
-                }
-            }
 
-            // Add ₱100 for each hour beyond the fixed tier, only for under 24 hrs
-            if ($hours > 3 && $hours < 6) {
-                $value = 350 + (($hours - 3) * 100);
-            } elseif ($hours > 6 && $hours < 12) {
-                $value = 550 + (($hours - 6) * 100);
-            } elseif ($hours > 12 && $hours < 24) {
-                $value = 850 + (($hours - 12) * 100);
-            }
-        }
-        // executive
-        if ($suiteId == 3) {
-            if ($hours <= 3) {
-                $value = 400;
-            } elseif ($hours <= 6) {
-                $value = 600;
-            } elseif ($hours <= 12) {
-                $value = 900;
-            } elseif ($hours <= 24) {
-                $value = 1600;
-            } else {
-                // Base for full 24 hours
-                $value = 1600;
-            }
-
-            // Add ₱100 for each hour beyond the fixed tier
-            if ($hours > 3 && $hours < 6) {
-                $value = 400 + (($hours - 3) * 100);
-            } elseif ($hours > 6 && $hours < 12) {
-                $value = 600 + (($hours - 6) * 100);
-            } elseif ($hours > 12 && $hours < 24) {
-                $value = 900 + (($hours - 12) * 100);
-            } elseif ($hours > 24) {
-                $value = 1600 + (($hours - 24) * 100);
-            }
-
-            // return $value;
-
-            if ($hours <= 3) {
-                $value = 400;
-            } elseif ($hours <= 6) {
-                $value = 600;
-            } elseif ($hours <= 12) {
-                $value = 900;
-            } elseif ($hours <= 24) {
-                $value = 1600;
-            } else {
-                // Check if $hours is a whole multiple of 24 (like 48, 72, etc.)
-                if (fmod($hours, 24) == 0.0) {
-                    $value = ($hours / 24) * 1600;
-                } else {
-                    // Base for 24 hours, add ₱100/hour for the extra hours beyond 24
-                    $value = 1600 + (($hours - 24) * 100);
-                }
-            }
-
-            // Add ₱100 for each hour beyond the fixed tier, only for under 24 hrs
-            if ($hours > 3 && $hours < 6) {
-                $value = 400 + (($hours - 3) * 100);
-            } elseif ($hours > 6 && $hours < 12) {
-                $value = 600 + (($hours - 6) * 100);
-            } elseif ($hours > 12 && $hours < 24) {
-                $value = 900 + (($hours - 12) * 100);
-            }
+        if ($hours > 3 && $hours < 6) {
+            $value = $suite->items[0]['price'] + (($hours - 3) * $suite->items[4]['price']);
+        } elseif ($hours > 6 && $hours < 12) {
+            $value = $suite->items[1]['price'] + (($hours - 6) * $suite->items[4]['price']);
+        } elseif ($hours > 12 && $hours < 24) {
+            $value = $suite->items[2]['price'] + (($hours - 12) * $suite->items[4]['price']);
         }
 
         $extraPersons = max(0, $no_persons - 2);
-        $extraCharge = $extraPersons * 700;
+        $extraCharge = $extraPersons * $suite->items[5]['price'];
 
         return $value + $extraCharge;
+        // $value = 0;
+
+        // if ($suiteId == 1) {
+        //     if ($hours <= 3) {
+        //         $value = 300;
+        //     } elseif ($hours <= 6) {
+        //         $value = 500;
+        //     } elseif ($hours <= 12) {
+        //         $value = 800;
+        //     } elseif ($hours <= 24) {
+        //         $value = 1200;
+        //     } else {
+        //         // Check if $hours is a whole multiple of 24 (like 48, 72, etc.)
+        //         if (fmod($hours, 24) == 0.0) {
+        //             $value = ($hours / 24) * 1200;
+        //         } else {
+        //             // Base for 24 hours, add ₱100/hour for the extra hours beyond 24
+        //             $value = 1200 + (($hours - 24) * 100);
+        //         }
+        //     }
+
+        //     // Add ₱100 for each hour beyond the fixed tier, only for under 24 hrs
+        //     if ($hours > 3 && $hours < 6) {
+        //         $value = 300 + (($hours - 3) * 100);
+        //     } elseif ($hours > 6 && $hours < 12) {
+        //         $value = 500 + (($hours - 6) * 100);
+        //     } elseif ($hours > 12 && $hours < 24) {
+        //         $value = 800 + (($hours - 12) * 100);
+        //     }
+        // }
+        // // deluxe
+        // if ($suiteId == 2) {
+        //     if ($hours <= 3) {
+        //         $value = 350;
+        //     } elseif ($hours <= 6) {
+        //         $value = 550;
+        //     } elseif ($hours <= 12) {
+        //         $value = 850;
+        //     } elseif ($hours <= 24) {
+        //         $value = 1400;
+        //     } else {
+        //         // Check if $hours is a whole multiple of 24 (like 48, 72, etc.)
+        //         if (fmod($hours, 24) == 0.0) {
+        //             $value = ($hours / 24) * 1400;
+        //         } else {
+        //             // Base for 24 hours, add ₱100/hour for the extra hours beyond 24
+        //             $value = 1400 + (($hours - 24) * 100);
+        //         }
+        //     }
+
+        //     // Add ₱100 for each hour beyond the fixed tier, only for under 24 hrs
+        //     if ($hours > 3 && $hours < 6) {
+        //         $value = 350 + (($hours - 3) * 100);
+        //     } elseif ($hours > 6 && $hours < 12) {
+        //         $value = 550 + (($hours - 6) * 100);
+        //     } elseif ($hours > 12 && $hours < 24) {
+        //         $value = 850 + (($hours - 12) * 100);
+        //     }
+        // }
+        // // executive
+        // if ($suiteId == 3) {
+        //     if ($hours <= 3) {
+        //         $value = 400;
+        //     } elseif ($hours <= 6) {
+        //         $value = 600;
+        //     } elseif ($hours <= 12) {
+        //         $value = 900;
+        //     } elseif ($hours <= 24) {
+        //         $value = 1600;
+        //     } else {
+        //         // Base for full 24 hours
+        //         $value = 1600;
+        //     }
+
+        //     // Add ₱100 for each hour beyond the fixed tier
+        //     if ($hours > 3 && $hours < 6) {
+        //         $value = 400 + (($hours - 3) * 100);
+        //     } elseif ($hours > 6 && $hours < 12) {
+        //         $value = 600 + (($hours - 6) * 100);
+        //     } elseif ($hours > 12 && $hours < 24) {
+        //         $value = 900 + (($hours - 12) * 100);
+        //     } elseif ($hours > 24) {
+        //         $value = 1600 + (($hours - 24) * 100);
+        //     }
+
+        //     // return $value;
+
+        //     if ($hours <= 3) {
+        //         $value = 400;
+        //     } elseif ($hours <= 6) {
+        //         $value = 600;
+        //     } elseif ($hours <= 12) {
+        //         $value = 900;
+        //     } elseif ($hours <= 24) {
+        //         $value = 1600;
+        //     } else {
+        //         // Check if $hours is a whole multiple of 24 (like 48, 72, etc.)
+        //         if (fmod($hours, 24) == 0.0) {
+        //             $value = ($hours / 24) * 1600;
+        //         } else {
+        //             // Base for 24 hours, add ₱100/hour for the extra hours beyond 24
+        //             $value = 1600 + (($hours - 24) * 100);
+        //         }
+        //     }
+
+        //     // Add ₱100 for each hour beyond the fixed tier, only for under 24 hrs
+        //     if ($hours > 3 && $hours < 6) {
+        //         $value = 400 + (($hours - 3) * 100);
+        //     } elseif ($hours > 6 && $hours < 12) {
+        //         $value = 600 + (($hours - 6) * 100);
+        //     } elseif ($hours > 12 && $hours < 24) {
+        //         $value = 900 + (($hours - 12) * 100);
+        //     }
+        // }
+
+        // $extraPersons = max(0, $no_persons - 2);
+        // $extraCharge = $extraPersons * 700;
+
+        // return $value + $extraCharge;
     }
 }

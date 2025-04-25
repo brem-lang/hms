@@ -339,6 +339,16 @@ class RoomReservations extends Page implements HasForms
 
     public function standardSuiteSubmit()
     {
+        if (empty($this->record['standard']['items'])) {
+            Notification::make()
+                ->danger()
+                ->title('Error')
+                ->body('No Rates Found')
+                ->send();
+
+            return;
+        }
+
         $data = $this->standardSuiteForm->getState();
 
         $data['suiteId'] = 1;
@@ -352,6 +362,16 @@ class RoomReservations extends Page implements HasForms
 
     public function deluxeSuiteSubmit()
     {
+        if (empty($this->record['deluxe']['items'])) {
+            Notification::make()
+                ->danger()
+                ->title('Error')
+                ->body('No Rates Found')
+                ->send();
+
+            return;
+        }
+
         $data = $this->deluxeSuiteForm->getState();
 
         $data['suiteId'] = 2;
@@ -364,6 +384,16 @@ class RoomReservations extends Page implements HasForms
 
     public function executiveSuiteSubmit()
     {
+        if (empty($this->record['executive']['items'])) {
+            Notification::make()
+                ->danger()
+                ->title('Error')
+                ->body('No Rates Found')
+                ->send();
+
+            return;
+        }
+
         $data = $this->executiveSuiteForm->getState();
 
         $data['suiteId'] = 3;
@@ -399,7 +429,7 @@ class RoomReservations extends Page implements HasForms
             DB::beginTransaction();
 
             $data = Booking::create([
-                'type' => 'online_booking',
+                'type' => 'walkin_booking',
                 'user_id' => auth()->user()->id,
                 'room_id' => $data['suiteId'],
                 'status' => 'pending',
@@ -437,9 +467,7 @@ class RoomReservations extends Page implements HasForms
                 ->actions([
                     Action::make('view')
                         ->label('View')
-                        ->url(fn () => BookingResource::getUrl('view', ['record' => $data->id]))
-                    // ->openUrlInNewTab()
-                    ,
+                        ->url(fn () => BookingResource::getUrl('view', ['record' => $data->id])),
                 ])
                 ->sendToDatabase(User::where('role', '!=', 'customer')->get());
         } catch (\Exception $e) {

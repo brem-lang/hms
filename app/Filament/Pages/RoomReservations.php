@@ -330,6 +330,8 @@ class RoomReservations extends Page implements HasForms
                 ->label('Persons')
                 ->required()
                 ->maxLength(255),
+            Select::make('type')
+                ->options(SuiteRoom::where('room_id', 4)->pluck('name', 'id')->toArray()),
             Textarea::make('notes')
                 ->label('Requests / Notes'),
         ])

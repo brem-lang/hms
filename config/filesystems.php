@@ -76,6 +76,14 @@ return [
             'throw' => false,
         ],
 
+        'public_uploads_food' => [
+            'driver' => 'local',
+            'root' => public_path('food-photo'),
+            'url' => env('APP_URL').'/food-photo',
+            'visibility' => 'public',
+            'throw' => false,
+        ],
+
     ],
 
     /*

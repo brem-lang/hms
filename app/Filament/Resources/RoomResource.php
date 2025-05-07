@@ -23,9 +23,11 @@ class RoomResource extends Resource
 {
     protected static ?string $model = Room::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+    protected static ?string $navigationIcon = 'heroicon-o-cog-8-tooth';
 
     protected static ?string $modelLabel = 'Suite Types';
+
+    protected static ?string $navigationGroup = 'Accommodation Control Panel';
 
     public static function canViewAny(): bool
     {
@@ -78,6 +80,8 @@ class RoomResource extends Resource
                                     ->maxLength(255),
 
                                 Repeater::make('items')
+                                    ->maxItems(0)
+                                    ->deletable(false)
                                     ->reorderable(false)
                                     ->reorderableWithDragAndDrop(false)
                                     ->columnSpanFull()

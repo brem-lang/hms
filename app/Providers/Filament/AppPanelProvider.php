@@ -55,6 +55,7 @@ class AppPanelProvider extends PanelProvider
             ->authMiddleware([
                 Authenticate::class,
             ])
+            ->darkMode(false)
             ->spa()
             ->databaseNotifications()
             ->registration(Register::class)

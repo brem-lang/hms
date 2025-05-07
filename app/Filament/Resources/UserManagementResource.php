@@ -25,6 +25,8 @@ class UserManagementResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-user-circle';
 
+    protected static ?string $navigationGroup = 'User Management';
+
     public static function canViewAny(): bool
     {
         return auth()->user()->isAdmin();
@@ -76,6 +78,7 @@ class UserManagementResource extends Resource
                         'admin' => 'success',
                         'customer' => 'gray',
                         'front-desk' => 'warning',
+                        'staff' => 'danger',
                     })->formatStateUsing(fn (string $state): string => __(ucfirst($state)))
                     ->searchable(),
             ])

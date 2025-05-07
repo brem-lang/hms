@@ -48,7 +48,6 @@ class PayMyBoooking extends Page
                     ->image()
                     ->hint('Please upload the proof of payment for gcash.'),
             ])
-            // ->columns(1)
             ->statePath('formData');
     }
 
@@ -69,8 +68,13 @@ class PayMyBoooking extends Page
                         'cancelled' => 'danger',
                     })
                     ->formatStateUsing(fn (string $state): string => __(ucfirst($state))),
-                TextEntry::make('start_date')->dateTime()->label('Start Date'),
-                TextEntry::make('end_date')->dateTime()->label('End Date'),
+                TextEntry::make('start_date')->dateTime()->hidden(function ($record) {
+                    return $record->room_id == 4;
+                })->label('Start Date'),
+                TextEntry::make('end_date')
+                    ->hidden(function ($record) {
+                        return $record->room_id == 4;
+                    })->dateTime()->label('End Date'),
                 TextEntry::make('created_at')->dateTime()->label('Date of Booking'),
                 TextEntry::make('days')->label('Days'),
                 TextEntry::make('duration')->label('Duration Hrs'),

@@ -12,4 +12,9 @@ class Transaction extends Model
     {
         return $this->belongsTo(Booking::class);
     }
+
+    public function foodOrder()
+    {
+        return $this->belongsTo(FoodOrder::class);
+    }
 }

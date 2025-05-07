@@ -2,7 +2,7 @@
 
 namespace App\Filament\Resources;
 
-use App\Filament\Resources\TransactionResource\Pages;
+use App\Filament\Resources\FoodTransactionResource\Pages;
 use App\Models\Transaction;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -11,13 +11,13 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 
-class TransactionResource extends Resource
+class FoodTransactionResource extends Resource
 {
     protected static ?string $model = Transaction::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-queue-list';
 
-    protected static ?string $modelLabel = 'Room Transactions';
+    protected static ?string $modelLabel = 'Food Transactions';
 
     protected static ?string $navigationGroup = 'Transaction';
 
@@ -39,21 +39,16 @@ class TransactionResource extends Resource
         return $table
             ->paginated([10, 25, 50])
             ->columns([
-                TextColumn::make('booking.room.name')
-                    ->label('Room Name')
+                TextColumn::make('foodOrder.food.name')
+                    ->label('Food Name')
                     ->sortable()
                     ->searchable(),
-                TextColumn::make('booking.suiteRoom.name')
-                    ->label('Room Name')
-                    ->formatStateUsing(fn ($state) => ucfirst($state))
-                    ->sortable()
-                    ->searchable(),
-                TextColumn::make('booking.amount_to_pay')
+                TextColumn::make('foodOrder.amount_to_pay')
                     ->label('Amount')
                     ->sortable()
                     ->searchable()
                     ->money('php', true),
-                TextColumn::make('booking.status')
+                TextColumn::make('foodOrder.status')
                     ->label('Status')
                     ->toggleable()
                     ->badge()->color(fn (string $state): string => match ($state) {
@@ -76,7 +71,7 @@ class TransactionResource extends Resource
                 // ]),
             ])
             ->modifyQueryUsing(function (Builder $query) {
-                $query->where('type', 'rooms')->latest();
+                $query->where('type', 'foods')->latest();
             });
     }
 
@@ -90,9 +85,9 @@ class TransactionResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListTransactions::route('/'),
-            // 'create' => Pages\CreateTransaction::route('/create'),
-            // 'edit' => Pages\EditTransaction::route('/{record}/edit'),
+            'index' => Pages\ListFoodTransactions::route('/'),
+            // 'create' => Pages\CreateFoodTransaction::route('/create'),
+            // 'edit' => Pages\EditFoodTransaction::route('/{record}/edit'),
         ];
     }
 }

@@ -1,17 +1,17 @@
 <?php
 
-namespace App\Filament\Resources\TransactionResource\Pages;
+namespace App\Filament\Resources\FoodTransactionResource\Pages;
 
-use App\Filament\Resources\TransactionResource;
+use App\Filament\Resources\FoodTransactionResource;
 use App\Models\Transaction;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Filament\Actions;
 use Filament\Actions\Action;
 use Filament\Resources\Pages\ListRecords;
 
-class ListTransactions extends ListRecords
+class ListFoodTransactions extends ListRecords
 {
-    protected static string $resource = TransactionResource::class;
+    protected static string $resource = FoodTransactionResource::class;
 
     protected function getHeaderActions(): array
     {
@@ -20,15 +20,15 @@ class ListTransactions extends ListRecords
             Action::make('generateReport')
                 ->label('Generate Report')
                 ->action(function () {
-                    $transactions = Transaction::where('type', 'rooms')->whereHas('booking', function ($query) {
+                    $transactions = Transaction::whereHas('foodOrder', function ($query) {
                         $query->where('status', 'completed');
-                    })->with('booking')->get();
+                    })->with('foodOrder')->get();
 
-                    $pdf = Pdf::loadView('reports.reports', compact('transactions'));
+                    $pdf = Pdf::loadView('reports.food-reports', compact('transactions'));
 
                     return response()->streamDownload(
                         fn () => print ($pdf->output()),
-                        'room-sales-report-'.now()->format('Y-m-d_H-i-s').'.pdf'
+                        'food-sales-report-'.now()->format('Y-m-d_H-i-s').'.pdf'
                     );
                 })
                 ->visible(auth()->user()->isAdmin())

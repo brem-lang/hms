@@ -22,6 +22,8 @@ class MyBookingResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
+    protected static ?string $navigationGroup = 'Room Management';
+
     public static function canViewAny(): bool
     {
         return auth()->user()->isCustomer();
@@ -49,15 +51,15 @@ class MyBookingResource extends Resource
                     ->sortable()
                     ->toggleable()
                     ->searchable(),
-                TextColumn::make('start_date')
-                    ->label('Start Date')
-                    ->date('F d, Y h:i A')->timezone('Asia/Manila')
+                TextColumn::make('check_in_date')
+                    ->label('Check In Date')
+                    ->date('F d, Y h:i A')
                     ->searchable()
                     ->toggleable()
                     ->sortable(),
-                TextColumn::make('end_date')
-                    ->label('End Date')
-                    ->date('F d, Y h:i A')->timezone('Asia/Manila')
+                TextColumn::make('check_out_date')
+                    ->label('Check Out Date')
+                    ->date('F d, Y h:i A')
                     ->searchable()
                     ->toggleable()
                     ->sortable(),
@@ -65,6 +67,12 @@ class MyBookingResource extends Resource
                     ->label('Duration')
                     ->sortable()
                     ->toggleable()
+                    ->searchable(),
+                TextColumn::make('suiteRoom.name')
+                    ->label('Room Number')
+                    ->sortable()
+                    ->toggleable()
+                    ->formatStateUsing(fn ($state) => ucfirst($state))
                     ->searchable(),
                 TextColumn::make('status')
                     ->toggleable()

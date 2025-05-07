@@ -38,7 +38,9 @@ class RoomReservations extends Page implements HasForms
 
     public $record = [];
 
-    protected static ?string $navigationIcon = 'heroicon-o-document-text';
+    protected static ?string $navigationGroup = 'Room Management';
+
+    protected static ?string $navigationIcon = 'heroicon-o-book-open';
 
     protected static string $view = 'filament.pages.room-reservations';
 
@@ -81,49 +83,49 @@ class RoomReservations extends Page implements HasForms
                 ->live()
                 ->required()
                 ->minDate(now()->startOfDay()),
-            Select::make('hours')
-                ->reactive()
-                ->live()
-                ->required(function (Get $get) {
-                    $start = $get('start_date');
-                    $end = $get('end_date');
+            // Select::make('hours')
+            //     ->reactive()
+            //     ->live()
+            //     ->required(function (Get $get) {
+            //         $start = $get('start_date');
+            //         $end = $get('end_date');
 
-                    if (! $start || ! $end) {
-                        return false;
-                    }
+            //         if (! $start || ! $end) {
+            //             return false;
+            //         }
 
-                    $start = \Carbon\Carbon::parse($start);
-                    $end = \Carbon\Carbon::parse($end);
+            //         $start = \Carbon\Carbon::parse($start);
+            //         $end = \Carbon\Carbon::parse($end);
 
-                    $days = $start->diffInDays($end);
+            //         $days = $start->diffInDays($end);
 
-                    return $days < 1;
-                })
-                ->hidden(
-                    function (Get $get, Set $set) {
-                        $start = $get('start_date');
-                        $end = $get('end_date');
+            //         return $days < 1;
+            //     })
+            //     ->hidden(
+            //         function (Get $get, Set $set) {
+            //             $start = $get('start_date');
+            //             $end = $get('end_date');
 
-                        if (! $start || ! $end) {
-                            return true;
-                        }
+            //             if (! $start || ! $end) {
+            //                 return true;
+            //             }
 
-                        $start = \Carbon\Carbon::parse($start);
-                        $end = \Carbon\Carbon::parse($end);
+            //             $start = \Carbon\Carbon::parse($start);
+            //             $end = \Carbon\Carbon::parse($end);
 
-                        $days = $start->diffInDays($end);
+            //             $days = $start->diffInDays($end);
 
-                        return $days >= 1 ? true : false;
-                    }
-                )
-                ->options(function () {
-                    $hours = [];
-                    for ($i = 1; $i <= 24; $i++) {
-                        $hours[$i] = "$i Hrs";
-                    }
+            //             return $days >= 1 ? true : false;
+            //         }
+            //     )
+            //     ->options(function () {
+            //         $hours = [];
+            //         for ($i = 1; $i <= 24; $i++) {
+            //             $hours[$i] = "$i Hrs";
+            //         }
 
-                    return $hours;
-                }),
+            //         return $hours;
+            //     }),
             TextInput::make('no_persons')
                 ->numeric()
                 ->label('Persons')
@@ -148,49 +150,49 @@ class RoomReservations extends Page implements HasForms
                 ->live()
                 ->required()
                 ->minDate(now()->startOfDay()),
-            Select::make('hours')
-                ->reactive()
-                ->live()
-                ->required(function (Get $get) {
-                    $start = $get('start_date');
-                    $end = $get('end_date');
+            // Select::make('hours')
+            //     ->reactive()
+            //     ->live()
+            //     ->required(function (Get $get) {
+            //         $start = $get('start_date');
+            //         $end = $get('end_date');
 
-                    if (! $start || ! $end) {
-                        return false;
-                    }
+            //         if (! $start || ! $end) {
+            //             return false;
+            //         }
 
-                    $start = \Carbon\Carbon::parse($start);
-                    $end = \Carbon\Carbon::parse($end);
+            //         $start = \Carbon\Carbon::parse($start);
+            //         $end = \Carbon\Carbon::parse($end);
 
-                    $days = $start->diffInDays($end);
+            //         $days = $start->diffInDays($end);
 
-                    return $days < 1;
-                })
-                ->hidden(
-                    function (Get $get, Set $set) {
-                        $start = $get('start_date');
-                        $end = $get('end_date');
+            //         return $days < 1;
+            //     })
+            //     ->hidden(
+            //         function (Get $get, Set $set) {
+            //             $start = $get('start_date');
+            //             $end = $get('end_date');
 
-                        if (! $start || ! $end) {
-                            return true;
-                        }
+            //             if (! $start || ! $end) {
+            //                 return true;
+            //             }
 
-                        $start = \Carbon\Carbon::parse($start);
-                        $end = \Carbon\Carbon::parse($end);
+            //             $start = \Carbon\Carbon::parse($start);
+            //             $end = \Carbon\Carbon::parse($end);
 
-                        $days = $start->diffInDays($end);
+            //             $days = $start->diffInDays($end);
 
-                        return $days >= 1 ? true : false;
-                    }
-                )
-                ->options(function () {
-                    $hours = [];
-                    for ($i = 1; $i <= 24; $i++) {
-                        $hours[$i] = "$i Hrs";
-                    }
+            //             return $days >= 1 ? true : false;
+            //         }
+            //     )
+            //     ->options(function () {
+            //         $hours = [];
+            //         for ($i = 1; $i <= 24; $i++) {
+            //             $hours[$i] = "$i Hrs";
+            //         }
 
-                    return $hours;
-                }),
+            //         return $hours;
+            //     }),
             TextInput::make('no_persons')
                 ->numeric()
                 ->label('Persons')
@@ -215,49 +217,49 @@ class RoomReservations extends Page implements HasForms
                 ->live()
                 ->required()
                 ->minDate(now()->startOfDay()),
-            Select::make('hours')
-                ->reactive()
-                ->live()
-                ->required(function (Get $get) {
-                    $start = $get('start_date');
-                    $end = $get('end_date');
+            // Select::make('hours')
+            //     ->reactive()
+            //     ->live()
+            //     ->required(function (Get $get) {
+            //         $start = $get('start_date');
+            //         $end = $get('end_date');
 
-                    if (! $start || ! $end) {
-                        return false;
-                    }
+            //         if (! $start || ! $end) {
+            //             return false;
+            //         }
 
-                    $start = \Carbon\Carbon::parse($start);
-                    $end = \Carbon\Carbon::parse($end);
+            //         $start = \Carbon\Carbon::parse($start);
+            //         $end = \Carbon\Carbon::parse($end);
 
-                    $days = $start->diffInDays($end);
+            //         $days = $start->diffInDays($end);
 
-                    return $days < 1;
-                })
-                ->hidden(
-                    function (Get $get, Set $set) {
-                        $start = $get('start_date');
-                        $end = $get('end_date');
+            //         return $days < 1;
+            //     })
+            //     ->hidden(
+            //         function (Get $get, Set $set) {
+            //             $start = $get('start_date');
+            //             $end = $get('end_date');
 
-                        if (! $start || ! $end) {
-                            return true;
-                        }
+            //             if (! $start || ! $end) {
+            //                 return true;
+            //             }
 
-                        $start = \Carbon\Carbon::parse($start);
-                        $end = \Carbon\Carbon::parse($end);
+            //             $start = \Carbon\Carbon::parse($start);
+            //             $end = \Carbon\Carbon::parse($end);
 
-                        $days = $start->diffInDays($end);
+            //             $days = $start->diffInDays($end);
 
-                        return $days >= 1 ? true : false;
-                    }
-                )
-                ->options(function () {
-                    $hours = [];
-                    for ($i = 1; $i <= 24; $i++) {
-                        $hours[$i] = "$i Hrs";
-                    }
+            //             return $days >= 1 ? true : false;
+            //         }
+            //     )
+            //     ->options(function () {
+            //         $hours = [];
+            //         for ($i = 1; $i <= 24; $i++) {
+            //             $hours[$i] = "$i Hrs";
+            //         }
 
-                    return $hours;
-                }),
+            //         return $hours;
+            //     }),
             TextInput::make('no_persons')
                 ->numeric()
                 ->label('Persons')
@@ -274,63 +276,18 @@ class RoomReservations extends Page implements HasForms
     {
         return $form->schema([
             DatePicker::make('start_date')
+                ->label('Date')
                 ->required()
                 ->minDate(now()->startOfDay())
                 ->live()
                 ->reactive(),
-            DatePicker::make('end_date')
-                ->live()
-                ->required()
-                ->minDate(now()->startOfDay()),
-            Select::make('hours')
-                ->reactive()
-                ->live()
-                ->required(function (Get $get) {
-                    $start = $get('start_date');
-                    $end = $get('end_date');
-
-                    if (! $start || ! $end) {
-                        return false;
-                    }
-
-                    $start = \Carbon\Carbon::parse($start);
-                    $end = \Carbon\Carbon::parse($end);
-
-                    $days = $start->diffInDays($end);
-
-                    return $days < 1;
-                })
-                ->hidden(
-                    function (Get $get, Set $set) {
-                        $start = $get('start_date');
-                        $end = $get('end_date');
-
-                        if (! $start || ! $end) {
-                            return true;
-                        }
-
-                        $start = \Carbon\Carbon::parse($start);
-                        $end = \Carbon\Carbon::parse($end);
-
-                        $days = $start->diffInDays($end);
-
-                        return $days >= 1 ? true : false;
-                    }
-                )
-                ->options(function () {
-                    $hours = [];
-                    for ($i = 1; $i <= 24; $i++) {
-                        $hours[$i] = "$i Hrs";
-                    }
-
-                    return $hours;
-                }),
             TextInput::make('no_persons')
                 ->numeric()
                 ->label('Persons')
                 ->required()
                 ->maxLength(255),
             Select::make('type')
+                ->required()
                 ->options(SuiteRoom::where('room_id', 4)->pluck('name', 'id')->toArray()),
             Textarea::make('notes')
                 ->label('Requests / Notes'),
@@ -357,9 +314,9 @@ class RoomReservations extends Page implements HasForms
 
         $data = $this->saving($data);
 
-        redirect(MyBookingResource::getUrl('payment', ['record' => $data]));
-        // redirect('/app/room-reservations');
-
+        if ($data) {
+            redirect(MyBookingResource::getUrl('payment', ['record' => $data]));
+        }
     }
 
     public function deluxeSuiteSubmit()
@@ -380,8 +337,9 @@ class RoomReservations extends Page implements HasForms
 
         $data = $this->saving($data);
 
-        redirect(MyBookingResource::getUrl('payment', ['record' => $data]));
-        // redirect('/app/room-reservations');
+        if ($data) {
+            redirect(MyBookingResource::getUrl('payment', ['record' => $data]));
+        }
     }
 
     public function executiveSuiteSubmit()
@@ -402,8 +360,9 @@ class RoomReservations extends Page implements HasForms
 
         $data = $this->saving($data);
 
-        redirect(MyBookingResource::getUrl('payment', ['record' => $data]));
-        // redirect('/app/room-reservations');
+        if ($data) {
+            redirect(MyBookingResource::getUrl('payment', ['record' => $data]));
+        }
     }
 
     public function functionHallSuiteSubmit()
@@ -414,83 +373,135 @@ class RoomReservations extends Page implements HasForms
 
         $data = $this->saving($data);
 
-        redirect(MyBookingResource::getUrl('payment', ['record' => $data]));
-        // redirect('/app/room-reservations');
+        if ($data) {
+            redirect(MyBookingResource::getUrl('payment', ['record' => $data]));
+        }
     }
 
     public function saving($data)
     {
         $start = Carbon::parse($data['start_date']);
-        $end = Carbon::parse($data['end_date']);
+        $end = $data['suiteId'] == 4 ? $start : Carbon::parse($data['end_date']);
 
         $days = $start->diffInDays($end);
 
         $hours = $data['suiteId'] == 4 ? 0 : ($data['hours'] ?? 0) + ($days * 24);
 
-        try {
-            DB::beginTransaction();
-
-            $data = Booking::create([
-                'type' => 'walkin_booking',
-                'user_id' => auth()->user()->id,
-                'room_id' => $data['suiteId'],
-                'status' => 'pending',
-                'start_date' => $data['start_date'],
-                'check_in_date' => \Carbon\Carbon::parse($data['start_date'])->setTime(14, 0)->toDateTimeString(),
-                'check_out_date' => \Carbon\Carbon::parse($data['end_date'])->setTime(12, 0)->toDateTimeString(),
-                'end_date' => $data['end_date'],
-                'duration' => $hours,
-                'notes' => $data['notes'],
-                'no_persons' => $data['no_persons'],
-                'days' => $data['suiteId'] == 4 ? 0 : $days,
-                'hours' => $data['suiteId'] == 4 ? 0 : $hours,
-                'suite_room_id' => $data['suiteId'] == 4 ? $data['type'] : $this->getSuiteRoom($data['suiteId']),
-                'amount_to_pay' => $data['suiteId'] == 4 ? SuiteRoom::where('id', $data['type'])->first()->price : $this->getPayment($hours, $data['suiteId'], $data['no_persons']),
-            ]);
-
-            Transaction::create([
-                'booking_id' => $data->id,
-            ]);
-
-            DB::commit();
-
+        if ($data['suiteId'] == 4 && $this->getFunctionHallTime($start->toDateTimeString(), $data['type']) === false) {
             Notification::make()
-                ->success()
-                ->title('Booking Created')
-                ->icon('heroicon-o-check-circle')
-                ->body('Booking has been created successfully.')
+                ->danger()
+                ->title('Error')
+                ->body('Function Hall is fully booked')
                 ->send();
 
-            Notification::make()
-                ->success()
-                ->title('Booking Created')
-                ->icon('heroicon-o-check-circle')
-                ->body(auth()->user()->name.' has booked '.$data->room->name)
-                ->actions([
-                    Action::make('view')
-                        ->label('View')
-                        ->url(fn () => BookingResource::getUrl('view', ['record' => $data->id])),
-                ])
-                ->sendToDatabase(User::where('role', '!=', 'customer')->get());
-        } catch (\Exception $e) {
-            DB::rollBack();
-
-            logger($e->getMessage());
+            return null;
         }
 
-        return $data->id;
+        if ($data['suiteId'] != 4 && $this->getSuiteRoom($data['suiteId'], $start->setTime(14, 0)->toDateTimeString(), $end->setTime(12, 0)->toDateTimeString()) === false) {
+            Notification::make()
+                ->danger()
+                ->title('Error')
+                ->body('No Available Room')
+                ->send();
+
+            return null;
+        } else {
+            try {
+                DB::beginTransaction();
+
+                $data = Booking::create([
+                    'type' => 'Online booking',
+                    'user_id' => auth()->user()->id,
+                    'room_id' => $data['suiteId'],
+                    'status' => 'pending',
+                    'start_date' => $data['start_date'],
+                    'check_in_date' => $data['suiteId'] == 4 ? $this->getFunctionHallTime($start->toDateTimeString(), $data['type'])['start'] : $start->setTime(14, 0)->toDateTimeString(),
+                    'check_out_date' => $data['suiteId'] == 4 ? $this->getFunctionHallTime($start->toDateTimeString(), $data['type'])['end'] : $end->setTime(12, 0)->toDateTimeString(),
+                    'end_date' => $end->toDateTimeString(),
+                    'duration' => $hours,
+                    'notes' => $data['notes'],
+                    'no_persons' => $data['no_persons'],
+                    'days' => $data['suiteId'] == 4 ? 0 : $days,
+                    'hours' => $data['suiteId'] == 4 ? 0 : $hours,
+                    'suite_room_id' => $data['suiteId'] == 4 ? $data['type'] : $this->getSuiteRoom($data['suiteId'], $start->setTime(14, 0)->toDateTimeString(), $end->setTime(12, 0)->toDateTimeString()),
+                    'amount_to_pay' => $data['suiteId'] == 4 ? SuiteRoom::where('id', $data['type'])->first()->price : $this->getPayment($hours, $data['suiteId'], $data['no_persons']),
+                ]);
+
+                Transaction::create([
+                    'booking_id' => $data->id,
+                    'type' => 'rooms',
+                ]);
+
+                DB::commit();
+
+                Notification::make()
+                    ->success()
+                    ->title('Booking Created')
+                    ->icon('heroicon-o-check-circle')
+                    ->body('Booking has been created successfully.')
+                    ->send();
+
+                Notification::make()
+                    ->success()
+                    ->title('Booking Created')
+                    ->icon('heroicon-o-check-circle')
+                    ->body(auth()->user()->name.' has booked '.$data->room->name)
+                    ->actions([
+                        Action::make('view')
+                            ->label('View')
+                            ->url(fn () => BookingResource::getUrl('view', ['record' => $data->id])),
+                    ])
+                    ->sendToDatabase(User::whereIn('role', ['admin', 'front-desk'])->get());
+            } catch (\Exception $e) {
+                DB::rollBack();
+
+                logger($e->getMessage());
+            }
+
+            return $data?->id;
+        }
     }
 
-    public function getSuiteRoom($suiteID)
+    public function getFunctionHallTime($date, $suiteRoomId)
     {
-        $suiteRooms = SuiteRoom::where('is_active', true)
-            ->where('is_occupied', false)
-            ->where('room_id', $suiteID)
-            ->inRandomOrder()
-            ->take(1) // Limit to 3 random records
+        $start = \Carbon\Carbon::parse($date)->setTime(8, 0);
+        $end = $start->copy()->addHours(4);
+
+        $bookings = \App\Models\Booking::where('suite_room_id', $suiteRoomId)
+            ->whereDate('start_date', $start->toDateString())
+            ->orderBy('start_date')
+            ->get();
+
+        if ($bookings->count() >= 2) {
+            return false;
+        }
+
+        if ($bookings->count() === 1) {
+            $lastBooking = $bookings->first();
+            $start = \Carbon\Carbon::parse($lastBooking->check_out_date)->addHour();
+            $end = $start->copy()->addHours(4);
+        }
+
+        return [
+            'start' => $start->toDateTimeString(),
+            'end' => $end->toDateTimeString(),
+        ];
+    }
+
+    public function getSuiteRoom($suiteID, $checkIn, $checkOut)
+    {
+        $bookedRoomIds = Booking::where(function ($query) use ($checkIn, $checkOut) {
+            $query->where('check_in_date', '<', $checkOut)
+                ->where('check_out_date', '>', $checkIn);
+        })
+            ->pluck('suite_room_id');
+
+        $availableRoom = SuiteRoom::where('room_id', $suiteID)
+            ->where('is_active', true)
+            ->whereNotIn('id', $bookedRoomIds)
             ->first();
 
-        return $suiteRooms->id;
+        return $availableRoom?->id ?? false;
     }
 
     public function getPayment($hours, $suiteId, $no_persons)
@@ -527,112 +538,5 @@ class RoomReservations extends Page implements HasForms
         $extraCharge = $extraPersons * $suite->items[5]['price'];
 
         return $value + $extraCharge;
-        // if ($suiteId == 1) {
-        //     if ($hours <= 3) {
-        //         $value = 300;
-        //     } elseif ($hours <= 6) {
-        //         $value = 500;
-        //     } elseif ($hours <= 12) {
-        //         $value = 800;
-        //     } elseif ($hours <= 24) {
-        //         $value = 1200;
-        //     } else {
-        //         if (fmod($hours, 24) == 0.0) {
-        //             $value = ($hours / 24) * 1200;
-        //         } else {
-        //             $value = 1200 + (($hours - 24) * 100);
-        //         }
-        //     }
-
-        //     if ($hours > 3 && $hours < 6) {
-        //         $value = 300 + (($hours - 3) * 100);
-        //     } elseif ($hours > 6 && $hours < 12) {
-        //         $value = 500 + (($hours - 6) * 100);
-        //     } elseif ($hours > 12 && $hours < 24) {
-        //         $value = 800 + (($hours - 12) * 100);
-        //     }
-        // }
-
-        // if ($suiteId == 2) {
-        //     if ($hours <= 3) {
-        //         $value = 350;
-        //     } elseif ($hours <= 6) {
-        //         $value = 550;
-        //     } elseif ($hours <= 12) {
-        //         $value = 850;
-        //     } elseif ($hours <= 24) {
-        //         $value = 1400;
-        //     } else {
-        //         if (fmod($hours, 24) == 0.0) {
-        //             $value = ($hours / 24) * 1400;
-        //         } else {
-        //             $value = 1400 + (($hours - 24) * 100);
-        //         }
-        //     }
-
-        //     if ($hours > 3 && $hours < 6) {
-        //         $value = 350 + (($hours - 3) * 100);
-        //     } elseif ($hours > 6 && $hours < 12) {
-        //         $value = 550 + (($hours - 6) * 100);
-        //     } elseif ($hours > 12 && $hours < 24) {
-        //         $value = 850 + (($hours - 12) * 100);
-        //     }
-        // }
-
-        // if ($suiteId == 3) {
-        //     if ($hours <= 3) {
-        //         $value = 400;
-        //     } elseif ($hours <= 6) {
-        //         $value = 600;
-        //     } elseif ($hours <= 12) {
-        //         $value = 900;
-        //     } elseif ($hours <= 24) {
-        //         $value = 1600;
-        //     } else {
-
-        //         $value = 1600;
-        //     }
-
-        //     if ($hours > 3 && $hours < 6) {
-        //         $value = 400 + (($hours - 3) * 100);
-        //     } elseif ($hours > 6 && $hours < 12) {
-        //         $value = 600 + (($hours - 6) * 100);
-        //     } elseif ($hours > 12 && $hours < 24) {
-        //         $value = 900 + (($hours - 12) * 100);
-        //     } elseif ($hours > 24) {
-        //         $value = 1600 + (($hours - 24) * 100);
-        //     }
-
-        //     if ($hours <= 3) {
-        //         $value = 400;
-        //     } elseif ($hours <= 6) {
-        //         $value = 600;
-        //     } elseif ($hours <= 12) {
-        //         $value = 900;
-        //     } elseif ($hours <= 24) {
-        //         $value = 1600;
-        //     } else {
-
-        //         if (fmod($hours, 24) == 0.0) {
-        //             $value = ($hours / 24) * 1600;
-        //         } else {
-
-        //             $value = 1600 + (($hours - 24) * 100);
-        //         }
-        //     }
-
-        //     if ($hours > 3 && $hours < 6) {
-        //         $value = 400 + (($hours - 3) * 100);
-        //     } elseif ($hours > 6 && $hours < 12) {
-        //         $value = 600 + (($hours - 6) * 100);
-        //     } elseif ($hours > 12 && $hours < 24) {
-        //         $value = 900 + (($hours - 12) * 100);
-        //     }
-        // }
-
-        // $extraPersons = max(0, $no_persons - 2);
-        // $extraCharge = $extraPersons * 700;
-
-        // return $value + $extraCharge;
     }
 }

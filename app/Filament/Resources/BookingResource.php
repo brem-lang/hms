@@ -5,8 +5,8 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\BookingResource\Pages;
 use App\Models\Booking;
 use App\Models\User;
-use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
+use Filament\Forms\Components\ToggleButtons;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
@@ -20,26 +20,24 @@ class BookingResource extends Resource
 {
     protected static ?string $model = Booking::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+    protected static ?string $navigationIcon = 'heroicon-o-book-open';
+
+    protected static ?string $navigationGroup = 'Settlement';
 
     public static function canViewAny(): bool
     {
-        return ! auth()->user()->isCustomer();
+        return auth()->user()->isAdmin() || auth()->user()->isFrontDesk();
     }
 
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
-                DatePicker::make('start_date')
-                    ->required()
-                    ->minDate(now()->startOfDay())
-                    ->live()
-                    ->reactive(),
-                DatePicker::make('end_date')
-                    ->live()
-                    ->required()
-                    ->minDate(now()->startOfDay()),
+                ToggleButtons::make('is_occupied')
+                    ->columnSpanFull()
+                    ->label('Occupied')
+                    ->boolean()
+                    ->inline(),
                 Select::make('status')
                     ->label('Status')
                     ->options([
@@ -48,7 +46,7 @@ class BookingResource extends Resource
                         'cancelled' => 'Cancelled',
                     ]),
             ])
-            ->columns(2);
+            ->columns(1);
     }
 
     public static function table(Table $table): Table
@@ -65,15 +63,15 @@ class BookingResource extends Resource
                     ->sortable()
                     ->toggleable()
                     ->searchable(),
-                TextColumn::make('start_date')
-                    ->label('Start Date')
-                    ->date('F d, Y h:i A')->timezone('Asia/Manila')
+                TextColumn::make('check_in_date')
+                    ->label('Check In Date')
+                    ->date('F d, Y h:i A')
                     ->searchable()
                     ->toggleable()
                     ->sortable(),
-                TextColumn::make('end_date')
-                    ->label('End Date')
-                    ->date('F d, Y h:i A')->timezone('Asia/Manila')
+                TextColumn::make('check_out_date')
+                    ->label('Check Out Date')
+                    ->date('F d, Y h:i A')
                     ->searchable()
                     ->toggleable()
                     ->sortable(),
@@ -86,11 +84,25 @@ class BookingResource extends Resource
                     })
                     ->formatStateUsing(fn (string $state): string => __(ucfirst($state)))
                     ->searchable(),
+                TextColumn::make('is_occupied')
+                    ->label('Occupied')
+                    ->toggleable()
+                    ->badge()->color(fn (string $state): string => match ($state) {
+                        '1' => 'success',
+                        '0' => 'danger',
+                    })
+                    ->formatStateUsing(fn (string $state): string => $state ? 'Yes' : 'No'),
+                TextColumn::make('suiteRoom.name')
+                    ->label('Room Number')
+                    ->sortable()
+                    ->toggleable()
+                    ->formatStateUsing(fn ($state) => ucfirst($state))
+                    ->searchable(),
                 TextColumn::make('type')
                     ->label('Booking Type')
                     ->toggleable()
                     ->formatStateUsing(function ($state) {
-                        return $state === 'online_booking' ? 'Online' : 'Walk-in';
+                        return $state === 'Online booking' ? 'Online' : 'Walk-in';
                     })
                     ->searchable(),
             ])
@@ -107,7 +119,8 @@ class BookingResource extends Resource
                     ]),
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
+                Tables\Actions\EditAction::make()
+                    ->modalWidth('md'),
                 ActionsAction::make('view')
                     ->label('View')
                     ->icon('heroicon-o-eye')

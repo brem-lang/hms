@@ -12,10 +12,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('transactions', function (Blueprint $table) {
-            $table->foreignId('booking_id')
-                ->nullable()
-                ->constrained('bookings')
-                ->cascadeOnDelete();
+            $table->foreignId('food_order_id')->nullable()->constrained('food_orders')->cascadeOnDelete();
+            $table->string('type')->nullable();
         });
     }
 

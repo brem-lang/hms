@@ -98,7 +98,7 @@ class FoodOrder extends Page implements HasForms
                     // ->url(fn () => BookingResource::getUrl('view', ['record' => $data->id]))
                     ,
                 ])
-                ->sendToDatabase(User::whereIn('role', ['admin', 'staff'])->get());
+                ->sendToDatabase(User::whereIn('role', ['admin', 'front-desk'])->get());
         } catch (\Exception $e) {
             logger($e->getMessage());
         }

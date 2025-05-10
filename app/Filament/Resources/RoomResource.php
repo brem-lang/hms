@@ -80,7 +80,7 @@ class RoomResource extends Resource
                                     ->maxLength(255),
 
                                 Repeater::make('items')
-                                    ->maxItems(0)
+                                    ->maxItems(6)
                                     ->deletable(false)
                                     ->reorderable(false)
                                     ->reorderableWithDragAndDrop(false)

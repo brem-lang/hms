@@ -100,7 +100,8 @@ class GuestOrders extends Page implements HasForms
                 ->actions([
                     Action::make('view')
                         ->label('View')
-                        ->url(fn () => MyOrderResource::getUrl('payment', ['record' => $order->id])),
+                        ->url(fn () => MyOrderResource::getUrl('payment', ['record' => $order->id]))
+                        ->markAsRead(),
                 ])
                 ->sendToDatabase(User::where('id', $data['id'])->get());
         } catch (\Exception $e) {

@@ -92,7 +92,8 @@ class ViewMyOrder extends Page
             ->actions([
                 Action::make('view')
                     ->label('View')
-                    ->url(fn () => FoodOrderResource::getUrl('view', ['record' => $this->record->id])),
+                    ->url(fn () => FoodOrderResource::getUrl('view', ['record' => $this->record->id]))
+                    ->markAsRead(),
             ])
             ->sendToDatabase(User::whereIn('role', ['admin', 'staff'])->get());
 

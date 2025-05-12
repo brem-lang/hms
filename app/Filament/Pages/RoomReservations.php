@@ -449,7 +449,9 @@ class RoomReservations extends Page implements HasForms
                     ->actions([
                         Action::make('view')
                             ->label('View')
-                            ->url(fn () => BookingResource::getUrl('view', ['record' => $data->id])),
+                            ->url(fn () => BookingResource::getUrl('view', ['record' => $data->id]))
+                            ->markAsRead(),
+
                     ])
                     ->sendToDatabase(User::whereIn('role', ['admin', 'front-desk'])->get());
             } catch (\Exception $e) {

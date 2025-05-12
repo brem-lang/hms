@@ -90,7 +90,8 @@ class ViewOrder extends Page
             ->actions([
                 Action::make('view')
                     ->label('View')
-                    ->url(fn () => MyOrderResource::getUrl('payment', ['record' => $this->record->id])),
+                    ->url(fn () => MyOrderResource::getUrl('payment', ['record' => $this->record->id]))
+                    ->markAsRead(),
             ])
             ->sendToDatabase(User::where('id', $this->record->user_id)->get());
     }

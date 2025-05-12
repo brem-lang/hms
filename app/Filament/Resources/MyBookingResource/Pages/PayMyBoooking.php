@@ -130,7 +130,8 @@ class PayMyBoooking extends Page
             ->actions([
                 Action::make('view')
                     ->label('View')
-                    ->url(fn () => BookingResource::getUrl('view', ['record' => $this->record->id])),
+                    ->url(fn () => BookingResource::getUrl('view', ['record' => $this->record->id]))
+                    ->markAsRead(),
             ])
             ->sendToDatabase(User::where('role', '!=', 'customer')->get());
 

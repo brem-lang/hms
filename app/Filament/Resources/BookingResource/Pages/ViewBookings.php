@@ -112,7 +112,8 @@ class ViewBookings extends Page
             ->actions([
                 Action::make('view')
                     ->label('View')
-                    ->url(fn () => MyBookingResource::getUrl('payment', ['record' => $this->record->id])),
+                    ->url(fn () => MyBookingResource::getUrl('payment', ['record' => $this->record->id]))
+                    ->markAsRead(),
                 // ->openUrlInNewTab()
             ])
             ->sendToDatabase(User::where('id', $this->record->user_id)->get());

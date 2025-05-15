@@ -70,6 +70,13 @@ class Register extends RegisterPage
             ->required();
     }
 
+    protected function mutateFormDataBeforeRegister(array $data): array
+    {
+        $data['role'] = 'customer';
+
+        return $data;
+    }
+
     public function register(): ?RegistrationResponse
     {
         try {

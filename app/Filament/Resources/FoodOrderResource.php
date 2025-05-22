@@ -23,7 +23,7 @@ class FoodOrderResource extends Resource
 
     public static function canViewAny(): bool
     {
-        return auth()->user()->isAdmin() || auth()->user()->isStaff();
+        return auth()->user()->isAdmin() || auth()->user()->isStaff() || auth()->user()->isFrontDesk();
     }
 
     public static function form(Form $form): Form

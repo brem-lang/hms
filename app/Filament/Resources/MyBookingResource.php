@@ -114,7 +114,8 @@ class MyBookingResource extends Resource
                         return $record->status !== 'pending';
                     })
                     ->visible(function ($record) {
-                        return \Carbon\Carbon::parse($record->start_date)->greaterThan(now()->addDays(1));
+                        return $record->status === 'completed';
+                        // return \Carbon\Carbon::parse($record->start_date)->greaterThan(now()->addDays(1));
                     }),
                 Action::make('payment')
                     ->label('Pay')

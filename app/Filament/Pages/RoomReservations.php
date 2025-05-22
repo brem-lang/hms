@@ -10,6 +10,7 @@ use App\Models\SuiteRoom;
 use App\Models\Transaction;
 use App\Models\User;
 use Carbon\Carbon;
+use Closure;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
@@ -74,15 +75,33 @@ class RoomReservations extends Page implements HasForms
     public function standardSuiteForm(Form $form): Form
     {
         return $form->schema([
+
             DatePicker::make('start_date')
                 ->required()
                 ->minDate(now()->startOfDay())
                 ->live()
                 ->reactive(),
+
             DatePicker::make('end_date')
-                ->live()
                 ->required()
-                ->minDate(now()->startOfDay()),
+                ->minDate(now()->startOfDay())
+                ->live()
+                ->reactive()
+                ->rules([
+                    function (callable $get) {
+                        return function (string $attribute, $value, Closure $fail) use ($get) {
+
+                            $date1 = Carbon::createFromFormat('m/d/Y H:i:s', date('m/d/Y H:i:s', strtotime($get('start_date'))));
+                            $date2 = Carbon::createFromFormat('m/d/Y H:i:s', date('m/d/Y H:i:s', strtotime($value)));
+
+                            $result = $date1->gte($date2);
+
+                            if ($result) {
+                                $fail('End Date must be ahead from Start Date');
+                            }
+                        };
+                    },
+                ]),
             // Select::make('hours')
             //     ->reactive()
             //     ->live()
@@ -146,10 +165,27 @@ class RoomReservations extends Page implements HasForms
                 ->minDate(now()->startOfDay())
                 ->live()
                 ->reactive(),
+
             DatePicker::make('end_date')
-                ->live()
                 ->required()
-                ->minDate(now()->startOfDay()),
+                ->minDate(now()->startOfDay())
+                ->live()
+                ->reactive()
+                ->rules([
+                    function (callable $get) {
+                        return function (string $attribute, $value, Closure $fail) use ($get) {
+
+                            $date1 = Carbon::createFromFormat('m/d/Y H:i:s', date('m/d/Y H:i:s', strtotime($get('start_date'))));
+                            $date2 = Carbon::createFromFormat('m/d/Y H:i:s', date('m/d/Y H:i:s', strtotime($value)));
+
+                            $result = $date1->gte($date2);
+
+                            if ($result) {
+                                $fail('End Date must be ahead from Start Date');
+                            }
+                        };
+                    },
+                ]),
             // Select::make('hours')
             //     ->reactive()
             //     ->live()
@@ -213,10 +249,27 @@ class RoomReservations extends Page implements HasForms
                 ->minDate(now()->startOfDay())
                 ->live()
                 ->reactive(),
+
             DatePicker::make('end_date')
-                ->live()
                 ->required()
-                ->minDate(now()->startOfDay()),
+                ->minDate(now()->startOfDay())
+                ->live()
+                ->reactive()
+                ->rules([
+                    function (callable $get) {
+                        return function (string $attribute, $value, Closure $fail) use ($get) {
+
+                            $date1 = Carbon::createFromFormat('m/d/Y H:i:s', date('m/d/Y H:i:s', strtotime($get('start_date'))));
+                            $date2 = Carbon::createFromFormat('m/d/Y H:i:s', date('m/d/Y H:i:s', strtotime($value)));
+
+                            $result = $date1->gte($date2);
+
+                            if ($result) {
+                                $fail('End Date must be ahead from Start Date');
+                            }
+                        };
+                    },
+                ]),
             // Select::make('hours')
             //     ->reactive()
             //     ->live()

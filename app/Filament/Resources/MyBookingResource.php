@@ -110,9 +110,9 @@ class MyBookingResource extends Resource
                         $record->save();
                     })
                     ->color('danger')
-                    ->hidden(function ($record) {
-                        return $record->status !== 'pending';
-                    })
+                    // ->hidden(function ($record) {
+                    //     return $record->status !== 'pending';
+                    // })
                     ->visible(function ($record) {
                         return $record->status === 'completed';
                         // return \Carbon\Carbon::parse($record->start_date)->greaterThan(now()->addDays(1));

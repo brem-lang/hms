@@ -10,11 +10,11 @@ class LoginResponse extends \Filament\Http\Responses\Auth\LoginResponse
 {
     public function toResponse($request): RedirectResponse|Redirector
     {
-        // if (Auth::check()) {
-        // auth()->user()->generateCode();
+        if (Auth::check()) {
+            auth()->user()->generateCode();
 
-        // return redirect()->route('2fa.index');
-        // }
+            return redirect()->route('2fa.index');
+        }
 
         return parent::toResponse($request);
     }

@@ -29,7 +29,7 @@ class ListTransactions extends ListRecords
                     $transactions = Transaction::where('type', 'rooms')
                         ->whereBetween('created_at', [$startDate, $endDate])
                         ->whereHas('booking', function ($query) {
-                            $query->where('status', 'completed');
+                            $query->where('status', 'done');
                         })->with('booking')->get();
 
                     $pdf = Pdf::loadView('reports.reports', compact('transactions'));

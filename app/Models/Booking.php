@@ -22,4 +22,9 @@ class Booking extends Model
     {
         return $this->belongsTo(SuiteRoom::class);
     }
+
+    public function walkingGuest()
+    {
+        return $this->hasOne(WalkinGuest::class);
+    }
 }

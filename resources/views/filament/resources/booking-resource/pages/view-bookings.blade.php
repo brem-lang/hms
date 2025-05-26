@@ -46,33 +46,39 @@
                                             Booking Confirm
                                         </x-filament::button>
                                     @else
-                                        <x-filament::modal id="confirm-modal" width="md" alignment="center"
-                                            icon="heroicon-o-check" icon-color="success">
-                                            <x-slot name="trigger">
-                                                <x-filament::button>
+                                        @if ($record->status == 'cancelled')
+                                            <x-filament::button size="md" color="danger" disabled>
+                                                Booking Cancelled
+                                            </x-filament::button>
+                                        @else
+                                            <x-filament::modal id="confirm-modal" width="md" alignment="center"
+                                                icon="heroicon-o-check" icon-color="success">
+                                                <x-slot name="trigger">
+                                                    <x-filament::button>
+                                                        Confirm Booking
+                                                    </x-filament::button>
+                                                </x-slot>
+                                                <x-slot name="heading">
                                                     Confirm Booking
-                                                </x-filament::button>
-                                            </x-slot>
-                                            <x-slot name="heading">
-                                                Confirm Booking
-                                            </x-slot>
+                                                </x-slot>
 
-                                            <x-slot name="description">
-                                                Are you sure you would like to do this?
-                                            </x-slot>
+                                                <x-slot name="description">
+                                                    Are you sure you would like to do this?
+                                                </x-slot>
 
-                                            <x-slot name="footerActions">
-                                                <x-filament::button size="md" color="primary" class="w-full"
-                                                    wire:click.prevent="confirm">
-                                                    Confirm
-                                                </x-filament::button>
-                                                <x-filament::button color="gray" outlined size="md"
-                                                    class="w-full"
-                                                    x-on:click.prevent="$dispatch('close-modal', {id: 'confirm-modal'})">
-                                                    Cancel
-                                                </x-filament::button>
-                                            </x-slot>
-                                        </x-filament::modal>
+                                                <x-slot name="footerActions">
+                                                    <x-filament::button size="md" color="primary" class="w-full"
+                                                        wire:click.prevent="confirm">
+                                                        Confirm
+                                                    </x-filament::button>
+                                                    <x-filament::button color="gray" outlined size="md"
+                                                        class="w-full"
+                                                        x-on:click.prevent="$dispatch('close-modal', {id: 'confirm-modal'})">
+                                                        Cancel
+                                                    </x-filament::button>
+                                                </x-slot>
+                                            </x-filament::modal>
+                                        @endif
                                     @endif
                                 </div>
                             </div>

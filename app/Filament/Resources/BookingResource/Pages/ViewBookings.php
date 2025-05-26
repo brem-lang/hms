@@ -6,7 +6,12 @@ use App\Filament\Resources\BookingResource;
 use App\Filament\Resources\MyBookingResource;
 use App\Models\Booking;
 use App\Models\User;
+use Filament\Actions\Action as ActionsAction;
 use Filament\Forms\Components\FileUpload;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
 use Filament\Forms\Form;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Infolists\Infolist;
@@ -28,19 +33,110 @@ class ViewBookings extends Page
     {
         $this->form->fill([
             'proof_of_payment' => $record->proof_of_payment,
+            'payment_type' => $record->payment_type ?? 'cash',
         ]);
+    }
+
+    protected function getHeaderActions(): array
+    {
+        return [
+            ActionsAction::make('more_details')
+                ->icon('heroicon-o-document-text')
+                ->label('Guest Details')
+                ->form([
+                    TextInput::make('name')
+                        ->formatStateUsing(fn () => $this->record->walkingGuest?->first_name.' '.$this->record->walkingGuest?->last_name)
+                        ->readOnly(),
+                    TextInput::make('email')
+                        ->formatStateUsing(fn () => $this->record->walkingGuest?->email)
+                        ->readOnly(),
+                    TextInput::make('phone')
+                        ->formatStateUsing(fn () => $this->record->walkingGuest?->phone)
+                        ->readOnly(),
+                ])
+                ->visible(fn () => $this->record->walkingGuest)
+                ->modalCancelAction(false)
+                ->modalSubmitAction(false),
+            ActionsAction::make('confirm_cancel')
+                ->label('Approve Cancellation')
+                ->action(function ($data) {
+
+                    $this->record->can_cancel = $data['can_cancel'];
+                    $this->record->save();
+
+                    Notification::make()
+                        ->success()
+                        ->title('Booking Cancelled')
+                        ->icon('heroicon-o-check-circle')
+                        ->body($this->record->user->name.' your booking has been cancelled')
+                        ->actions([
+                            Action::make('view')
+                                ->label('View')
+                                ->url(fn () => MyBookingResource::getUrl('payment', ['record' => $this->record->id]))->markAsRead()
+                                ->markAsRead(),
+                        ])
+                        ->sendToDatabase(User::where('id', $this->record->user_id)->get());
+
+                    Notification::make()
+                        ->success()
+                        ->title('Cancellation Approved')
+                        ->icon('heroicon-o-check-circle')
+                        ->send();
+
+                    Notification::make()
+                        ->success()
+                        ->title('Cancellation Approved')
+                        ->icon('heroicon-o-check-circle')
+                        ->body($this->record->user->name.' you can cancel your booking')
+                        ->actions([
+                            Action::make('view')
+                                ->label('View')
+                                ->url(fn () => MyBookingResource::getUrl('payment', ['record' => $this->record->id]))->markAsRead(),
+                            // ->openUrlInNewTab()
+                        ])
+                        ->sendToDatabase(User::where('id', $this->record->user_id)->get());
+                })
+                ->color('danger')
+                ->visible(fn () => $this->record->want_cancel != false)
+                ->hidden(fn () => $this->record->can_cancel)
+                ->form([
+                    Textarea::make('cancel_reason')
+                        ->readOnly()
+                        ->label('Reason for Cancellation')
+                        ->required()
+                        ->formatStateUsing(fn () => $this->record->cancel_reason)
+                        ->maxLength(255)
+                        ->placeholder('Please provide a reason for cancellation'),
+                    Toggle::make('can_cancel')
+                        ->label('Approve Cancellation')
+                        ->inline(false)
+                        ->default(false),
+                ])
+                ->modalWidth('lg')
+                ->icon('heroicon-o-check-circle'),
+        ];
     }
 
     public function form(Form $form): Form
     {
         return $form
             ->schema([
+                Select::make('payment_type')
+                    ->live()
+                    ->label('Payment Type')
+                    ->options([
+                        'gcash' => 'GCash',
+                        'cash' => 'Cash',
+                    ])
+                    ->required(),
                 FileUpload::make('proof_of_payment')
                     ->openable()
+                    ->image()
                     ->columnSpanFull()
                     ->label('Proof of Payment')
                     ->required()
                     ->disk('public_uploads_payment')
+                    ->visible(fn ($get) => $get('payment_type') === 'gcash')
                     ->directory('/')
                     ->hint('Please upload the proof of payment for gcash.'),
             ])
@@ -94,6 +190,10 @@ class ViewBookings extends Page
 
     public function confirm()
     {
+        $data = $this->form->getState();
+        $this->record->proof_of_payment = $data['proof_of_payment'] ?? null;
+        $this->record->payment_type = $data['payment_type'];
+
         $this->record->status = 'completed';
 
         $this->record->save();
@@ -112,8 +212,7 @@ class ViewBookings extends Page
             ->actions([
                 Action::make('view')
                     ->label('View')
-                    ->url(fn () => MyBookingResource::getUrl('payment', ['record' => $this->record->id]))
-                    ->markAsRead(),
+                    ->url(fn () => MyBookingResource::getUrl('payment', ['record' => $this->record->id]))->markAsRead(),
                 // ->openUrlInNewTab()
             ])
             ->sendToDatabase(User::where('id', $this->record->user_id)->get());

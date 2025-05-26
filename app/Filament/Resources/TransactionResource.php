@@ -60,6 +60,7 @@ class TransactionResource extends Resource
                         'pending' => 'gray',
                         'completed' => 'success',
                         'cancelled' => 'danger',
+                        'done' => 'success',
                     })
                     ->formatStateUsing(fn (string $state): string => __(ucfirst($state)))
                     ->searchable(),

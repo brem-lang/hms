@@ -52,6 +52,7 @@ class GuestOrders extends Page implements HasForms
                     ->label('Guest')
                     ->options(User::where('role', 'customer')->get()->pluck('name', 'id')),
                 TextInput::make('quantity')
+                    ->minValue(0)
                     ->numeric()
                     ->label('Quantity')
                     ->required(),

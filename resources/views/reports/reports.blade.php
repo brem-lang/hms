@@ -33,8 +33,7 @@
                 <th>Room Type</th>
                 <th>Room Name</th>
                 <th>Booking Type</th>
-                <th>Start Date</th>
-                <th>End Date</th>
+                <th>Booking Date</th>
                 <th>Amount</th>
             </tr>
         </thead>
@@ -47,13 +46,12 @@
                     <td>{{ ucfirst($transaction->booking->suiteRoom->name) }}</td>
                     <td>{{ ucfirst($transaction->booking->type) }}</td>
                     <td>{{ \Carbon\Carbon::parse($transaction->booking->start_date)->format('F j, Y g:i A') }}</td>
-                    <td>{{ \Carbon\Carbon::parse($transaction->booking->end_date)->format('F j, Y g:i A') }}</td>
                     <td style="text-align: right;font-weight: bold; font-family: 'DejaVu Sans', sans-serif;">
                         ₱ {{ number_format($transaction->booking->amount_to_pay, 2) }}</td>
                 </tr>
             @endforeach
             <tr style="font-weight: bold;">
-                <td colspan="5" style="text-align: right;">Total Amount:</td>
+                <td colspan="4" style="text-align: right;">Total Amount:</td>
                 <td style="text-align: right; font-family: 'DejaVu Sans', sans-serif;">
                     ₱ {{ number_format($totalAmount, 2) }}
                 </td>

@@ -2,6 +2,7 @@
 
 namespace App\Providers\Filament;
 
+use App\Http\Middleware\Check2FA;
 use App\Livewire\Register;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
@@ -52,6 +53,7 @@ class AppPanelProvider extends PanelProvider
                 SubstituteBindings::class,
                 DisableBladeIconComponents::class,
                 DispatchServingFilamentEvent::class,
+                // Check2FA::class,
             ])
             ->authMiddleware([
                 Authenticate::class,
@@ -62,7 +64,11 @@ class AppPanelProvider extends PanelProvider
             ->databaseNotifications()
             ->registration(Register::class)
             ->databaseNotificationsPolling('30s')
-            ->brandName('Millenium Suites ')
+            ->brandName('Millenium Suites')
+            // ->renderHook(
+            //     'panels::auth.login.form.after',
+            //     fn () => view('auth.socialite.google')
+            // )
             ->brandLogo(fn () => view('filament.logo'));
     }
 }

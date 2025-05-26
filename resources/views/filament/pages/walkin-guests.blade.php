@@ -77,7 +77,11 @@
                                             </div>
                                             <div class="column"
                                                 style="flex: auto; padding: 0 10px; word-break: break-word;">
-                                                @if ($record['standard']['available_rooms'] > 0)
+                                                <h1 style="font-weight: 700">
+                                                    {{ $record['standardOccupied'] }} Available Room(s)
+                                                </h1>
+                                                <br>
+                                                @if ($record['standardOccupied'] > 0)
                                                     @if ($record['standard']['status'])
                                                         <x-filament::modal width="4xl">
                                                             <x-slot name="trigger">
@@ -89,7 +93,7 @@
 
                                                             <x-slot name="footerActions">
                                                                 <x-filament::button
-                                                                    wire:click.prevent="standardSuiteSubmit"
+                                                                    wire:click.prevent.once="standardSuiteSubmit"
                                                                     wire:loading.attr="disabled">
                                                                     Submit
                                                                 </x-filament::button>
@@ -193,8 +197,11 @@
                                             </div>
                                             <div class="column"
                                                 style="flex: auto; padding: 0 10px; word-break: break-word;">
-
-                                                @if ($record['deluxe']['available_rooms'] > 0)
+                                                <h1 style="font-weight: 700">
+                                                    {{ $record['deluxeOccupied'] }} Available Room(s)
+                                                </h1>
+                                                <br>
+                                                @if ($record['deluxeOccupied'] > 0)
                                                     @if ($record['deluxe']['status'])
                                                         <x-filament::modal width="4xl">
                                                             <x-slot name="trigger">
@@ -206,7 +213,7 @@
 
                                                             <x-slot name="footerActions">
                                                                 <x-filament::button
-                                                                    wire:click.prevent="deluxeSuiteSubmit"
+                                                                    wire:click.prevent.once="deluxeSuiteSubmit"
                                                                     wire:loading.attr="disabled">
                                                                     Submit
                                                                 </x-filament::button>
@@ -310,7 +317,11 @@
                                             </div>
                                             <div class="column"
                                                 style="flex: auto; padding: 0 10px; word-break: break-word;">
-                                                @if ($record['executive']['available_rooms'] > 0)
+                                                <h1 style="font-weight: 700">
+                                                    {{ $record['executiveOccupied'] }} Available Room(s)
+                                                </h1>
+                                                <br>
+                                                @if ($record['executiveOccupied'] > 0)
                                                     @if ($record['executive']['status'])
                                                         <x-filament::modal width="4xl">
                                                             <x-slot name="trigger">
@@ -322,7 +333,7 @@
 
                                                             <x-slot name="footerActions">
                                                                 <x-filament::button
-                                                                    wire:click.prevent="executiveSuiteSubmit"
+                                                                    wire:click.prevent.once="executiveSuiteSubmit"
                                                                     wire:loading.attr="disabled">
                                                                     Submit
                                                                 </x-filament::button>
@@ -416,7 +427,11 @@
                                             </div>
                                             <div class="column"
                                                 style="flex: auto; padding: 0 10px; word-break: break-word;">
-                                                @if ($record['functionHall']['available_rooms'] > 0)
+                                                <h1 style="font-weight: 700">
+                                                    {{ $record['functionHallOccupied'] }} Available Room(s)
+                                                </h1>
+                                                <br>
+                                                @if ($record['functionHallOccupied'] > 0)
                                                     @if ($record['executive']['status'])
                                                         <x-filament::modal width="4xl">
                                                             <x-slot name="trigger">
@@ -428,7 +443,7 @@
 
                                                             <x-slot name="footerActions">
                                                                 <x-filament::button
-                                                                    wire:click.prevent="functionHallSuiteSubmit"
+                                                                    wire:click.prevent.once="functionHallSuiteSubmit"
                                                                     wire:loading.attr="disabled">
                                                                     Submit
                                                                 </x-filament::button>

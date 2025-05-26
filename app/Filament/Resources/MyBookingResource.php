@@ -4,8 +4,12 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\MyBookingResource\Pages;
 use App\Models\Booking;
+use App\Models\User;
 use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\Textarea;
 use Filament\Forms\Form;
+use Filament\Notifications\Actions\Action as ActionsAction;
+use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Actions\Action;
@@ -80,6 +84,7 @@ class MyBookingResource extends Resource
                         'pending' => 'gray',
                         'completed' => 'success',
                         'cancelled' => 'danger',
+                        'done' => 'success',
                     })
                     ->formatStateUsing(fn (string $state): string => __(ucfirst($state)))
                     ->searchable(),
@@ -93,10 +98,10 @@ class MyBookingResource extends Resource
                     ]),
             ])
             ->actions([
-                Tables\Actions\EditAction::make()
-                    ->hidden(function ($record) {
-                        return $record->status !== 'pending';
-                    }),
+                // Tables\Actions\EditAction::make()
+                //     ->hidden(function ($record) {
+                //         return ;
+                //     }),
                 // DeleteAction::make()
                 //     ->hidden(function ($record) {
                 //         return $record->status !== 'pending';
@@ -105,9 +110,36 @@ class MyBookingResource extends Resource
                     ->icon('heroicon-o-x-circle')
                     ->requiresConfirmation()
                     ->label('Cancel')
-                    ->action(function ($record) {
-                        $record->status = 'cancelled';
+                    ->form([
+                        Textarea::make('cancel_reason')
+                            ->label('Reason for Cancellation')
+                            ->required()
+                            ->maxLength(255)
+                            ->placeholder('Please provide a reason for cancellation'),
+                    ])
+                    ->action(function ($record, $data) {
+                        // $record->status = 'cancelled';
+                        $record->want_cancel = true;
+                        $record->cancel_reason = $data['cancel_reason'];
+
                         $record->save();
+
+                        Notification::make()
+                            ->title('Booking Cancelled')
+                            ->body('Wait for the admin to approve your cancellation')
+                            ->success()
+                            ->icon('heroicon-o-check-circle');
+
+                        Notification::make()
+                            ->title(auth()->user()->name.',wants to cancel booking')
+                            ->success()
+                            ->actions([
+                                ActionsAction::make('view')
+                                    ->label('View')
+                                    ->url(fn () => BookingResource::getUrl('view', ['record' => $record->id]))
+                                    ->markAsRead(),
+                            ])
+                            ->sendToDatabase(User::whereIn('role', ['supervisor', 'front-desk'])->get());
                     })
                     ->color('danger')
                     // ->hidden(function ($record) {
@@ -115,7 +147,6 @@ class MyBookingResource extends Resource
                     // })
                     ->visible(function ($record) {
                         return $record->status === 'completed';
-                        // return \Carbon\Carbon::parse($record->start_date)->greaterThan(now()->addDays(1));
                     }),
                 Action::make('payment')
                     ->label('Pay')
@@ -126,12 +157,18 @@ class MyBookingResource extends Resource
                     ->hidden(function ($record) {
                         return $record->status !== 'pending';
                     }),
+                Action::make('view')
+                    ->label('View')
+                    ->icon('heroicon-o-eye')
+                    ->color('primary')
+                    ->url(fn ($record) => MyBookingResource::getUrl('payment', ['record' => $record->id])),
             ])
             ->bulkActions([
                 // Tables\Actions\BulkActionGroup::make([
                 //     Tables\Actions\DeleteBulkAction::make(),
                 // ]),
             ])
+            ->poll('3s')
             ->modifyQueryUsing(function ($query) {
                 return $query->where('user_id', auth()->user()->id)->latest();
             });

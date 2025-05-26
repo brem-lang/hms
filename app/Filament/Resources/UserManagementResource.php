@@ -56,7 +56,7 @@ class UserManagementResource extends Resource
                         Select::make('role')
                             ->label('Role')
                             ->options([
-                                'admin' => 'Admin',
+                                'supervisor' => 'Supervisor',
                                 'front-desk' => 'Front Desk',
                                 'customer' => 'Customer',
                             ])
@@ -75,7 +75,7 @@ class UserManagementResource extends Resource
                 TextColumn::make('email')->searchable(),
                 TextColumn::make('role')
                     ->badge()->color(fn (string $state): string => match ($state) {
-                        'admin' => 'success',
+                        'supervisor' => 'success',
                         'customer' => 'gray',
                         'front-desk' => 'warning',
                         'staff' => 'danger',

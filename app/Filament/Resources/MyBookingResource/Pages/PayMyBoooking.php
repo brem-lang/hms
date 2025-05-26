@@ -6,11 +6,14 @@ use App\Filament\Resources\BookingResource;
 use App\Filament\Resources\MyBookingResource;
 use App\Models\Booking;
 use App\Models\User;
+use Filament\Actions\Action as ActionsAction;
 use Filament\Forms\Components\FileUpload;
+use Filament\Forms\Components\Textarea;
 use Filament\Forms\Form;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Infolists\Infolist;
 use Filament\Notifications\Actions\Action;
+use Filament\Notifications\Actions\Action as NotificationsAction;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\Page;
 
@@ -23,6 +26,68 @@ class PayMyBoooking extends Page
     public ?array $formData = [];
 
     protected static string $view = 'filament.resources.my-booking-resource.pages.pay-my-boooking';
+
+    protected function getHeaderActions(): array
+    {
+        return [
+            ActionsAction::make('cancel_booking')
+                ->label('Cancel Booking')
+                ->action(function ($data) {
+                    $this->record->want_cancel = true;
+                    $this->record->cancel_reason = $data['cancel_reason'];
+
+                    $this->record->save();
+
+                    Notification::make()
+                        ->title('Booking Cancelled')
+                        ->body('Wait for the admin to approve your cancellation')
+                        ->success()
+                        ->icon('heroicon-o-check-circle')
+                        ->send();
+
+                    Notification::make()
+                        ->title(auth()->user()->name.',wants to cancel booking')
+                        ->success()
+                        ->actions([
+                            NotificationsAction::make('view')
+                                ->label('View')
+                                ->url(fn () => BookingResource::getUrl('view', ['record' => $this->record->id]))
+                                ->markAsRead(),
+                        ])
+                        ->sendToDatabase(User::whereIn('role', ['supervisor', 'front-desk'])->get());
+                })
+                ->color('danger')
+                ->visible(fn () => $this->record->status === 'completed')
+                ->hidden(fn () => $this->record->want_cancel)
+                ->form([
+                    Textarea::make('cancel_reason')
+                        ->label('Reason for Cancellation')
+                        ->required()
+                        ->maxLength(255)
+                        ->placeholder('Please provide a reason for cancellation'),
+                ])
+                ->modalWidth('lg')
+                ->icon('heroicon-o-x-circle'),
+            ActionsAction::make('cancel_final')
+                ->label('Cancel Booking')
+                ->action(function ($data) {
+                    $this->record->status = 'cancelled';
+                    $this->record->save();
+
+                    Notification::make()
+                        ->success()
+                        ->title('Booking Cancelled')
+                        ->icon('heroicon-o-check-circle')
+                        ->send();
+                })
+                ->color('danger')
+                ->visible(fn () => $this->record->can_cancel)
+                ->hidden(fn () => $this->record->status === 'cancelled')
+                ->requiresConfirmation()
+                ->modalWidth('lg')
+                ->icon('heroicon-o-x-circle'),
+        ];
+    }
 
     public function mount(Booking $record): void
     {

@@ -47,6 +47,7 @@ class FoodOrder extends Page implements HasForms
             ->schema([
                 TextInput::make('quantity')
                     ->numeric()
+                    ->minValue(0)
                     ->label('Quantity')
                     ->required(),
                 Textarea::make('notes')

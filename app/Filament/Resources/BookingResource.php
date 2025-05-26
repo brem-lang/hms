@@ -81,10 +81,11 @@ class BookingResource extends Resource
                         'pending' => 'gray',
                         'completed' => 'success',
                         'cancelled' => 'danger',
+                        'done' => 'success',
                     })
                     ->formatStateUsing(fn (string $state): string => __(ucfirst($state)))
                     ->searchable(),
-                TextColumn::make('is_occupied')
+                TextColumn::make('suiteRoom.is_occupied')
                     ->label('Occupied')
                     ->toggleable()
                     ->badge()->color(fn (string $state): string => match ($state) {
@@ -102,7 +103,7 @@ class BookingResource extends Resource
                     ->label('Booking Type')
                     ->toggleable()
                     ->formatStateUsing(function ($state) {
-                        return $state === 'Online booking' ? 'Online' : 'Walk-in';
+                        return $state === 'online' ? 'Online' : 'Walk-in';
                     })
                     ->searchable(),
             ])
@@ -118,9 +119,20 @@ class BookingResource extends Resource
                         'cancelled' => 'Cancelled',
                     ]),
             ])
+            ->poll('3s')
             ->actions([
-                Tables\Actions\EditAction::make()
-                    ->modalWidth('md'),
+                // Tables\Actions\EditAction::make()
+                //     ->modalWidth('md'),
+                ActionsAction::make('cancel')
+                    ->icon('heroicon-o-x-circle')
+                    ->color('danger')
+                    ->label('Cancel')
+                    ->requiresConfirmation()
+                    ->action(function (Booking $booking) {
+                        $booking->status = 'cancelled';
+                        $booking->save();
+                    })
+                    ->visible(fn (Booking $booking) => $booking->status == 'completed' && $booking->type == 'walkin_booking'),
                 ActionsAction::make('view')
                     ->label('View')
                     ->icon('heroicon-o-eye')

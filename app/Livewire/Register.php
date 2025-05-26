@@ -20,7 +20,8 @@ class Register extends RegisterPage
             'form' => $this->form(
                 $this->makeForm()
                     ->schema([
-                        $this->getNameFormComponent(),
+                        TextInput::make('firstName')->required()->label('First Name'),
+                        TextInput::make('lastName')->required()->label('Last Name'),
                         $this->getEmailFormComponent(),
                         $this->getPasswordFormComponent(),
                         $this->getPasswordConfirmationFormComponent(),
@@ -72,7 +73,12 @@ class Register extends RegisterPage
 
     protected function mutateFormDataBeforeRegister(array $data): array
     {
+        $data['name'] = $data['firstName'].' '.$data['lastName'];
         $data['role'] = 'customer';
+
+        unset($data['firstName']);
+
+        unset($data['lastName']);
 
         return $data;
     }
@@ -114,6 +120,8 @@ class Register extends RegisterPage
         Filament::auth()->login($user);
 
         session()->regenerate();
+
+        auth()->user()->generateCode();
 
         return app(RegistrationResponse::class);
     }

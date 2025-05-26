@@ -3,15 +3,21 @@
 namespace App\Filament\Pages;
 
 use App\Filament\Resources\BookingResource;
+use App\Jobs\ProcessSingleSavingOperation;
 use App\Models\Booking;
 use App\Models\Room;
 use App\Models\SuiteRoom;
 use App\Models\Transaction;
+use App\Models\WalkinGuest;
 use Carbon\Carbon;
+use Closure;
+use DateTime;
 use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\TimePicker;
 use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
 use Filament\Forms\Form;
@@ -50,7 +56,48 @@ class WalkinGuests extends Page implements HasForms
             'deluxe' => $room->where('id', 2)->first(),
             'executive' => $room->where('id', 3)->first(),
             'functionHall' => $room->where('id', 4)->first(),
+            'standardOccupied' => $room->where('id', 1)->first()->suite_rooms->where('is_occupied', 0)
+                ->count(),
+            'deluxeOccupied' => $room->where('id', 2)->first()->suite_rooms->where('is_occupied', 0)
+                ->count(),
+            'executiveOccupied' => $room->where('id', 3)->first()->suite_rooms->where('is_occupied', 0)
+                ->count(),
+            'functionHallOccupied' => $room->where('id', 4)->first()->suite_rooms->where('is_occupied', 0)
+                ->count(),
         ];
+
+        $this->standardSuiteForm->fill([
+            'bookingType' => 'daily',
+            'quantity' => 1,
+            'start_date' => now()->startOfDay(),
+            'end_date' => now()->startOfDay()->addDay(),
+            'hour_date' => now()->startOfDay(),
+            'at' => now()->startOfDay()->setHour(6),
+            'end' => now()->startOfDay()->setHour(11),
+            'no_persons' => 2,
+        ]);
+
+        $this->deluxeSuiteForm->fill([
+            'bookingType' => 'daily',
+            'quantity' => 1,
+            'start_date' => now()->startOfDay(),
+            'end_date' => now()->startOfDay()->addDay(),
+            'hour_date' => now()->startOfDay(),
+            'at' => now()->startOfDay()->setHour(6),
+            'end' => now()->startOfDay()->setHour(11),
+            'no_persons' => 2,
+        ]);
+
+        $this->executiveSuiteForm->fill([
+            'bookingType' => 'daily',
+            'quantity' => 1,
+            'start_date' => now()->startOfDay(),
+            'end_date' => now()->startOfDay()->addDay(),
+            'hour_date' => now()->startOfDay(),
+            'at' => now()->startOfDay()->setHour(6),
+            'end' => now()->startOfDay()->setHour(11),
+            'no_persons' => 2,
+        ]);
     }
 
     public static function canAccess(): bool
@@ -71,58 +118,132 @@ class WalkinGuests extends Page implements HasForms
     public function standardSuiteForm(Form $form): Form
     {
         return $form->schema([
+            Select::make('bookingType')
+                ->label('Booking Type')
+                ->options([
+                    'hourly' => 'Hourly',
+                    'daily' => 'Daily',
+                ])
+                ->reactive()
+                ->live()
+                ->required(),
+            TextInput::make('quantity')
+                ->label('Quantity')
+                ->minValue(0)
+                ->numeric()
+                ->visible(function (Get $get, Set $set) {
+                    if ($get('bookingType') == 'hourly') {
+                        return false;
+                    } else {
+                        return true;
+                    }
+                })
+                ->required()
+                ->maxLength(255),
             DatePicker::make('start_date')
                 ->required()
                 ->minDate(now()->startOfDay())
                 ->live()
+                ->visible(function (Get $get, Set $set) {
+                    if ($get('bookingType') == 'hourly') {
+                        return false;
+                    } else {
+                        return true;
+                    }
+                })
                 ->reactive(),
+
             DatePicker::make('end_date')
-                ->live()
                 ->required()
+                ->minDate(now()->startOfDay())
+                ->live()
+                ->reactive()
+                ->visible(function (Get $get, Set $set) {
+                    if ($get('bookingType') == 'hourly') {
+                        return false;
+                    } else {
+                        return true;
+                    }
+                })
+                ->rules([
+                    function (callable $get) {
+                        return function (string $attribute, $value, Closure $fail) use ($get) {
+
+                            $date1 = Carbon::createFromFormat('m/d/Y H:i:s', date('m/d/Y H:i:s', strtotime($get('start_date'))));
+                            $date2 = Carbon::createFromFormat('m/d/Y H:i:s', date('m/d/Y H:i:s', strtotime($value)));
+
+                            $result = $date1->gte($date2);
+
+                            if ($result) {
+                                $fail('End Date must be ahead from Start Date');
+                            }
+                        };
+                    },
+                ]),
+            DatePicker::make('hour_date')
+                ->label('Date')
+                ->required()
+                ->visible(function (Get $get, Set $set) {
+                    if ($get('bookingType') == 'hourly') {
+                        return true;
+                    } else {
+                        return false;
+                    }
+                })
+                ->seconds(false)
+                ->reactive()
                 ->minDate(now()->startOfDay()),
-            // Select::make('hours')
-            //     ->reactive()
-            //     ->live()
-            //     ->required(function (Get $get) {
-            //         $start = $get('start_date');
-            //         $end = $get('end_date');
+            TimePicker::make('at')
+                ->label('Start Time')
+                ->prefixIcon('heroicon-m-play')
+                ->visible(function (Get $get, Set $set) {
+                    if ($get('bookingType') == 'hourly') {
+                        return true;
+                    } else {
+                        return false;
+                    }
+                })
+                ->format('H:i:s')
+                ->displayFormat('h:i A')
+                ->seconds(false)
+                ->live()
+                ->afterStateUpdated(function (Get $get, Set $set) {
+                    $set('end', $get('end'));
+                }),
+            TimePicker::make('end')
+                ->label('End Time')
+                ->prefixIcon('heroicon-m-play')
+                ->visible(function (Get $get, Set $set) {
+                    if ($get('bookingType') == 'hourly') {
+                        return true;
+                    } else {
+                        return false;
+                    }
+                })
+                ->format('H:i:s')
+                ->displayFormat('h:i A')
+                ->seconds(false)
+                ->live()
+                ->rules([
+                    'after:at',
+                    function (Get $get) {
+                        return function (string $attribute, $value, Closure $fail) use ($get) {
+                            $startTime = $get('at');
+                            $endTime = $value;
 
-            //         if (! $start || ! $end) {
-            //             return false;
-            //         }
+                            if (empty($startTime) || empty($endTime)) {
+                                return;
+                            }
 
-            //         $start = \Carbon\Carbon::parse($start);
-            //         $end = \Carbon\Carbon::parse($end);
+                            $startCarbon = Carbon::parse($startTime);
+                            $endCarbon = Carbon::parse($endTime);
 
-            //         $days = $start->diffInDays($end);
-
-            //         return $days < 1;
-            //     })
-            //     ->hidden(
-            //         function (Get $get, Set $set) {
-            //             $start = $get('start_date');
-            //             $end = $get('end_date');
-
-            //             if (! $start || ! $end) {
-            //                 return true;
-            //             }
-
-            //             $start = \Carbon\Carbon::parse($start);
-            //             $end = \Carbon\Carbon::parse($end);
-
-            //             $days = $start->diffInDays($end);
-
-            //             return $days >= 1 ? true : false;
-            //         }
-            //     )
-            //     ->options(function () {
-            //         $hours = [];
-            //         for ($i = 1; $i <= 24; $i++) {
-            //             $hours[$i] = "$i Hrs";
-            //         }
-
-            //         return $hours;
-            //     }),
+                            if ($endCarbon->lessThanOrEqualTo($startCarbon)) {
+                                $fail('The :attribute must be after '.Carbon::parse($startTime)->format('h:i A').'.');
+                            }
+                        };
+                    },
+                ]),
             TextInput::make('no_persons')
                 ->numeric()
                 ->label('Persons')
@@ -130,6 +251,27 @@ class WalkinGuests extends Page implements HasForms
                 ->maxLength(255),
             Textarea::make('notes')
                 ->label('Requests / Notes'),
+
+            Section::make('')
+                ->description('Guest Details')
+                ->schema([
+                    TextInput::make('first_name')
+                        ->label('First Name')
+                        ->required()
+                        ->maxLength(255),
+                    TextInput::make('last_name')
+                        ->label('Last Name')
+                        ->required()
+                        ->maxLength(255),
+                    TextInput::make('email')
+                        ->label('Email')
+                        ->maxLength(255),
+                    TextInput::make('phone')
+                        ->label('Phone')
+                        ->required()
+                        ->maxLength(255),
+                ])
+                ->columns(2),
         ])
             ->columns(2)
             ->statePath('standardSuiteData');
@@ -138,58 +280,132 @@ class WalkinGuests extends Page implements HasForms
     public function deluxeSuiteForm(Form $form): Form
     {
         return $form->schema([
+            Select::make('bookingType')
+                ->label('Booking Type')
+                ->options([
+                    'hourly' => 'Hourly',
+                    'daily' => 'Daily',
+                ])
+                ->reactive()
+                ->live()
+                ->required(),
+            TextInput::make('quantity')
+                ->label('Quantity')
+                ->minValue(0)
+                ->numeric()
+                ->visible(function (Get $get, Set $set) {
+                    if ($get('bookingType') == 'hourly') {
+                        return false;
+                    } else {
+                        return true;
+                    }
+                })
+                ->required()
+                ->maxLength(255),
             DatePicker::make('start_date')
                 ->required()
                 ->minDate(now()->startOfDay())
                 ->live()
+                ->visible(function (Get $get, Set $set) {
+                    if ($get('bookingType') == 'hourly') {
+                        return false;
+                    } else {
+                        return true;
+                    }
+                })
                 ->reactive(),
+
             DatePicker::make('end_date')
-                ->live()
                 ->required()
+                ->minDate(now()->startOfDay())
+                ->live()
+                ->reactive()
+                ->visible(function (Get $get, Set $set) {
+                    if ($get('bookingType') == 'hourly') {
+                        return false;
+                    } else {
+                        return true;
+                    }
+                })
+                ->rules([
+                    function (callable $get) {
+                        return function (string $attribute, $value, Closure $fail) use ($get) {
+
+                            $date1 = Carbon::createFromFormat('m/d/Y H:i:s', date('m/d/Y H:i:s', strtotime($get('start_date'))));
+                            $date2 = Carbon::createFromFormat('m/d/Y H:i:s', date('m/d/Y H:i:s', strtotime($value)));
+
+                            $result = $date1->gte($date2);
+
+                            if ($result) {
+                                $fail('End Date must be ahead from Start Date');
+                            }
+                        };
+                    },
+                ]),
+            DatePicker::make('hour_date')
+                ->label('Date')
+                ->required()
+                ->visible(function (Get $get, Set $set) {
+                    if ($get('bookingType') == 'hourly') {
+                        return true;
+                    } else {
+                        return false;
+                    }
+                })
+                ->seconds(false)
+                ->reactive()
                 ->minDate(now()->startOfDay()),
-            // Select::make('hours')
-            //     ->reactive()
-            //     ->live()
-            //     ->required(function (Get $get) {
-            //         $start = $get('start_date');
-            //         $end = $get('end_date');
+            TimePicker::make('at')
+                ->label('Start Time')
+                ->prefixIcon('heroicon-m-play')
+                ->visible(function (Get $get, Set $set) {
+                    if ($get('bookingType') == 'hourly') {
+                        return true;
+                    } else {
+                        return false;
+                    }
+                })
+                ->format('H:i:s')
+                ->displayFormat('h:i A')
+                ->seconds(false)
+                ->live()
+                ->afterStateUpdated(function (Get $get, Set $set) {
+                    $set('end', $get('end'));
+                }),
+            TimePicker::make('end')
+                ->label('End Time')
+                ->prefixIcon('heroicon-m-play')
+                ->visible(function (Get $get, Set $set) {
+                    if ($get('bookingType') == 'hourly') {
+                        return true;
+                    } else {
+                        return false;
+                    }
+                })
+                ->format('H:i:s')
+                ->displayFormat('h:i A')
+                ->seconds(false)
+                ->live()
+                ->rules([
+                    'after:at',
+                    function (Get $get) {
+                        return function (string $attribute, $value, Closure $fail) use ($get) {
+                            $startTime = $get('at');
+                            $endTime = $value;
 
-            //         if (! $start || ! $end) {
-            //             return false;
-            //         }
+                            if (empty($startTime) || empty($endTime)) {
+                                return;
+                            }
 
-            //         $start = \Carbon\Carbon::parse($start);
-            //         $end = \Carbon\Carbon::parse($end);
+                            $startCarbon = Carbon::parse($startTime);
+                            $endCarbon = Carbon::parse($endTime);
 
-            //         $days = $start->diffInDays($end);
-
-            //         return $days < 1;
-            //     })
-            //     ->hidden(
-            //         function (Get $get, Set $set) {
-            //             $start = $get('start_date');
-            //             $end = $get('end_date');
-
-            //             if (! $start || ! $end) {
-            //                 return true;
-            //             }
-
-            //             $start = \Carbon\Carbon::parse($start);
-            //             $end = \Carbon\Carbon::parse($end);
-
-            //             $days = $start->diffInDays($end);
-
-            //             return $days >= 1 ? true : false;
-            //         }
-            //     )
-            //     ->options(function () {
-            //         $hours = [];
-            //         for ($i = 1; $i <= 24; $i++) {
-            //             $hours[$i] = "$i Hrs";
-            //         }
-
-            //         return $hours;
-            //     }),
+                            if ($endCarbon->lessThanOrEqualTo($startCarbon)) {
+                                $fail('The :attribute must be after '.Carbon::parse($startTime)->format('h:i A').'.');
+                            }
+                        };
+                    },
+                ]),
             TextInput::make('no_persons')
                 ->numeric()
                 ->label('Persons')
@@ -197,6 +413,27 @@ class WalkinGuests extends Page implements HasForms
                 ->maxLength(255),
             Textarea::make('notes')
                 ->label('Requests / Notes'),
+
+            Section::make('')
+                ->description('Guest Details')
+                ->schema([
+                    TextInput::make('first_name')
+                        ->label('First Name')
+                        ->required()
+                        ->maxLength(255),
+                    TextInput::make('last_name')
+                        ->label('Last Name')
+                        ->required()
+                        ->maxLength(255),
+                    TextInput::make('email')
+                        ->label('Email')
+                        ->maxLength(255),
+                    TextInput::make('phone')
+                        ->label('Phone')
+                        ->required()
+                        ->maxLength(255),
+                ])
+                ->columns(2),
         ])
             ->columns(2)
             ->statePath('deluxeSuiteData');
@@ -205,58 +442,132 @@ class WalkinGuests extends Page implements HasForms
     public function executiveSuiteForm(Form $form): Form
     {
         return $form->schema([
+            Select::make('bookingType')
+                ->label('Booking Type')
+                ->options([
+                    'hourly' => 'Hourly',
+                    'daily' => 'Daily',
+                ])
+                ->reactive()
+                ->live()
+                ->required(),
+            TextInput::make('quantity')
+                ->label('Quantity')
+                ->minValue(0)
+                ->numeric()
+                ->visible(function (Get $get, Set $set) {
+                    if ($get('bookingType') == 'hourly') {
+                        return false;
+                    } else {
+                        return true;
+                    }
+                })
+                ->required()
+                ->maxLength(255),
             DatePicker::make('start_date')
                 ->required()
                 ->minDate(now()->startOfDay())
                 ->live()
+                ->visible(function (Get $get, Set $set) {
+                    if ($get('bookingType') == 'hourly') {
+                        return false;
+                    } else {
+                        return true;
+                    }
+                })
                 ->reactive(),
+
             DatePicker::make('end_date')
-                ->live()
                 ->required()
+                ->minDate(now()->startOfDay())
+                ->live()
+                ->reactive()
+                ->visible(function (Get $get, Set $set) {
+                    if ($get('bookingType') == 'hourly') {
+                        return false;
+                    } else {
+                        return true;
+                    }
+                })
+                ->rules([
+                    function (callable $get) {
+                        return function (string $attribute, $value, Closure $fail) use ($get) {
+
+                            $date1 = Carbon::createFromFormat('m/d/Y H:i:s', date('m/d/Y H:i:s', strtotime($get('start_date'))));
+                            $date2 = Carbon::createFromFormat('m/d/Y H:i:s', date('m/d/Y H:i:s', strtotime($value)));
+
+                            $result = $date1->gte($date2);
+
+                            if ($result) {
+                                $fail('End Date must be ahead from Start Date');
+                            }
+                        };
+                    },
+                ]),
+            DatePicker::make('hour_date')
+                ->label('Date')
+                ->required()
+                ->visible(function (Get $get, Set $set) {
+                    if ($get('bookingType') == 'hourly') {
+                        return true;
+                    } else {
+                        return false;
+                    }
+                })
+                ->seconds(false)
+                ->reactive()
                 ->minDate(now()->startOfDay()),
-            // Select::make('hours')
-            //     ->reactive()
-            //     ->live()
-            //     ->required(function (Get $get) {
-            //         $start = $get('start_date');
-            //         $end = $get('end_date');
+            TimePicker::make('at')
+                ->label('Start Time')
+                ->prefixIcon('heroicon-m-play')
+                ->visible(function (Get $get, Set $set) {
+                    if ($get('bookingType') == 'hourly') {
+                        return true;
+                    } else {
+                        return false;
+                    }
+                })
+                ->format('H:i:s')
+                ->displayFormat('h:i A')
+                ->seconds(false)
+                ->live()
+                ->afterStateUpdated(function (Get $get, Set $set) {
+                    $set('end', $get('end'));
+                }),
+            TimePicker::make('end')
+                ->label('End Time')
+                ->prefixIcon('heroicon-m-play')
+                ->visible(function (Get $get, Set $set) {
+                    if ($get('bookingType') == 'hourly') {
+                        return true;
+                    } else {
+                        return false;
+                    }
+                })
+                ->format('H:i:s')
+                ->displayFormat('h:i A')
+                ->seconds(false)
+                ->live()
+                ->rules([
+                    'after:at',
+                    function (Get $get) {
+                        return function (string $attribute, $value, Closure $fail) use ($get) {
+                            $startTime = $get('at');
+                            $endTime = $value;
 
-            //         if (! $start || ! $end) {
-            //             return false;
-            //         }
+                            if (empty($startTime) || empty($endTime)) {
+                                return;
+                            }
 
-            //         $start = \Carbon\Carbon::parse($start);
-            //         $end = \Carbon\Carbon::parse($end);
+                            $startCarbon = Carbon::parse($startTime);
+                            $endCarbon = Carbon::parse($endTime);
 
-            //         $days = $start->diffInDays($end);
-
-            //         return $days < 1;
-            //     })
-            //     ->hidden(
-            //         function (Get $get, Set $set) {
-            //             $start = $get('start_date');
-            //             $end = $get('end_date');
-
-            //             if (! $start || ! $end) {
-            //                 return true;
-            //             }
-
-            //             $start = \Carbon\Carbon::parse($start);
-            //             $end = \Carbon\Carbon::parse($end);
-
-            //             $days = $start->diffInDays($end);
-
-            //             return $days >= 1 ? true : false;
-            //         }
-            //     )
-            //     ->options(function () {
-            //         $hours = [];
-            //         for ($i = 1; $i <= 24; $i++) {
-            //             $hours[$i] = "$i Hrs";
-            //         }
-
-            //         return $hours;
-            //     }),
+                            if ($endCarbon->lessThanOrEqualTo($startCarbon)) {
+                                $fail('The :attribute must be after '.Carbon::parse($startTime)->format('h:i A').'.');
+                            }
+                        };
+                    },
+                ]),
             TextInput::make('no_persons')
                 ->numeric()
                 ->label('Persons')
@@ -264,6 +575,27 @@ class WalkinGuests extends Page implements HasForms
                 ->maxLength(255),
             Textarea::make('notes')
                 ->label('Requests / Notes'),
+
+            Section::make('')
+                ->description('Guest Details')
+                ->schema([
+                    TextInput::make('first_name')
+                        ->label('First Name')
+                        ->required()
+                        ->maxLength(255),
+                    TextInput::make('last_name')
+                        ->label('Last Name')
+                        ->required()
+                        ->maxLength(255),
+                    TextInput::make('email')
+                        ->label('Email')
+                        ->maxLength(255),
+                    TextInput::make('phone')
+                        ->label('Phone')
+                        ->required()
+                        ->maxLength(255),
+                ])
+                ->columns(2),
         ])
             ->columns(2)
             ->statePath('executiveSuiteData');
@@ -306,10 +638,34 @@ class WalkinGuests extends Page implements HasForms
         }
 
         $data = $this->standardSuiteForm->getState();
-
         $data['suiteId'] = 1;
+        $data['userId'] = auth()->user()->id;
 
-        $data = $this->saving($data);
+        if ($data['bookingType'] == 'daily') {
+            $start = Carbon::parse($data['start_date']);
+            $end = $data['suiteId'] == 4 ? $start : Carbon::parse($data['end_date']);
+            if ($data['quantity'] == 1) {
+                $data = $this->saving($data);
+            } else {
+                for ($i = 0; $i < $data['quantity']; $i++) {
+                    if ($this->getSuiteRoom($data['suiteId'], $start->setTime(14, 0)->toDateTimeString(), $end->setTime(12, 0)->toDateTimeString()) === false) {
+                        Notification::make()
+                            ->danger()
+                            ->title('Error')
+                            ->body('No Available Room')
+                            ->send();
+
+                        return null;
+                    } else {
+                        ProcessSingleSavingOperation::dispatch($data, 'walkin_booking', 'cash');
+                    }
+                }
+
+                return redirect('/app/bookings');
+            }
+        } else {
+            $data = $this->savingHourly($data);
+        }
 
         if ($data) {
             redirect(BookingResource::getUrl('view', ['record' => $data]));
@@ -331,8 +687,33 @@ class WalkinGuests extends Page implements HasForms
         $data = $this->deluxeSuiteForm->getState();
 
         $data['suiteId'] = 2;
+        $data['userId'] = auth()->user()->id;
+        $start = Carbon::parse($data['start_date']);
+        $end = $data['suiteId'] == 4 ? $start : Carbon::parse($data['end_date']);
 
-        $data = $this->saving($data);
+        if ($data['bookingType'] == 'daily') {
+            if ($data['quantity'] == 1) {
+                $data = $this->saving($data);
+            } else {
+                for ($i = 0; $i < $data['quantity']; $i++) {
+                    if ($this->getSuiteRoom($data['suiteId'], $start->setTime(14, 0)->toDateTimeString(), $end->setTime(12, 0)->toDateTimeString()) === false) {
+                        Notification::make()
+                            ->danger()
+                            ->title('Error')
+                            ->body('No Available Room')
+                            ->send();
+
+                        return null;
+                    } else {
+                        ProcessSingleSavingOperation::dispatch($data, 'walkin_booking', 'cash');
+                    }
+                }
+
+                return redirect('/app/bookings');
+            }
+        } else {
+            $data = $this->savingHourly($data);
+        }
 
         if ($data) {
             redirect(BookingResource::getUrl('view', ['record' => $data]));
@@ -354,8 +735,33 @@ class WalkinGuests extends Page implements HasForms
         $data = $this->executiveSuiteForm->getState();
 
         $data['suiteId'] = 3;
+        $data['userId'] = auth()->user()->id;
+        $start = Carbon::parse($data['start_date']);
+        $end = $data['suiteId'] == 4 ? $start : Carbon::parse($data['end_date']);
 
-        $data = $this->saving($data);
+        if ($data['bookingType'] == 'daily') {
+            if ($data['quantity'] == 1) {
+                $data = $this->saving($data);
+            } else {
+                for ($i = 0; $i < $data['quantity']; $i++) {
+                    if ($this->getSuiteRoom($data['suiteId'], $start->setTime(14, 0)->toDateTimeString(), $end->setTime(12, 0)->toDateTimeString()) === false) {
+                        Notification::make()
+                            ->danger()
+                            ->title('Error')
+                            ->body('No Available Room')
+                            ->send();
+
+                        return null;
+                    } else {
+                        ProcessSingleSavingOperation::dispatch($data, 'walkin_booking', 'cash');
+                    }
+                }
+
+                return redirect('/app/bookings');
+            }
+        } else {
+            $data = $this->savingHourly($data);
+        }
 
         if ($data) {
             redirect(BookingResource::getUrl('view', ['record' => $data]));
@@ -372,6 +778,79 @@ class WalkinGuests extends Page implements HasForms
 
         if ($data) {
             redirect(BookingResource::getUrl('view', ['record' => $data]));
+        }
+    }
+
+    public function savingHourly($data)
+    {
+        $startDateTimeString = $data['hour_date'].' '.$data['at'];
+        $endDateTimeString = $data['hour_date'].' '.$data['end'];
+
+        $start = new DateTime($startDateTimeString);
+        $end = new DateTime($endDateTimeString);
+
+        $interval = $start->diff($end);
+
+        $hours = $interval->h;
+
+        if ($this->getSuiteRoomHours($data['suiteId'], $start, $end) == false) {
+            Notification::make()
+                ->danger()
+                ->title('Error')
+                ->body('No Available Room')
+                ->send();
+
+            return null;
+        } else {
+            try {
+                DB::beginTransaction();
+
+                $booking = Booking::create([
+                    'type' => 'walkin_booking',
+                    'user_id' => auth()->user()->id,
+                    'room_id' => $data['suiteId'],
+                    'status' => 'pending',
+                    'start_date' => $data['hour_date'],
+                    'check_in_date' => $start,
+                    'check_out_date' => $end,
+                    'end_date' => $data['hour_date'],
+                    'duration' => $hours,
+                    'notes' => $data['notes'],
+                    'no_persons' => $data['no_persons'],
+                    'days' => 0,
+                    'hours' => $hours,
+                    'suite_room_id' => $this->getSuiteRoomHours($data['suiteId'], $start, $end),
+                    'amount_to_pay' => $this->getPayment($hours, $data['suiteId'], $data['no_persons']),
+                ]);
+
+                Transaction::create([
+                    'booking_id' => $booking->id,
+                    'type' => 'rooms',
+                ]);
+
+                WalkinGuest::create([
+                    'booking_id' => $booking->id,
+                    'first_name' => $data['first_name'],
+                    'last_name' => $data['last_name'],
+                    'email' => $data['email'],
+                    'phone' => $data['phone'],
+                ]);
+
+                DB::commit();
+
+                Notification::make()
+                    ->success()
+                    ->title('Booking Created')
+                    ->icon('heroicon-o-check-circle')
+                    ->body('Booking has been created successfully.')
+                    ->send();
+            } catch (\Exception $e) {
+                DB::rollBack();
+
+                logger($e->getMessage());
+            }
+
+            return $booking?->id;
         }
     }
 
@@ -406,8 +885,8 @@ class WalkinGuests extends Page implements HasForms
             try {
                 DB::beginTransaction();
 
-                $data = Booking::create([
-                    'type' => 'Online booking',
+                $booking = Booking::create([
+                    'type' => 'walkin_booking',
                     'user_id' => auth()->user()->id,
                     'room_id' => $data['suiteId'],
                     'status' => 'pending',
@@ -425,8 +904,16 @@ class WalkinGuests extends Page implements HasForms
                 ]);
 
                 Transaction::create([
-                    'booking_id' => $data->id,
+                    'booking_id' => $booking->id,
                     'type' => 'rooms',
+                ]);
+
+                WalkinGuest::create([
+                    'booking_id' => $booking->id,
+                    'first_name' => $data['first_name'],
+                    'last_name' => $data['last_name'],
+                    'email' => $data['email'],
+                    'phone' => $data['phone'],
                 ]);
 
                 DB::commit();
@@ -443,7 +930,7 @@ class WalkinGuests extends Page implements HasForms
                 logger($e->getMessage());
             }
 
-            return $data?->id;
+            return $booking?->id;
         }
     }
 
@@ -476,6 +963,22 @@ class WalkinGuests extends Page implements HasForms
     public function getSuiteRoom($suiteID, $checkIn, $checkOut)
     {
         $bookedRoomIds = Booking::where(function ($query) use ($checkIn, $checkOut) {
+            $query->where('check_in_date', '<', $checkOut)
+                ->where('check_out_date', '>', $checkIn);
+        })
+            ->pluck('suite_room_id');
+
+        $availableRoom = SuiteRoom::where('room_id', $suiteID)
+            ->where('is_active', true)
+            ->whereNotIn('id', $bookedRoomIds)
+            ->first();
+
+        return $availableRoom?->id ?? false;
+    }
+
+    public function getSuiteRoomHours($suiteID, $checkIn, $checkOut)
+    {
+        $bookedRoomIds = Booking::where('status', '!=', 'cancelled')->where(function ($query) use ($checkIn, $checkOut) {
             $query->where('check_in_date', '<', $checkOut)
                 ->where('check_out_date', '>', $checkIn);
         })

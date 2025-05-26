@@ -69,7 +69,7 @@
 
                                                             <x-slot name="footerActions">
                                                                 <x-filament::button
-                                                                    wire:click.prevent="foodOrder({{ $food->id }})"
+                                                                    wire:click.prevent.once="foodOrder({{ $food->id }})"
                                                                     wire:loading.attr="disabled">
                                                                     Submit
                                                                 </x-filament::button>

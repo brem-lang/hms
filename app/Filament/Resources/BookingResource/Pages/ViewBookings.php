@@ -164,7 +164,9 @@ class ViewBookings extends Page
                     ->formatStateUsing(fn (string $state): string => __(ucfirst($state))),
                 TextEntry::make('start_date')->dateTime()->label('Start Date'),
                 TextEntry::make('end_date')->dateTime()->label('End Date'),
-                TextEntry::make('created_at')->dateTime()->label('Date of Booking'),
+                TextEntry::make('created_at')->dateTime()->label('Date of Booking')->formatStateUsing(function ($state) {
+                    return \Carbon\Carbon::parse($state)->timezone('Asia/Manila')->format('F j, Y h:i A');
+                }),
                 TextEntry::make('days')->label('Days'),
                 TextEntry::make('duration')->label('Duration Hrs'),
                 TextEntry::make('no_persons')->label('Number of Persons'),

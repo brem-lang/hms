@@ -141,7 +141,9 @@ class PayMyBoooking extends Page
                     ->hidden(function ($record) {
                         return $record->room_id == 4;
                     })->dateTime()->label('End Date'),
-                TextEntry::make('created_at')->dateTime()->label('Date of Booking'),
+                TextEntry::make('created_at')->dateTime()->label('Date of Booking')->formatStateUsing(function ($state) {
+                    return \Carbon\Carbon::parse($state)->timezone('Asia/Manila')->format('F j, Y h:i A');
+                }),
                 TextEntry::make('days')->label('Days'),
                 TextEntry::make('duration')->label('Duration Hrs'),
                 TextEntry::make('no_persons')->label('Number of Persons'),

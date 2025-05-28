@@ -131,6 +131,7 @@ class PayMyBoooking extends Page
                         'pending' => 'gray',
                         'completed' => 'success',
                         'cancelled' => 'danger',
+                        'done' => 'success',
                     })
                     ->formatStateUsing(fn (string $state): string => __(ucfirst($state))),
                 TextEntry::make('start_date')->dateTime()->hidden(function ($record) {

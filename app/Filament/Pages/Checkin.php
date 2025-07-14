@@ -4,6 +4,7 @@ namespace App\Filament\Pages;
 
 use App\Filament\Resources\BookingResource;
 use App\Models\Booking;
+use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
@@ -43,6 +44,11 @@ class Checkin extends Page implements HasForms, HasTable
             ->query(Booking::query()->where('status', 'completed')->latest())
             ->paginated([10, 25, 50])
             ->columns([
+                TextColumn::make('user.name')
+                    ->label('Guest Name')
+                    ->sortable()
+                    ->toggleable()
+                    ->searchable(),
                 TextColumn::make('room.name')
                     ->label('Room Type')
                     ->sortable()
@@ -147,19 +153,60 @@ class Checkin extends Page implements HasForms, HasTable
                     ->icon('heroicon-o-check-circle')
                     ->label('Check Out')
                     ->color('warning')
-                    ->requiresConfirmation()
+                    // ->requiresConfirmation()
                     ->visible(fn ($record) => $record->suiteRoom->is_occupied == 1)
-                    ->action(function ($record) {
+                    ->form(function ($record) {
+                        return [
+                            TextInput::make('amount')
+                                ->label('Amount')
+                                ->disabled()
+                                ->formatStateUsing(function ($record) {
+                                    return $record->amount_to_pay;
+                                }),
+                            TextInput::make('amount_paid')
+                                ->label('Amount Paid')
+                                ->disabled()
+                                ->formatStateUsing(function ($record) {
+                                    return $record->amount_paid;
+                                }),
+                            TextInput::make('balance')
+                                ->label('Balance')
+                                ->disabled()
+                                ->formatStateUsing(function ($record) {
+                                    return $record->balance;
+                                }),
 
-                        $record->status = 'done';
-                        $record->suiteRoom->is_occupied = 0;
-                        $record->suiteRoom->save();
-                        $record->save();
+                            Select::make('status')
+                                ->label('Status')
+                                ->options([
+                                    'paid' => 'Paid',
+                                    'pending' => 'Pending',
+                                ]),
+                        ];
+                    })
+                    ->action(function ($record, $data) {
+                        if ($data['status'] == 'paid') {
+                            $record->status = 'done';
+                            $record->balance = 0;
+                            $record->amount_paid = $record->amount_to_pay;
+                            $record->suiteRoom->is_occupied = 0;
+                            $record->suiteRoom->save();
+                            $record->save();
 
-                        Notification::make()
-                            ->success()
-                            ->title('Check In')
-                            ->send();
+                            Notification::make()
+                                ->success()
+                                ->title('Check Out')
+                                ->send();
+                        }
+                        // $record->status = 'done';
+                        // $record->suiteRoom->is_occupied = 0;
+                        // $record->suiteRoom->save();
+                        // $record->save();
+
+                        // Notification::make()
+                        //     ->success()
+                        //     ->title('Check In')
+                        //     ->send();
                     }),
             ])
             ->bulkActions([

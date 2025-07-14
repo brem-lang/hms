@@ -360,7 +360,7 @@
         </div>
     </div>
     {{-- function hall --}}
-    <h1 style="font-size: 20px;font-weight:bold">Function Hall</h1>
+    {{-- <h1 style="font-size: 20px;font-weight:bold">Function Hall</h1>
     <div style="--cols-default: repeat(1, minmax(0, 1fr)); --cols-lg: repeat(3, minmax(0, 1fr)); margin-top: -25px;"
         class="grid grid-cols-[--cols-default] lg:grid-cols-[--cols-lg] fi-fo-component-ctn gap-6">
         <div style="--col-span-default: span 1 / span 1;" class="col-[--col-span-default]">
@@ -468,7 +468,7 @@
                 </div>
             </div>
         </div>
-    </div>
+    </div> --}}
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
     <style>
         /* Container holding the images */

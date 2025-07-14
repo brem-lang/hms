@@ -3,11 +3,14 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\BookingResource\Pages;
+use App\Mail\MailFrontDesk;
 use App\Models\Booking;
 use App\Models\User;
 use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\ToggleButtons;
 use Filament\Forms\Form;
+use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Actions\Action as ActionsAction;
@@ -15,6 +18,7 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Mail;
 
 class BookingResource extends Resource
 {
@@ -123,6 +127,33 @@ class BookingResource extends Resource
             ->actions([
                 // Tables\Actions\EditAction::make()
                 //     ->modalWidth('md'),
+                ActionsAction::make('email_front_desk')
+                    ->label('Mail')
+                    ->icon('heroicon-o-envelope')
+                    ->action(function ($data, $record) {
+                        $details = [
+                            'name' => $record->user->name,
+                            'message' => $data['message'],
+                            'type' => 'mail_front_desk',
+                        ];
+
+                        Mail::to($record->user->email)->send(new MailFrontDesk($details));
+
+                        Notification::make()
+                            ->title('Email Sent')
+                            ->success()
+                            ->send();
+                    })
+                    ->form([
+                        Textarea::make('message')
+                            ->label('Message')
+                            ->required()
+                            ->maxLength(500)
+                            ->placeholder('Type your message here'),
+                    ])
+                    ->visible(function ($record) {
+                        return auth()->user()->isFrontDesk();
+                    }),
                 ActionsAction::make('cancel')
                     ->icon('heroicon-o-x-circle')
                     ->color('danger')

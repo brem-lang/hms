@@ -4,6 +4,7 @@ namespace App\Filament\Resources\BookingResource\Pages;
 
 use App\Filament\Resources\BookingResource;
 use App\Filament\Resources\MyBookingResource;
+use App\Mail\MailFrontDesk;
 use App\Models\Booking;
 use App\Models\User;
 use Filament\Actions\Action as ActionsAction;
@@ -11,13 +12,13 @@ use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
-use Filament\Forms\Components\Toggle;
 use Filament\Forms\Form;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Infolists\Infolist;
 use Filament\Notifications\Actions\Action;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\Page;
+use Illuminate\Support\Facades\Mail;
 
 class ViewBookings extends Page
 {
@@ -58,10 +59,11 @@ class ViewBookings extends Page
                 ->modalCancelAction(false)
                 ->modalSubmitAction(false),
             ActionsAction::make('confirm_cancel')
-                ->label('Approve Cancellation')
+                ->label('Cancel Booking')
                 ->action(function ($data) {
-
-                    $this->record->can_cancel = $data['can_cancel'];
+                    $this->record->status = 'cancelled';
+                    $this->record->cancel_reason = $data['cancel_reason'];
+                    $this->record->want_cancel = true;
                     $this->record->save();
 
                     Notification::make()
@@ -77,40 +79,28 @@ class ViewBookings extends Page
                         ])
                         ->sendToDatabase(User::where('id', $this->record->user_id)->get());
 
-                    Notification::make()
-                        ->success()
-                        ->title('Cancellation Approved')
-                        ->icon('heroicon-o-check-circle')
-                        ->send();
+                    $details = [
+                        'name' => $this->record->user->name,
+                        'message' => $data['cancel_reason'],
+                        'type' => 'cancel_booking',
+                    ];
+
+                    Mail::to($this->record->user->email)->send(new MailFrontDesk($details));
 
                     Notification::make()
                         ->success()
-                        ->title('Cancellation Approved')
+                        ->title('Booking Cancelled')
                         ->icon('heroicon-o-check-circle')
-                        ->body($this->record->user->name.' you can cancel your booking')
-                        ->actions([
-                            Action::make('view')
-                                ->label('View')
-                                ->url(fn () => MyBookingResource::getUrl('payment', ['record' => $this->record->id]))->markAsRead(),
-                            // ->openUrlInNewTab()
-                        ])
-                        ->sendToDatabase(User::where('id', $this->record->user_id)->get());
+                        ->send();
                 })
                 ->color('danger')
-                ->visible(fn () => $this->record->want_cancel != false)
-                ->hidden(fn () => $this->record->can_cancel)
+                ->hidden(fn () => $this->record->status === 'cancelled')
                 ->form([
                     Textarea::make('cancel_reason')
-                        ->readOnly()
                         ->label('Reason for Cancellation')
                         ->required()
-                        ->formatStateUsing(fn () => $this->record->cancel_reason)
                         ->maxLength(255)
                         ->placeholder('Please provide a reason for cancellation'),
-                    Toggle::make('can_cancel')
-                        ->label('Approve Cancellation')
-                        ->inline(false)
-                        ->default(false),
                 ])
                 ->modalWidth('lg')
                 ->icon('heroicon-o-check-circle'),
@@ -128,6 +118,9 @@ class ViewBookings extends Page
                         'gcash' => 'GCash',
                         'cash' => 'Cash',
                     ])
+                    ->required(),
+                TextInput::make('amount_paid')
+                    ->numeric()
                     ->required(),
                 FileUpload::make('proof_of_payment')
                     ->openable()
@@ -178,7 +171,9 @@ class ViewBookings extends Page
                     ->formatStateUsing(function ($state) {
                         return \Carbon\Carbon::parse($state)->format('F j, Y h:i A');
                     }),
-                TextEntry::make('amount_to_pay')->label('Payment')->prefix('₱ '),
+                TextEntry::make('amount_to_pay')->label('Amount')->prefix('₱ '),
+                TextEntry::make('amount_paid')->label('Amount Paid')->prefix('₱ '),
+                TextEntry::make('balance')->label('Balance')->prefix('₱ '),
                 TextEntry::make('room.name')->label('Suite Type'),
                 TextEntry::make('suiteRoom.name')
                     ->formatStateUsing(fn ($state) => ucfirst($state))
@@ -194,6 +189,9 @@ class ViewBookings extends Page
     public function confirm()
     {
         $data = $this->form->getState();
+
+        $this->record->amount_paid = $data['amount_paid'];
+        $this->record->balance = $this->record->amount_to_pay - $data['amount_paid'];
         $this->record->proof_of_payment = $data['proof_of_payment'] ?? null;
         $this->record->payment_type = $data['payment_type'];
 
@@ -220,7 +218,15 @@ class ViewBookings extends Page
             ])
             ->sendToDatabase(User::where('id', $this->record->user_id)->get());
 
-        // $this->dispatch('close-modal', id: 'confirm-modal');
+        $details = [
+            'name' => $this->record->user->name,
+            'message' => 'Your booking has been confirmed. Thank you for choosing us!',
+            'amount_paid' => $this->record->amount_paid,
+            'balance' => $this->record->balance,
+            'type' => 'approved_booking',
+        ];
+
+        Mail::to($this->record->user->email)->send(new MailFrontDesk($details));
 
         redirect(BookingResource::getUrl('view', ['record' => $this->record->id]));
     }

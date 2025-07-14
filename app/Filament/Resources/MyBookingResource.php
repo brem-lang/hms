@@ -106,48 +106,48 @@ class MyBookingResource extends Resource
                 //     ->hidden(function ($record) {
                 //         return $record->status !== 'pending';
                 //     }),
-                Action::make('cancel_booking')
-                    ->icon('heroicon-o-x-circle')
-                    ->requiresConfirmation()
-                    ->label('Cancel')
-                    ->form([
-                        Textarea::make('cancel_reason')
-                            ->label('Reason for Cancellation')
-                            ->required()
-                            ->maxLength(255)
-                            ->placeholder('Please provide a reason for cancellation'),
-                    ])
-                    ->action(function ($record, $data) {
-                        // $record->status = 'cancelled';
-                        $record->want_cancel = true;
-                        $record->cancel_reason = $data['cancel_reason'];
+                // Action::make('cancel_booking')
+                //     ->icon('heroicon-o-x-circle')
+                //     ->requiresConfirmation()
+                //     ->label('Cancel')
+                //     ->form([
+                //         Textarea::make('cancel_reason')
+                //             ->label('Reason for Cancellation')
+                //             ->required()
+                //             ->maxLength(255)
+                //             ->placeholder('Please provide a reason for cancellation'),
+                //     ])
+                //     ->action(function ($record, $data) {
+                //         // $record->status = 'cancelled';
+                //         $record->want_cancel = true;
+                //         $record->cancel_reason = $data['cancel_reason'];
 
-                        $record->save();
+                //         $record->save();
 
-                        Notification::make()
-                            ->title('Booking Cancelled')
-                            ->body('Wait for the admin to approve your cancellation')
-                            ->success()
-                            ->icon('heroicon-o-check-circle');
+                //         Notification::make()
+                //             ->title('Booking Cancelled')
+                //             ->body('Wait for the admin to approve your cancellation')
+                //             ->success()
+                //             ->icon('heroicon-o-check-circle');
 
-                        Notification::make()
-                            ->title(auth()->user()->name.',wants to cancel booking')
-                            ->success()
-                            ->actions([
-                                ActionsAction::make('view')
-                                    ->label('View')
-                                    ->url(fn () => BookingResource::getUrl('view', ['record' => $record->id]))
-                                    ->markAsRead(),
-                            ])
-                            ->sendToDatabase(User::whereIn('role', ['supervisor', 'front-desk'])->get());
-                    })
-                    ->color('danger')
-                    // ->hidden(function ($record) {
-                    //     return $record->status !== 'pending';
-                    // })
-                    ->visible(function ($record) {
-                        return $record->status === 'completed';
-                    }),
+                //         Notification::make()
+                //             ->title(auth()->user()->name.',wants to cancel booking')
+                //             ->success()
+                //             ->actions([
+                //                 ActionsAction::make('view')
+                //                     ->label('View')
+                //                     ->url(fn () => BookingResource::getUrl('view', ['record' => $record->id]))
+                //                     ->markAsRead(),
+                //             ])
+                //             ->sendToDatabase(User::whereIn('role', ['supervisor', 'front-desk'])->get());
+                //     })
+                //     ->color('danger')
+                //     // ->hidden(function ($record) {
+                //     //     return $record->status !== 'pending';
+                //     // })
+                //     ->visible(function ($record) {
+                //         return $record->status === 'completed';
+                //     }),
                 Action::make('payment')
                     ->label('Pay')
                     ->icon('heroicon-o-credit-card')

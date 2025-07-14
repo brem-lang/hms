@@ -27,67 +27,67 @@ class PayMyBoooking extends Page
 
     protected static string $view = 'filament.resources.my-booking-resource.pages.pay-my-boooking';
 
-    protected function getHeaderActions(): array
-    {
-        return [
-            ActionsAction::make('cancel_booking')
-                ->label('Cancel Booking')
-                ->action(function ($data) {
-                    $this->record->want_cancel = true;
-                    $this->record->cancel_reason = $data['cancel_reason'];
+    // protected function getHeaderActions(): array
+    // {
+    //     return [
+    //         ActionsAction::make('cancel_booking')
+    //             ->label('Cancel Booking')
+    //             ->action(function ($data) {
+    //                 $this->record->want_cancel = true;
+    //                 $this->record->cancel_reason = $data['cancel_reason'];
 
-                    $this->record->save();
+    //                 $this->record->save();
 
-                    Notification::make()
-                        ->title('Booking Cancelled')
-                        ->body('Wait for the admin to approve your cancellation')
-                        ->success()
-                        ->icon('heroicon-o-check-circle')
-                        ->send();
+    //                 Notification::make()
+    //                     ->title('Booking Cancelled')
+    //                     ->body('Wait for the admin to approve your cancellation')
+    //                     ->success()
+    //                     ->icon('heroicon-o-check-circle')
+    //                     ->send();
 
-                    Notification::make()
-                        ->title(auth()->user()->name.',wants to cancel booking')
-                        ->success()
-                        ->actions([
-                            NotificationsAction::make('view')
-                                ->label('View')
-                                ->url(fn () => BookingResource::getUrl('view', ['record' => $this->record->id]))
-                                ->markAsRead(),
-                        ])
-                        ->sendToDatabase(User::whereIn('role', ['supervisor', 'front-desk'])->get());
-                })
-                ->color('danger')
-                ->visible(fn () => $this->record->status === 'completed')
-                ->hidden(fn () => $this->record->want_cancel)
-                ->form([
-                    Textarea::make('cancel_reason')
-                        ->label('Reason for Cancellation')
-                        ->required()
-                        ->maxLength(255)
-                        ->placeholder('Please provide a reason for cancellation'),
-                ])
-                ->modalWidth('lg')
-                ->icon('heroicon-o-x-circle'),
-            ActionsAction::make('cancel_final')
-                ->label('Cancel Booking')
-                ->action(function ($data) {
-                    $this->record->status = 'cancelled';
-                    $this->record->save();
+    //                 Notification::make()
+    //                     ->title(auth()->user()->name.',wants to cancel booking')
+    //                     ->success()
+    //                     ->actions([
+    //                         NotificationsAction::make('view')
+    //                             ->label('View')
+    //                             ->url(fn () => BookingResource::getUrl('view', ['record' => $this->record->id]))
+    //                             ->markAsRead(),
+    //                     ])
+    //                     ->sendToDatabase(User::whereIn('role', ['supervisor', 'front-desk'])->get());
+    //             })
+    //             ->color('danger')
+    //             ->visible(fn () => $this->record->status === 'completed')
+    //             ->hidden(fn () => $this->record->want_cancel)
+    //             ->form([
+    //                 Textarea::make('cancel_reason')
+    //                     ->label('Reason for Cancellation')
+    //                     ->required()
+    //                     ->maxLength(255)
+    //                     ->placeholder('Please provide a reason for cancellation'),
+    //             ])
+    //             ->modalWidth('lg')
+    //             ->icon('heroicon-o-x-circle'),
+    //         ActionsAction::make('cancel_final')
+    //             ->label('Cancel Booking')
+    //             ->action(function ($data) {
+    //                 $this->record->status = 'cancelled';
+    //                 $this->record->save();
 
-                    Notification::make()
-                        ->success()
-                        ->title('Booking Cancelled')
-                        ->icon('heroicon-o-check-circle')
-                        ->send();
-                })
-                ->color('danger')
-                ->visible(fn () => $this->record->can_cancel)
-                ->hidden(fn () => $this->record->status === 'cancelled')
-                ->requiresConfirmation()
-                ->modalWidth('lg')
-                ->icon('heroicon-o-x-circle'),
-        ];
-    }
+    //                 Notification::make()
+    //                     ->success()
+    //                     ->title('Booking Cancelled')
+    //                     ->icon('heroicon-o-check-circle')
+    //                     ->send();
+    //             })
+    //             ->color('danger')
+    //             ->visible(fn () => $this->record->can_cancel)
+    //             ->hidden(fn () => $this->record->status === 'cancelled')
+    //             ->requiresConfirmation()
+    //             ->modalWidth('lg')
+    //             ->icon('heroicon-o-x-circle'),
+    //     ];
+    // }
 
     public function mount(Booking $record): void
     {
@@ -111,7 +111,7 @@ class PayMyBoooking extends Page
                     ->disk('public_uploads_payment')
                     ->directory('/')
                     ->image()
-                    ->hint('Please upload the proof of payment for gcash.'),
+                    ->hint('You can pay 50% || Please upload the proof of payment for gcash.'),
             ])
             ->statePath('formData');
     }
@@ -155,7 +155,9 @@ class PayMyBoooking extends Page
                     ->formatStateUsing(function ($state) {
                         return \Carbon\Carbon::parse($state)->format('F j, Y h:i A');
                     }),
-                TextEntry::make('amount_to_pay')->label('Payment')->prefix('₱ '),
+                TextEntry::make('amount_to_pay')->label('Amount')->prefix('₱ '),
+                TextEntry::make('amount_paid')->label('Amount Paid')->prefix('₱ '),
+                TextEntry::make('balance')->label('Balance')->prefix('₱ '),
                 TextEntry::make('room.name')->label('Suite Type'),
                 TextEntry::make('suiteRoom.name')
                     ->formatStateUsing(fn ($state) => ucfirst($state))
@@ -194,7 +196,7 @@ class PayMyBoooking extends Page
             ->success()
             ->title('Payment Sent')
             ->icon('heroicon-o-check-circle')
-            ->body(auth()->user()->name.' has sent '.$this->record->amount_to_pay)
+            ->body(auth()->user()->name.' has sent payment')
             ->actions([
                 Action::make('view')
                     ->label('View')

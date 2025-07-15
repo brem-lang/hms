@@ -2,10 +2,14 @@
 
 namespace App\Filament\Pages;
 
+use App\Filament\Resources\BookingResource;
+use App\Filament\Resources\MyBookingResource;
+use App\Models\Booking;
 use App\Models\SuiteRoom;
 use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
 use Filament\Pages\Page;
+use Filament\Tables\Actions\Action;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Concerns\InteractsWithTable;
 use Filament\Tables\Contracts\HasTable;
@@ -75,7 +79,30 @@ class RoomReports extends Page implements HasForms, HasTable
                     ->placeholder('All'),
             ])
             ->actions([
-                //
+                Action::make('view')
+                    ->label('View')
+                    ->icon('heroicon-o-eye')
+                    ->color('primary')
+                    ->visible(function ($record) {
+                        $booking = Booking::where('room_id', $record->room_id)->whereHas('suiteRoom', function ($query) use ($record) {
+                            $query->where('is_occupied', 1)->where('id', $record->id);
+                        })->first();
+
+                        if ($booking) {
+                            return true;
+                        }
+                    })
+                    ->url(function ($record) {
+
+                        $booking = Booking::where('room_id', $record->room_id)->whereHas('suiteRoom', function ($query) use ($record) {
+                            $query->where('is_occupied', 1)->where('id', $record->id);
+                        })->first();
+
+                        // dd($booking);
+                        return BookingResource::getUrl('view', ['record' => $booking->id]);
+                    })
+                // ->url(fn ($record) => MyBookingResource::getUrl('payment', ['record' => $record->id]))
+                ,
             ])
             ->bulkActions([
                 //

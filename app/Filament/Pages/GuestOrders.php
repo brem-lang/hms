@@ -35,7 +35,7 @@ class GuestOrders extends Page implements HasForms
 
     public static function canAccess(): bool
     {
-        return auth()->user()->isAdmin() || auth()->user()->isFrontDesk();
+        return false;
     }
 
     public function mount()

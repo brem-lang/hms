@@ -23,7 +23,7 @@ class FoodTransactionResource extends Resource
 
     public static function canViewAny(): bool
     {
-        return auth()->user()->isAdmin();
+        return false;
     }
 
     public static function form(Form $form): Form

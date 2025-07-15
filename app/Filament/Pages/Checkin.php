@@ -66,15 +66,15 @@ class Checkin extends Page implements HasForms, HasTable
                     ->searchable()
                     ->toggleable()
                     ->sortable(),
-                TextColumn::make('status')
-                    ->toggleable()
-                    ->badge()->color(fn (string $state): string => match ($state) {
-                        'pending' => 'gray',
-                        'completed' => 'success',
-                        'cancelled' => 'danger',
-                    })
-                    ->formatStateUsing(fn (string $state): string => __(ucfirst($state)))
-                    ->searchable(),
+                // TextColumn::make('status')
+                //     ->toggleable()
+                //     ->badge()->color(fn (string $state): string => match ($state) {
+                //         'pending' => 'gray',
+                //         'completed' => 'success',
+                //         'cancelled' => 'danger',
+                //     })
+                //     ->formatStateUsing(fn (string $state): string => __(ucfirst($state)))
+                //     ->searchable(),
                 TextColumn::make('suiteRoom.is_occupied')
                     ->label('Occupied')
                     ->toggleable()

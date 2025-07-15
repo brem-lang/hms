@@ -21,9 +21,14 @@ class FoodOrderResource extends Resource
 
     protected static ?string $navigationGroup = 'Settlement';
 
+    // public static function canViewAny(): bool
+    // {
+    //     return auth()->user()->isAdmin() || auth()->user()->isStaff() || auth()->user()->isFrontDesk();
+    // }
+
     public static function canViewAny(): bool
     {
-        return auth()->user()->isAdmin() || auth()->user()->isStaff() || auth()->user()->isFrontDesk();
+        return false;
     }
 
     public static function form(Form $form): Form

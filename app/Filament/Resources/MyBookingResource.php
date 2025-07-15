@@ -82,11 +82,15 @@ class MyBookingResource extends Resource
                     ->toggleable()
                     ->badge()->color(fn (string $state): string => match ($state) {
                         'pending' => 'gray',
-                        'completed' => 'success',
+                        'completed' => 'warning',
                         'cancelled' => 'danger',
                         'done' => 'success',
                     })
-                    ->formatStateUsing(fn (string $state): string => __(ucfirst($state)))
+                    ->formatStateUsing(fn (string $state): string => match ($state) {
+                        'completed' => 'For CheckIn',
+                        'done' => 'Settled',
+                        default => __(ucfirst($state)),
+                    })
                     ->searchable(),
             ])
             ->filters([

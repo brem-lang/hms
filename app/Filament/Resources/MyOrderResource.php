@@ -23,7 +23,7 @@ class MyOrderResource extends Resource
 
     public static function canViewAny(): bool
     {
-        return auth()->user()->isCustomer();
+        return false;
     }
 
     public static function form(Form $form): Form

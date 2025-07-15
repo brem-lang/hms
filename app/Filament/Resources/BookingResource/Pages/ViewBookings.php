@@ -150,11 +150,14 @@ class ViewBookings extends Page
                     ->badge()
                     ->color(fn (string $state): string => match ($state) {
                         'pending' => 'gray',
-                        'completed' => 'success',
+                        'completed' => 'warning',
                         'cancelled' => 'danger',
                         'done' => 'success',
                     })
-                    ->formatStateUsing(fn (string $state): string => __(ucfirst($state))),
+                    ->formatStateUsing(fn (string $state): string => match ($state) {
+                        'completed' => 'For CheckIn',
+                        default => __(ucfirst($state)),
+                    }),
                 TextEntry::make('start_date')->dateTime()->label('Start Date'),
                 TextEntry::make('end_date')->dateTime()->label('End Date'),
                 TextEntry::make('created_at')->dateTime()->label('Date of Booking')->formatStateUsing(function ($state) {

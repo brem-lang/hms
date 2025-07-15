@@ -129,11 +129,15 @@ class PayMyBoooking extends Page
                     ->badge()
                     ->color(fn (string $state): string => match ($state) {
                         'pending' => 'gray',
-                        'completed' => 'success',
+                        'completed' => 'warning',
                         'cancelled' => 'danger',
                         'done' => 'success',
                     })
-                    ->formatStateUsing(fn (string $state): string => __(ucfirst($state))),
+                    ->formatStateUsing(fn (string $state): string => match ($state) {
+                        'completed' => 'For CheckIn',
+                        'done' => 'Settled',
+                        default => __(ucfirst($state)),
+                    }),
                 TextEntry::make('start_date')->dateTime()->hidden(function ($record) {
                     return $record->room_id == 4;
                 })->label('Start Date'),

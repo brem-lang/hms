@@ -33,8 +33,13 @@ class FoodOrder extends Page implements HasForms
 
     public static function canAccess(): bool
     {
-        return auth()->user()->isCustomer();
+        return false;
     }
+
+    // public static function canAccess(): bool
+    // {
+    //     return false;
+    // }
 
     public function mount()
     {

@@ -1,13 +1,27 @@
 <?php
 
 use App\Http\Controllers\SocialiteController;
+use App\Livewire\CustomerPage;
+use App\Livewire\MyBooking;
 use App\Livewire\TwoFactor;
+use App\Livewire\ViewBooking;
 use Illuminate\Support\Facades\Route;
 
 // Route::get('/', function () {
 //     return view('welcome');
 // });
-Route::redirect('/', '/app');
+// Route::redirect('/', '/app');
+
+Route::redirect('/login', '/app/login');
+
+Route::redirect('/', '/index');
+
+Route::get('/index', CustomerPage::class)->name('index');
+
+Route::get('/my-bookings', MyBooking::class)->name('my-bookings')
+    ->middleware('auth');
+
+Route::get('/view-booking/{id}', ViewBooking::class)->name('view-booking');
 
 Route::get('/auth/{provider}/redirect', [SocialiteController::class, 'redirect'])
     ->name('socialite.redirect');

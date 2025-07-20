@@ -9,6 +9,7 @@ use App\Models\Booking;
 use App\Models\User;
 use Filament\Actions\Action as ActionsAction;
 use Filament\Forms\Components\FileUpload;
+use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
@@ -41,6 +42,32 @@ class ViewBookings extends Page
     protected function getHeaderActions(): array
     {
         return [
+
+            ActionsAction::make('additional_charges')
+                ->label('Charges')
+                ->icon('heroicon-o-plus-circle')
+                ->form([
+                    Repeater::make('charges')
+                        ->formatStateUsing(fn () => $this->record->additional_charges)
+                        ->label('Additional Charges')
+                        ->reorderable(false)
+                        ->schema([
+                            TextInput::make('name')->required(),
+                            TextInput::make('amount')->numeric()->required(),
+                        ])
+                        ->columns(2),
+                ])->action(function ($data) {
+                    $this->record->additional_charges = $data['charges'];
+                    $this->record->save();
+
+                    Notification::make()
+                        ->success()
+                        ->title('Charges Updated')
+                        ->icon('heroicon-o-check-circle')
+                        ->send();
+                })
+                ->visible(fn () => $this->record->status === 'completed' && $this->record->suiteRoom->is_occupied === 1),
+
             ActionsAction::make('more_details')
                 ->icon('heroicon-o-document-text')
                 ->label('Guest Details')
@@ -176,7 +203,16 @@ class ViewBookings extends Page
                     }),
                 TextEntry::make('amount_to_pay')->label('Amount')->prefix('₱ '),
                 TextEntry::make('amount_paid')->label('Amount Paid')->prefix('₱ '),
-                TextEntry::make('balance')->label('Balance')->prefix('₱ '),
+                TextEntry::make('balance')->label('Balance')
+                    ->formatStateUsing(function ($state, $record) {
+                        $chargesAmount = 0;
+                        foreach ($record['additional_charges'] ?? [] as $charge) {
+                            $chargesAmount += $charge['amount'];
+                        }
+
+                        return $state + $chargesAmount;
+                    })
+                    ->prefix('₱ '),
                 TextEntry::make('room.name')->label('Suite Type'),
                 TextEntry::make('suiteRoom.name')
                     ->formatStateUsing(fn ($state) => ucfirst($state))

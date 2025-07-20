@@ -2,26 +2,19 @@
 
 namespace App\Livewire;
 
-use App\Mail\TwoFactorMail;
 use App\Models\UserCode;
 use DanHarrin\LivewireRateLimiting\Exceptions\TooManyRequestsException;
 use DanHarrin\LivewireRateLimiting\WithRateLimiting;
-use Exception;
 use Filament\Facades\Filament;
-use Filament\Forms\Components\TextInput;
 use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
-use Filament\Forms\Form;
-use Filament\Notifications\Notification;
-use Illuminate\Support\Facades\Mail;
 use Livewire\Component;
-use Session;
 
 class TwoFactor extends Component implements HasForms
 {
     use InteractsWithForms, WithRateLimiting;
 
-    public ?array $data = [];
+    public $otp;
 
     public function mount(): void
     {
@@ -33,78 +26,39 @@ class TwoFactor extends Component implements HasForms
         return view('livewire.two-factor');
     }
 
-    public function form(Form $form): Form
-    {
-        return $form
-            ->schema([
-                TextInput::make('code')
-                    ->required()
-                    ->label(''),
-            ])
-            ->statePath('data');
-    }
-
     public function submit()
     {
+        $data = $this->validate([
+            'otp' => 'required|digits:6',
+        ]);
+
         try {
             $this->rateLimit(5);
 
-            $find = UserCode::where('user_id', auth()->user()->id)
-                ->where('code', $this->form->getState()['code'])
+            $find = UserCode::where('user_id', auth()->id())
+                ->where('code', $data['otp'])
                 ->where('updated_at', '>=', now()->subMinutes(2))
                 ->first();
 
-            if (! is_null($find)) {
-                Session::put('user_2fa', auth()->user()->id);
-                redirect()->intended(Filament::getUrl());
+            if ($find) {
+                session()->put('user_2fa', auth()->id());
+
+                if (auth()->user()->isCustomer()) {
+                    return redirect()->route('index');
+                } else {
+                    return redirect()->intended(Filament::getUrl());
+                }
             } else {
-                Notification::make()
-                    ->title('Expired or Invalid Code')
-                    ->danger()
-                    ->send();
+                $this->dispatch('swal:success', [
+                    'title' => 'Expired or Invalid Code',
+                    'icon' => 'error',
+                ]);
             }
         } catch (TooManyRequestsException $exception) {
-            Notification::make()
-                ->title('Too many attempts!!')
-                ->danger()
-                ->send();
-        }
-    }
-
-    public function resend()
-    {
-        try {
-            $this->rateLimit(5);
-            $this->form->fill([]);
-
-            $code = rand(100000, 999999);
-
-            UserCode::updateOrCreate(
-                ['user_id' => auth()->user()->id],
-                ['code' => $code]
-            );
-
-            try {
-                $details = [
-                    'title' => 'Email from Millenium Suites',
-                    'code' => $code,
-                    'name' => auth()->user()->name,
-                ];
-
-                Mail::to(auth()->user()->email)->send(new TwoFactorMail($details));
-
-                Notification::make()
-                    ->title('Code sent successfully to your email')
-                    ->success()
-                    ->send();
-            } catch (Exception $e) {
-                logger('Error: '.$e->getMessage());
-            }
-        } catch (TooManyRequestsException $exception) {
-            Notification::make()
-                ->title('Too many attempts!!')
-                ->danger()
-                ->send();
+            $this->dispatch('swal:success', [
+                'title' => 'Too many attempts!',
+                'icon' => 'error',
+            ]);
         }
     }
 }

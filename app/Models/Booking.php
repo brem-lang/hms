@@ -8,6 +8,10 @@ class Booking extends Model
 {
     protected $guarded = [];
 
+    protected $casts = [
+        'additional_charges' => 'array',
+    ];
+
     public function user()
     {
         return $this->belongsTo(User::class);

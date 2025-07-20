@@ -1,46 +1,54 @@
-<div>
+<div class="min-h-screen bg-gray-50 text-gray-900 dark:bg-gray-950 dark:text-white font-[Figtree] flex items-center justify-center px-4"
+    style="background-image: url('{{ asset('images/bg.jpg') }}'); background-size: cover; background-position: center; background-repeat: no-repeat;">
+    <div
+        class="w-full max-w-lg bg-white dark:bg-gray-900 p-6 sm:p-12 rounded-xl shadow ring-1 ring-gray-950/5 dark:ring-white/10">
+        <div class="space-y-6">
 
-    <body
-        class="fi-body fi-panel-app min-h-screen bg-gray-50 font-normal text-gray-950 antialiased dark:bg-gray-950 dark:text-white"
-        style="font-family: 'Figtree', sans-serif;">
-        <div class="fi-simple-layout flex min-h-screen flex-col items-center">
-            <div class="fi-simple-main-ctn flex w-full flex-grow items-center justify-center">
-                <main
-                    class="fi-simple-main my-16 w-full bg-white px-6 py-12 shadow-sm ring-1 ring-gray-950/5 dark:bg-gray-900 dark:ring-white/10 sm:rounded-xl sm:px-12 max-w-lg">
-                    <div class="fi-simple-page">
-                        <section class="grid auto-cols-fr gap-y-6">
-                            <header class="fi-simple-header flex flex-col items-center">
-                                <div>
-                                    <img src="{{ asset('/images/new logo.png') }}" alt="Logo" style="height: 90px;">
-                                </div>
-                                <h1
-                                    class="mt-1 fi-simple-header-heading text-center text-2xl font-bold tracking-tight text-gray-950 dark:text-white">
-                                    Two Factor Authentication
-                                </h1>
-                                <p
-                                    class="fi-simple-header-subheading mt-2 text-center text-sm text-gray-500 dark:text-gray-400">
-                                    Please check your email account and enter the code below.
-                                </p>
-                            </header>
-                            <div>
-                                {{ $this->form }}
-                            </div>
-                            <div class="fi-form-actions">
-                                <div class="fi-ac gap-3 grid grid-cols-[repeat(auto-fit,minmax(0,1fr))]">
-                                    <x-filament::button wire:click.prevent="submit">
-                                        Confirm
-                                    </x-filament::button>
-                                </div>
-                                {{-- <div class="mt-3 fi-ac gap-3 grid grid-cols-[repeat(auto-fit,minmax(0,1fr))]">
-                                    <x-filament::button wire:click.prevent="resend" color="gray">
-                                        Resend Code
-                                    </x-filament::button>
-                                </div> --}}
-                            </div>
-                        </section>
-                    </div>
-                </main>
+            <div class="text-center">
+                <img src="{{ asset('/images/new logo.png') }}" alt="Logo" class="mx-auto mb-4" style="height: 90px;">
+                <h1 class="text-2xl font-bold tracking-tight text-gray-900 dark:text-white">
+                    Two Factor Authentication
+                </h1>
+                <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
+                    Please check your email account and enter the code below.
+                </p>
             </div>
+
+            <div>
+                <input type="text" placeholder="OTP Code" required class="single-input" wire:model="otp">
+                @error('otp')
+                    <span class="text-red-500 text-sm mt-1" style="color: red">{{ $message }}</span>
+                @enderror
+
+            </div>
+
+            <div class="mt-4" style="margin-top: 20px;">
+                <a href="#" class="genric-btn info w-full" wire:click="submit">Confirm</a>
+            </div>
+
         </div>
-    </body>
+    </div>
 </div>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+    window.addEventListener('swal:success', event => {
+        const {
+            title,
+            text,
+            icon
+        } = event.detail[0];
+
+        console.log(event.detail[0]);
+
+        Swal.fire({
+            title: title ?? 'Success!',
+            text: text ?? '',
+            icon: icon ?? 'success',
+            toast: true,
+            position: 'top-end',
+            timer: 3000,
+            showConfirmButton: false,
+        });
+    });
+</script>

@@ -173,7 +173,12 @@ class Checkin extends Page implements HasForms, HasTable
                                 ->label('Balance')
                                 ->disabled()
                                 ->formatStateUsing(function ($record) {
-                                    return $record->balance;
+                                    $chargesAmount = 0;
+                                    foreach ($record['additional_charges'] ?? [] as $charge) {
+                                        $chargesAmount += $charge['amount'];
+                                    }
+
+                                    return $record->balance + $chargesAmount;
                                 }),
 
                             Select::make('status')

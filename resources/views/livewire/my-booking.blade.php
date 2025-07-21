@@ -10,7 +10,9 @@
                                 <nav>
                                     <ul id="navigation">
                                         <li><a class="" href="{{ route('index') }}">home</a></li>
-                                        <li><a class="active" href="{{ route('my-bookings') }}">my bookings</a></li>
+                                        @auth
+                                            <li><a class="active" href="{{ route('my-bookings') }}">my bookings</a></li>
+                                        @endauth
                                     </ul>
                                 </nav>
                             </div>

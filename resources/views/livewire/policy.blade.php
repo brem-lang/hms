@@ -79,26 +79,11 @@
         class="position-fixed top-0 start-0 bg-white h-100 shadow-lg border-end rounded-end"
         style="width: 340px; z-index: 1050" x-cloak>
         <!-- Header -->
-        <div class="px-4 py-3 border-bottom bg-light">
-            <!-- Header -->
-            <div class="d-flex justify-content-between align-items-center">
-                <h5 class="mb-0">Notifications</h5>
-                <button class="btn btn-sm btn-light" @click="open = false" aria-label="Close">
-                    <i class="fa fa-times"></i>
-                </button>
-            </div>
-
-            <!-- Action Buttons -->
-            <div class="d-flex gap-2 mt-3">
-                <button wire:click="markAllAsRead" class="btn btn-sm btn-outline-success" title="Mark all as read">
-                    <i class="fa fa-check me-1"></i> Read All
-                </button>
-
-                <button wire:click="clearAll" class="btn btn-sm btn-outline-danger" wire:click="clearAll"
-                    title="Clear all notifications">
-                    <i class="fa fa-trash me-1"></i> Clear All
-                </button>
-            </div>
+        <div class="d-flex justify-content-between align-items-center px-4 py-3 border-bottom bg-light">
+            <h5 class="mb-0">Notifications</h5>
+            <button class="btn btn-sm btn-light" @click="open = false" aria-label="Close">
+                <i class="fa fa-times"></i>
+            </button>
         </div>
 
         <!-- Body -->
@@ -168,9 +153,128 @@
     </div>
     <!-- slider_area_end -->
 
-    {{-- table area --}}
+    <div class="container py-5">
+        <div class="p-4 text-center mb-5 policy-header shadow">
+            <h1 class="mb-0"><i class="bi bi-building-fill-gear me-2"></i>Millenium Suites – Hotel Policy</h1>
+            <p class="lead">Please review our guidelines to ensure a smooth and enjoyable stay.</p>
+        </div>
 
-    @livewire('booking-table')
+        <div class="row g-4">
+            <!-- Policy 1 -->
+            <div class="col-md-6">
+                <div class="card policy-card shadow-sm h-100">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center mb-2">
+                            <div class="icon-box"><i class="bi bi-clock-fill"></i></div>
+                            <h5 class="card-title mb-0">Check-In & Check-Out</h5>
+                        </div>
+                        <ul class="mb-0">
+                            <li>Check-in time: <strong>2:00 PM</strong></li>
+                            <li>Check-out time: <strong>12:00 NN</strong></li>
+                            <li>Early check-in or late check-out is subject to availability & charges.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Policy 2 -->
+            <div class="col-md-6">
+                <div class="card policy-card shadow-sm h-100">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center mb-2">
+                            <div class="icon-box"><i class="bi bi-person-vcard-fill"></i></div>
+                            <h5 class="card-title mb-0">Identification</h5>
+                        </div>
+                        <p class="mb-0">Guests must present a valid government-issued ID at check-in.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Policy 3 -->
+            <div class="col-md-6">
+                <div class="card policy-card shadow-sm h-100">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center mb-2">
+                            <div class="icon-box"><i class="bi bi-credit-card-2-front-fill"></i></div>
+                            <h5 class="card-title mb-0">Payment</h5>
+                        </div>
+                        <p class="mb-0">Full payment is required upon check-in. We accept cash, gcash, and online
+                            transfers.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Policy 4 -->
+            <div class="col-md-6">
+                <div class="card policy-card shadow-sm h-100">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center mb-2">
+                            <div class="icon-box"><i class="bi bi-calendar-x-fill"></i></div>
+                            <h5 class="card-title mb-0">Cancellation & No-show</h5>
+                        </div>
+                        <p class="mb-0">Cancel 24 hours before arrival to avoid charges. No-shows are charged for the
+                            first night.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Policy 5 -->
+            <div class="col-md-6">
+                <div class="card policy-card shadow-sm h-100">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center mb-2">
+                            <div class="icon-box"><i class="bi bi-people-fill"></i></div>
+                            <h5 class="card-title mb-0">Room Occupancy</h5>
+                        </div>
+                        <p class="mb-0">Please respect room occupancy limits. Extra guests may incur additional fees.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Policy 6 -->
+            <div class="col-md-6">
+                <div class="card policy-card shadow-sm h-100">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center mb-2">
+                            <div class="icon-box"><i class="bi bi-house-exclamation-fill"></i></div>
+                            <h5 class="card-title mb-0">Room Condition</h5>
+                        </div>
+                        <p class="mb-0">Guests are responsible for damages. Smoking in non-smoking rooms results in
+                            ₱2,000 fine.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Policy 7 -->
+            <div class="col-md-6">
+                <div class="card policy-card shadow-sm h-100">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center mb-2">
+                            <div class="icon-box"><i class="bi bi-volume-mute-fill"></i></div>
+                            <h5 class="card-title mb-0">Noise & Conduct</h5>
+                        </div>
+                        <p class="mb-0">Quiet hours: 10 PM to 6 AM. Disruptive behavior may result in eviction
+                            without refund.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Policy 8 -->
+            <div class="col-md-6">
+                <div class="card policy-card shadow-sm h-100">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center mb-2">
+                            <div class="icon-box"><i class="bi bi-shield-lock-fill"></i></div>
+                            <h5 class="card-title mb-0">Safety & Security</h5>
+                        </div>
+                        <p class="mb-0">Secure your valuables. Hotel is not liable for lost items. Emergency info is
+                            posted in rooms.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- footer -->
     <footer class="footer">

@@ -32,6 +32,20 @@ class MyBooking extends Component
         $this->loadNotifications();
     }
 
+    public function markAllAsRead()
+    {
+        auth()->user()->unreadNotifications->markAsRead();
+
+        return redirect()->route('my-bookings');
+    }
+
+    public function clearAll()
+    {
+        auth()->user()->notifications()->delete();
+
+        return redirect()->route('my-bookings');
+    }
+
     public function loadNotifications()
     {
         $this->notifications = auth()->user()

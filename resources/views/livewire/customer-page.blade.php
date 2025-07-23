@@ -85,11 +85,26 @@
                 class="position-fixed top-0 start-0 bg-white h-100 shadow-lg border-end rounded-end"
                 style="width: 340px; z-index: 1050" x-cloak>
                 <!-- Header -->
-                <div class="d-flex justify-content-between align-items-center px-4 py-3 border-bottom bg-light">
-                    <h5 class="mb-0">Notifications</h5>
-                    <button class="btn btn-sm btn-light" @click="open = false" aria-label="Close">
-                        <i class="fa fa-times"></i>
-                    </button>
+                <div class="px-4 py-3 border-bottom bg-light">
+                    <!-- Header -->
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">Notifications</h5>
+                        <button class="btn btn-sm btn-light" @click="open = false" aria-label="Close">
+                            <i class="fa fa-times"></i>
+                        </button>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="d-flex gap-2 mt-3">
+                        <button wire:click="markAllAsRead" class="btn btn-sm btn-outline-success" title="Mark all as read">
+                            <i class="fa fa-check me-1"></i> Read All
+                        </button>
+
+                        <button wire:click="clearAll" class="btn btn-sm btn-outline-danger" wire:click="clearAll"
+                            title="Clear all notifications">
+                            <i class="fa fa-trash me-1"></i> Clear All
+                        </button>
+                    </div>
                 </div>
 
                 <!-- Body -->
@@ -541,19 +556,19 @@
                         </div>
                 </div>
             @else
-                @switch($this->selectedRoom['name'])
+                {{-- @switch($this->selectedRoom['name'])
                     @case('Standard Suite')
-                        <div class="text-right"> {{ $record['standardOccupied'] }} Available Room(s)</div>
+                        <div class="text-right"> {{ 7 - $record['standardOccupied'] }} Available Room(s)</div>
                         {{ $this->standardSuiteForm }}
                     @break
 
                     @case('Deluxe Suite')
-                        <div class="text-right"> {{ $record['deluxeOccupied'] }} Available Room(s)</div>
+                        <div class="text-right"> {{ 7 - $record['deluxeOccupied'] }} Available Room(s)</div>
                         {{ $this->deluxeSuiteForm }}
                     @break
 
                     @case('Executive Suite')
-                        <div class="text-right"> {{ $record['executiveOccupied'] }} Available Room(s)</div>
+                        <div class="text-right"> {{ 13 - $record['executiveOccupied'] }} Available Room(s)</div>
                         {{ $this->executiveSuiteForm }}
                     @break
                 @endswitch
@@ -564,7 +579,40 @@
                             Book Now
                         </a>
                     </div>
-                </div>
+                </div> --}}
+                @php
+                    $available = 0;
+                @endphp
+
+                @switch($this->selectedRoom['name'])
+                    @case('Standard Suite')
+                        @php $available = 7 - $record['standardOccupied']; @endphp
+                        <div class="text-right"> {{ $available }} Available Room(s) Today</div>
+                        {{ $this->standardSuiteForm }}
+                    @break
+
+                    @case('Deluxe Suite')
+                        @php $available = 7 - $record['deluxeOccupied']; @endphp
+                        <div class="text-right"> {{ $available }} Available Room(s) Today</div>
+                        {{ $this->deluxeSuiteForm }}
+                    @break
+
+                    @case('Executive Suite')
+                        @php $available = 13 - $record['executiveOccupied']; @endphp
+                        <div class="text-right"> {{ $available }} Available Room(s) Today</div>
+                        {{ $this->executiveSuiteForm }}
+                    @break
+                @endswitch
+
+                @if ($available > 0)
+                    <div class="text-right mt-4">
+                        <div class="book_btn d-none d-lg-block">
+                            <a href="#" class="genric-btn info" wire:click.prevent="bookRoom">
+                                Book Now
+                            </a>
+                        </div>
+                    </div>
+                @endif
     @endif
 </div>
 </div>
@@ -596,6 +644,13 @@
                         <p class="footer_text">0936 461 2236<br>
                             msuites.dzd@gmail.com
                         </p>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-md-6 col-lg-3">
+                    <div class="footer_widget">
+                        <h3 class="footer_title">
+                            <a href="{{ route('policy') }}">Policy</a>
+                        </h3>
                     </div>
                 </div>
             </div>

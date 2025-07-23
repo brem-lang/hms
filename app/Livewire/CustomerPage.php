@@ -60,7 +60,7 @@ class CustomerPage extends Component implements HasForms
             abort(404);
         }
 
-        $room = Room::with('suite_rooms')->get();
+        $room = Room::with('suite_rooms', 'roomBooking')->get();
 
         if (Auth::check()) {
             $this->loadNotifications();
@@ -71,13 +71,25 @@ class CustomerPage extends Component implements HasForms
             'deluxe' => $room->where('id', 2)->first(),
             'executive' => $room->where('id', 3)->first(),
             'functionHall' => $room->where('id', 4)->first(),
-            'standardOccupied' => $room->where('id', 1)->first()->suite_rooms->where('is_occupied', 0)
+            'standardOccupied' => $room->where('id', 1)->first()?->roomBooking
+                ->filter(function ($booking) {
+                    return Carbon::parse($booking->start_date)->toDateString() === Carbon::now('Asia/Manila')->toDateString();
+                })
                 ->count(),
-            'deluxeOccupied' => $room->where('id', 2)->first()->suite_rooms->where('is_occupied', 0)
+            'deluxeOccupied' => $room->where('id', 2)->first()?->roomBooking
+                ->filter(function ($booking) {
+                    return Carbon::parse($booking->start_date)->toDateString() === Carbon::now('Asia/Manila')->toDateString();
+                })
                 ->count(),
-            'executiveOccupied' => $room->where('id', 3)->first()->suite_rooms->where('is_occupied', 0)
+            'executiveOccupied' => $room->where('id', 3)->first()?->roomBooking
+                ->filter(function ($booking) {
+                    return Carbon::parse($booking->start_date)->toDateString() === Carbon::now('Asia/Manila')->toDateString();
+                })
                 ->count(),
-            'functionHallOccupied' => $room->where('id', 4)->first()->suite_rooms->where('is_occupied', 0)
+            'functionHallOccupied' => $room->where('id', 4)->first()?->roomBooking
+                ->filter(function ($booking) {
+                    return Carbon::parse($booking->start_date)->toDateString() === Carbon::now('Asia/Manila')->toDateString();
+                })
                 ->count(),
         ];
         $this->standardSuiteForm->fill([
@@ -114,11 +126,25 @@ class CustomerPage extends Component implements HasForms
         ]);
     }
 
+    public function markAllAsRead()
+    {
+        auth()->user()->unreadNotifications->markAsRead();
+
+        return redirect()->route('index');
+    }
+
+    public function clearAll()
+    {
+        auth()->user()->notifications()->delete();
+
+        return redirect()->route('index');
+    }
+
     public function loadNotifications()
     {
         $this->notifications = auth()->user()
             ->unreadNotifications()
-            ->take(10)
+            ->take(50)
             ->get();
     }
 

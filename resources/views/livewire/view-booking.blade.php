@@ -133,6 +133,10 @@
 
                 {{-- Payment Form --}}
                 <div>
+                    Scan to Pay
+                    <div>
+                        <img src="{{ asset('images/qrcode.png') }}" alt="Image 1" width="200" height="200">
+                    </div>
                     {{ $this->form }}
                 </div>
 

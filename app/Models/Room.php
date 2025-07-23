@@ -21,4 +21,9 @@ class Room extends Model
     {
         return $this->hasMany(SuiteRoom::class)->where('is_occupied', false);
     }
+
+    public function roomBooking()
+    {
+        return $this->hasMany(Booking::class);
+    }
 }

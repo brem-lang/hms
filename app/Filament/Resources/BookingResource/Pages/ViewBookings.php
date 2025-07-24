@@ -214,6 +214,7 @@ class ViewBookings extends Page
                     })
                     ->prefix('₱ '),
                 TextEntry::make('room.name')->label('Suite Type'),
+                TextEntry::make('notes')->label('Notes/Requests'),
                 TextEntry::make('suiteRoom.name')
                     ->formatStateUsing(fn ($state) => ucfirst($state))
                     ->label('Room'),

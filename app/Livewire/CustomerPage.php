@@ -48,6 +48,8 @@ class CustomerPage extends Component implements HasForms
 
     public $notifications;
 
+    public $unreadNotificationsCount;
+
     public function render()
     {
         return view('livewire.customer-page');
@@ -143,9 +145,11 @@ class CustomerPage extends Component implements HasForms
     public function loadNotifications()
     {
         $this->notifications = auth()->user()
-            ->unreadNotifications()
+            ->notifications()
             ->take(50)
             ->get();
+
+        $this->unreadNotificationsCount = auth()->user()->unreadNotifications->count();
     }
 
     protected function getForms(): array

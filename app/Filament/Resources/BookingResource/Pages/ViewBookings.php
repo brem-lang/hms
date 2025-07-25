@@ -27,13 +27,15 @@ class ViewBookings extends Page
 
     public ?array $formData = [];
 
+    public ?array $cancelData = [];
+
     protected static string $resource = BookingResource::class;
 
     protected static string $view = 'filament.resources.booking-resource.pages.view-bookings';
 
     public function mount(Booking $record): void
     {
-        $this->form->fill([
+        $this->paymentForm->fill([
             'proof_of_payment' => $record->proof_of_payment,
             'payment_type' => $record->payment_type ?? 'cash',
         ]);
@@ -121,7 +123,7 @@ class ViewBookings extends Page
                         ->send();
                 })
                 ->color('danger')
-                ->hidden(fn () => $this->record->status === 'cancelled')
+                ->hidden(true)
                 ->form([
                     Textarea::make('cancel_reason')
                         ->label('Reason for Cancellation')
@@ -134,7 +136,15 @@ class ViewBookings extends Page
         ];
     }
 
-    public function form(Form $form): Form
+    protected function getForms(): array
+    {
+        return [
+            'paymentForm',
+            'cancelForm',
+        ];
+    }
+
+    public function paymentForm(Form $form): Form
     {
         return $form
             ->schema([
@@ -164,6 +174,19 @@ class ViewBookings extends Page
             ->statePath('formData');
     }
 
+    public function cancelForm(Form $form): Form
+    {
+        return $form
+            ->schema([
+                Textarea::make('cancel_reason')
+                    ->label('Reason')
+                    ->required()
+                    ->maxLength(255)
+                    ->placeholder('Please provide a reason'),
+            ])
+            ->statePath('cancelData');
+    }
+
     public function infoList(Infolist $infolist): Infolist
     {
         return $infolist
@@ -180,6 +203,7 @@ class ViewBookings extends Page
                         'completed' => 'warning',
                         'cancelled' => 'danger',
                         'done' => 'success',
+                        'returned' => 'danger',
                     })
                     ->formatStateUsing(fn (string $state): string => match ($state) {
                         'completed' => 'For CheckIn',
@@ -228,7 +252,7 @@ class ViewBookings extends Page
 
     public function confirm()
     {
-        $data = $this->form->getState();
+        $data = $this->paymentForm->getState();
 
         $this->record->amount_paid = $data['amount_paid'];
         $this->record->balance = $this->record->amount_to_pay - $data['amount_paid'];
@@ -269,5 +293,80 @@ class ViewBookings extends Page
         Mail::to($this->record->user->email)->send(new MailFrontDesk($details));
 
         redirect(BookingResource::getUrl('view', ['record' => $this->record->id]));
+    }
+
+    public function return()
+    {
+        $data = $this->cancelForm->getState();
+
+        $this->record->status = 'returned';
+        $this->record->return_notes = $data['cancel_reason'];
+        $this->record->save();
+
+        Notification::make()
+            ->success()
+            ->title('Booking Returned')
+            ->icon('heroicon-o-check-circle')
+            ->body($this->record->user->name.' your booking has been returned')
+            ->actions([
+                Action::make('view')
+                    ->label('View')
+                    ->url(fn () => MyBookingResource::getUrl('payment', ['record' => $this->record->id]))->markAsRead(),
+                // ->openUrlInNewTab()
+            ])
+            ->sendToDatabase(User::where('id', $this->record->user_id)->get());
+
+        $details = [
+            'name' => $this->record->user->name,
+            'message' => $data['cancel_reason'],
+            'type' => 'cancel_booking',
+        ];
+
+        Mail::to($this->record->user->email)->send(new MailFrontDesk($details));
+
+        Notification::make()
+            ->success()
+            ->title('Booking Returned')
+            ->icon('heroicon-o-check-circle')
+            ->send();
+
+        redirect(BookingResource::getUrl('view', ['record' => $this->record->id]));
+    }
+
+    public function cancel()
+    {
+        $data = $this->cancelForm->getState();
+
+        $this->record->status = 'cancelled';
+        $this->record->cancel_reason = $data['cancel_reason'];
+        $this->record->want_cancel = true;
+        $this->record->save();
+
+        Notification::make()
+            ->success()
+            ->title('Booking Cancelled')
+            ->icon('heroicon-o-check-circle')
+            ->body($this->record->user->name.' your booking has been cancelled')
+            ->actions([
+                Action::make('view')
+                    ->label('View')
+                    ->url(fn () => MyBookingResource::getUrl('payment', ['record' => $this->record->id]))->markAsRead(),
+                // ->openUrlInNewTab()
+            ])
+            ->sendToDatabase(User::where('id', $this->record->user_id)->get());
+
+        $details = [
+            'name' => $this->record->user->name,
+            'message' => $data['cancel_reason'],
+            'type' => 'cancel_booking',
+        ];
+
+        Mail::to($this->record->user->email)->send(new MailFrontDesk($details));
+
+        Notification::make()
+            ->success()
+            ->title('Booking Cancelled')
+            ->icon('heroicon-o-check-circle')
+            ->send();
     }
 }

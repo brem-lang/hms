@@ -4,6 +4,7 @@ namespace App\Filament\Pages;
 
 use App\Filament\Resources\BookingResource;
 use App\Models\Booking;
+use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Concerns\InteractsWithForms;
@@ -180,6 +181,19 @@ class Checkin extends Page implements HasForms, HasTable
 
                                     return $record->balance + $chargesAmount;
                                 }),
+
+                            Repeater::make('charges')
+                                ->formatStateUsing(fn ($record) => $record->additional_charges)
+                                ->label('Additional Charges')
+                                ->reorderable(false)
+                                ->schema([
+                                    TextInput::make('name')->required(),
+                                    TextInput::make('amount')->numeric()->required(),
+                                ])
+                                ->addable(false)
+                                ->deletable(false)
+                                ->reorderable(false)
+                                ->columns(2),
 
                             Select::make('status')
                                 ->label('Status')

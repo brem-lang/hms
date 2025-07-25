@@ -174,7 +174,7 @@ class CustomerPage extends Component implements HasForms
                 ->live()
                 ->required(),
             TextInput::make('quantity')
-                ->label('Quantity')
+                ->label('Rooms')
                 ->minValue(0)
                 ->numeric()
                 ->visible(function (Get $get, Set $set) {
@@ -893,6 +893,7 @@ class CustomerPage extends Component implements HasForms
                 DB::beginTransaction();
 
                 $data = Booking::create([
+                    'booking_number' => 'BKG-'.strtoupper(uniqid()),
                     'payment_type' => 'gcash',
                     'type' => 'online',
                     'user_id' => auth()->user()->id,

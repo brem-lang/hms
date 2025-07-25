@@ -116,6 +116,7 @@
                             $parentUrl = dirname($url);
                             $bookingId = basename($parentUrl);
                         @endphp
+
                         <a href="{{ route('view-booking', $bookingId) }}" class="text-decoration-none text-dark d-block">
                             <div class="d-flex align-items-start mb-3 p-3 bg-light rounded shadow-sm notification-item"
                                 style="transition: background-color 0.2s;">
@@ -184,7 +185,7 @@
         </div>
         <!-- slider_area_end -->
         <!-- about_area_start -->
-        <div class="about_area">
+        {{-- <div class="about_area">
             <div class="container">
                 <div class="row">
                     <div class="col-xl-5 col-lg-5">
@@ -212,11 +213,11 @@
                     </div>
                 </div>
             </div>
-        </div>
+        </div> --}}
         <!-- about_area_end -->
 
         <!-- about_area_start -->
-        <div class="about_area">
+        {{-- <div class="about_area">
             <div class="container">
                 <div class="row">
                     <div class="col-xl-7 col-lg-7">
@@ -243,11 +244,11 @@
                     </div>
                 </div>
             </div>
-        </div>
+        </div> --}}
         <!-- about_area_end -->
 
         <!-- features_room_startt -->
-        <div class="features_room">
+        <div class="features_room" style="margin-top: 65px;">
             <div class="container">
                 <div class="row">
                     <div class="col-xl-12">

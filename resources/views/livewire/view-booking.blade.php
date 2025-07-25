@@ -66,7 +66,7 @@
     <div class="about_area" style="margin-top: -120px;">
         <div class="container">
             <div class="mb-5">
-                <h3 class="mb-30">Booking Information</h3>
+                <h3 class="mb-30">Booking Information - {{ $booking->booking_number }}</h3>
 
                 <div class="row">
                     <div class="col-md-6">
@@ -90,6 +90,14 @@
                         </p>
                         <p><strong>Days:</strong> {{ $booking->days }}</p>
                         <p><strong>Duration Hrs:</strong> {{ $booking->duration }}</p>
+
+                        @if ($booking->status == 'returned')
+                            <p><strong>Notes:</strong> {{ $booking->return_notes }}</p>
+                        @endif
+
+                        @if ($booking->status == 'cancelled')
+                            <p><strong>Notes:</strong> {{ $booking->cancel_reason }}</p>
+                        @endif
                     </div>
 
                     <div class="col-md-6">
@@ -132,12 +140,42 @@
                 @endif
 
                 {{-- Payment Form --}}
-                <div>
-                    Scan to Pay
+                {{-- <div>
+                    Scan to Pay with Gcash <br>
+                    Test USER
                     <div>
                         <img src="{{ asset('images/qrcode.png') }}" alt="Image 1" width="200" height="200">
                     </div>
                     {{ $this->form }}
+                </div> --}}
+                <div>
+
+                    <div
+                        class="flex flex-col items-center gap-4 p-8 bg-white rounded-lg shadow-lg border w-full max-w-xs text-center">
+
+                        <h1 class="text-xl font-bold text-gray-800">
+                            Scan to Pay with GCash
+                        </h1>
+
+                        <div class="text-center">
+                            <p class="text-sm text-gray-500">GCash Name</p>
+                            <p class="text-2xl font-semibold text-blue-600">
+                                JOHN DOE
+                            </p>
+                        </div>
+
+                        <div>
+                            <img src="{{ asset('images/qrcode.png') }}" alt="GCash QR Code" width="200"
+                                height="200" class="rounded-md border-2 border-gray-200">
+                        </div>
+
+
+
+                    </div>
+
+                    <div class="w-full mt-4">
+                        {{ $this->form }}
+                    </div>
                 </div>
 
                 {{-- Book Button --}}
@@ -145,7 +183,7 @@
         </div>
     </div>
 
-    <div class="container" style="margin-top:-20px;" class="text-right">
+    <div class="container" style="margin-top:200px;" class="text-right">
         {{-- <div class="text-right" style="margin-bottom: 20px;">
             <a href="#" class="genric-btn info" wire:click.prevent="bookRoom">
                 Book Now
@@ -188,7 +226,40 @@
                 </x-filament::modal>
             @endif
         @else
-            <a href="#" class="genric-btn info mb-4" style="margin-top: 190px;"> Completed</a>
+            @if ($booking->status == 'returned')
+                <x-filament::modal id="confirm-modal" width="md" alignment="center" icon="heroicon-o-check"
+                    icon-color="info">
+                    <x-slot name="trigger">
+                        {{-- <x-filament::button color="info" class="mb-5">
+                            Confirm Payment
+                        </x-filament::button> --}}
+                        <a href="#" class="genric-btn info mb-5">Confirm Payment</a>
+                    </x-slot>
+                    <x-slot name="heading">
+                        Confirm Payment
+                    </x-slot>
+
+                    <x-slot name="description">
+                        Are you sure you would like to do this?
+                    </x-slot>
+
+                    <x-slot name="footerActions">
+                        {{-- <x-filament::button size="md" color="info" class="w-full" wire:click="pay">
+                            Confirm
+                        </x-filament::button> --}}
+                        {{-- <x-filament::button color="gray" outlined size="md" class="w-full"
+                            x-on:click.prevent="$dispatch('close-modal', {id: 'confirm-modal'})">
+                            Cancel
+                        </x-filament::button> --}}
+                        <a href="#" class="genric-btn info w-full" wire:click="pay">Confirm</a>
+                        <a href="#" class="genric-btn danger w-full"
+                            x-on:click.prevent="$dispatch('close-modal', {id: 'confirm-modal'})">Cancel</a>
+                    </x-slot>
+                </x-filament::modal>
+            @else
+                <a href="#" class="genric-btn info mb-4" style="margin-top: 190px;"> Completed</a>
+            @endif
+
         @endif
     </div>
 
@@ -201,7 +272,7 @@
             title,
             text,
             icon
-        } = event.detail;
+        } = event.detail[0];
 
         Swal.fire({
             title: title ?? 'Success!',

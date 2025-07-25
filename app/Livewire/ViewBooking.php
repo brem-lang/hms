@@ -64,8 +64,8 @@ class ViewBooking extends Component implements HasForms
         $this->booking->save();
 
         $this->dispatch('swal:success', [
-            'title' => 'Error',
-            'icon' => 'danger',
+            'title' => 'Submitted',
+            'icon' => 'success',
         ]);
 
         Notification::make()

@@ -86,20 +86,22 @@ class BookingResource extends Resource
                         'completed' => 'warning',
                         'cancelled' => 'danger',
                         'done' => 'success',
+                        'returned' => 'danger',
                     })
                     ->formatStateUsing(fn (string $state): string => match ($state) {
                         'completed' => 'For CheckIn',
+                        'pending' => 'Confirmation Payment',
                         default => __(ucfirst($state)),
                     })
                     ->searchable(),
-                TextColumn::make('suiteRoom.is_occupied')
-                    ->label('Occupied')
-                    ->toggleable()
-                    ->badge()->color(fn (string $state): string => match ($state) {
-                        '1' => 'success',
-                        '0' => 'danger',
-                    })
-                    ->formatStateUsing(fn (string $state): string => $state ? 'Yes' : 'No'),
+                // TextColumn::make('suiteRoom.is_occupied')
+                //     ->label('Occupied')
+                //     ->toggleable()
+                //     ->badge()->color(fn (string $state): string => match ($state) {
+                //         '1' => 'success',
+                //         '0' => 'danger',
+                //     })
+                //     ->formatStateUsing(fn (string $state): string => $state ? 'Yes' : 'No'),
                 TextColumn::make('suiteRoom.name')
                     ->label('Room Number')
                     ->sortable()

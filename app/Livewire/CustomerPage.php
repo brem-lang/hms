@@ -174,7 +174,7 @@ class CustomerPage extends Component implements HasForms
                 ->live()
                 ->required(),
             TextInput::make('quantity')
-                ->label('Rooms')
+                ->label('Number of Rooms')
                 ->minValue(0)
                 ->numeric()
                 ->visible(function (Get $get, Set $set) {
@@ -315,7 +315,7 @@ class CustomerPage extends Component implements HasForms
                 ->live()
                 ->required(),
             TextInput::make('quantity')
-                ->label('Quantity')
+                ->label('Number of Rooms')
                 ->minValue(0)
                 ->numeric()
                 ->visible(function (Get $get, Set $set) {
@@ -456,7 +456,7 @@ class CustomerPage extends Component implements HasForms
                 ->live()
                 ->required(),
             TextInput::make('quantity')
-                ->label('Quantity')
+                ->label('Number of Rooms')
                 ->minValue(0)
                 ->numeric()
                 ->visible(function (Get $get, Set $set) {
@@ -669,7 +669,7 @@ class CustomerPage extends Component implements HasForms
 
         if ($data) {
             $this->dispatch('swal:success', [
-                'title' => 'Success',
+                'title' => 'Submitted ',
                 'icon' => 'success',
             ]);
 
@@ -721,7 +721,7 @@ class CustomerPage extends Component implements HasForms
 
         if ($data) {
             $this->dispatch('swal:success', [
-                'title' => 'Success',
+                'title' => 'Submitted ',
                 'icon' => 'success',
             ]);
 
@@ -773,7 +773,7 @@ class CustomerPage extends Component implements HasForms
 
         if ($data) {
             $this->dispatch('swal:success', [
-                'title' => 'Success',
+                'title' => 'Submitted ',
                 'icon' => 'success',
             ]);
 

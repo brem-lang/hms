@@ -86,7 +86,7 @@ class User extends Authenticatable
                 'name' => auth()->user()->name,
             ];
 
-            Mail::to(auth()->user()->email)->send(new TwoFactorMail($details));
+            // Mail::to(auth()->user()->email)->send(new TwoFactorMail($details));
         } catch (Exception $e) {
             info('Error: '.$e->getMessage());
         }

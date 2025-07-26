@@ -33,6 +33,11 @@ class ViewBookings extends Page
 
     protected static string $view = 'filament.resources.booking-resource.pages.view-bookings';
 
+    public function getTitle(): string
+    {
+        return 'View Booking - '.$this->record->booking_number;
+    }
+
     public function mount(Booking $record): void
     {
         $this->paymentForm->fill([

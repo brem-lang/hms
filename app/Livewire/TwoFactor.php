@@ -34,6 +34,9 @@ class TwoFactor extends Component implements HasForms
 
         try {
             $this->rateLimit(5);
+
+            session()->put('user_2fa', auth()->id());
+
             if (auth()->user()->isCustomer()) {
                 return redirect()->route('index');
             } else {

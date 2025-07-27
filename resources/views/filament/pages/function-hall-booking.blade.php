@@ -108,7 +108,34 @@
                         </section>
                     </div>
                 </div>
+
+                <div style="margin-top: 20px;">
+                    <div id="calendar" class="p-4 bg-white rounded-lg shadow" x-data="{
+                        events: [
+                            { title: 'Wedding Reception', start: '2025-07-28T14:00:00', end: '2025-07-28T18:00:00' },
+                            { title: 'Corporate Seminar', start: '2025-07-29T09:00:00', end: '2025-07-29T17:00:00' },
+                            { title: 'Birthday Party', start: '2025-07-30T18:00:00', end: '2025-07-30T22:00:00' }
+                        ],
+                    
+                        initCalendar() {
+                            const calendarEl = document.getElementById('calendar');
+                            const calendar = new FullCalendar.Calendar(calendarEl, {
+                                initialView: 'dayGridMonth',
+                                headerToolbar: {
+                                    left: 'prev,next today',
+                                    center: 'title',
+                                    right: 'dayGridMonth,timeGridWeek,timeGridDay'
+                                },
+                                events: this.events
+                            });
+                            calendar.render();
+                        }
+                    }"
+                        x-init="initCalendar()">
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 </x-filament-panels::page>
+<script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.14/index.global.min.js'></script>

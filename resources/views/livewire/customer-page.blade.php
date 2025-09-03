@@ -183,69 +183,72 @@
                 </div>
             </div>
         </div>
-        <!-- slider_area_end -->
-        <!-- about_area_start -->
-        {{-- <div class="about_area">
-            <div class="container">
-                <div class="row">
-                    <div class="col-xl-5 col-lg-5">
-                        <div class="about_info">
-                            <div class="section_title mb-20px">
-                                <span>About Us</span>
-                                <h3>A Luxuries Hotel <br>
-                                    with Nature</h3>
-                            </div>
-                            <p>A place for staycation and relaxation with best service and atmosphere for a price you
-                                can
-                                afford.</p>
-                            <a href="#" class="line-button">Learn More</a>
-                        </div>
-                    </div>
-                    <div class="col-xl-7 col-lg-7">
-                        <div class="about_thumb d-flex">
-                            <div class="img_1">
-                                <img src="img/about/about1.PNG" alt="">
-                            </div>
-                            <div class="img_2">
-                                <img src="img/about/about2.PNG" alt="">
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div> --}}
-        <!-- about_area_end -->
 
-        <!-- about_area_start -->
-        {{-- <div class="about_area">
-            <div class="container">
-                <div class="row">
-                    <div class="col-xl-7 col-lg-7">
-                        <div class="about_thumb2 d-flex">
-                            <div class="img_1">
-                                <img src="img/food/fries.jpg" alt="">
-                            </div>
-                            <div class="img_2">
-                                <img src="img/food/chicken.jpg" alt="">
+        @guest
+            <!-- slider_area_end -->
+            <!-- about_area_start -->
+            <div class="about_area">
+                <div class="container">
+                    <div class="row">
+                        <div class="col-xl-5 col-lg-5">
+                            <div class="about_info">
+                                <div class="section_title mb-20px">
+                                    <span>About Us</span>
+                                    <h3>A Luxuries Hotel <br>
+                                        with Nature</h3>
+                                </div>
+                                <p>A place for staycation and relaxation with best service and atmosphere for a price you
+                                    can
+                                    afford.</p>
+                                <a href="#" class="line-button">Learn More</a>
                             </div>
                         </div>
-                    </div>
-                    <div class="col-xl-5 col-lg-5">
-                        <div class="about_info">
-                            <div class="section_title mb-20px">
-                                <span>Delicious Food</span>
-                                <h3>We Serve Fresh and <br>
-                                    Delicious Food</h3>
+                        <div class="col-xl-7 col-lg-7">
+                            <div class="about_thumb d-flex">
+                                <div class="img_1">
+                                    <img src="img/about/about1.PNG" alt="">
+                                </div>
+                                <div class="img_2">
+                                    <img src="img/about/about2.PNG" alt="">
+                                </div>
                             </div>
-                            <p>Bringing You Freshly Prepared, Mouthwatering Dishes Crafted with Passion and the Finest
-                                Ingredients.</p>
-                            <a href="#" class="line-button">Learn More</a>
                         </div>
                     </div>
                 </div>
             </div>
-        </div> --}}
-        <!-- about_area_end -->
+            <!-- about_area_end -->
+
+            <!-- about_area_start -->
+            <div class="about_area">
+                <div class="container">
+                    <div class="row">
+                        <div class="col-xl-7 col-lg-7">
+                            <div class="about_thumb2 d-flex">
+                                <div class="img_1">
+                                    <img src="img/food/fries.jpg" alt="">
+                                </div>
+                                <div class="img_2">
+                                    <img src="img/food/chicken.jpg" alt="">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-xl-5 col-lg-5">
+                            <div class="about_info">
+                                <div class="section_title mb-20px">
+                                    <span>Delicious Food</span>
+                                    <h3>We Serve Fresh and <br>
+                                        Delicious Food</h3>
+                                </div>
+                                <p>Bringing You Freshly Prepared, Mouthwatering Dishes Crafted with Passion and the Finest
+                                    Ingredients.</p>
+                                <a href="#" class="line-button">Learn More</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- about_area_end -->
+        @endguest
 
         <!-- features_room_startt -->
         <div class="features_room" style="margin-top: 65px;">
@@ -385,33 +388,269 @@
 
         <!-- Start Sample Area -->
 
-        <section class="sample-text-area">
+        <div class="whole-wrap">
             <div class="container box_1170">
-                <h3 class="text-heading">About</h3>
+                <div class="section-top-border">
+                    @if ($this->selectedRoom['name'] === 'Function Hall')
+                        {{-- <h3>Image Gallery</h3> --}}
+                        {{-- <div class="row gallery-item">
+                            <div class="col-md-4">
+                                <a href="img/elements/g1.jpg" class="img-pop-up">
+                                    <div class="single-gallery-image" style="background: url(img/elements/g1.jpg);">
+                                    </div>
+                                </a>
+                            </div>
+                            <div class="col-md-4">
+                                <a href="img/elements/g2.jpg" class="img-pop-up">
+                                    <div class="single-gallery-image" style="background: url(img/elements/g2.jpg);">
+                                    </div>
+                                </a>
+                            </div>
+                            <div class="col-md-4">
+                                <a href="img/elements/g3.jpg" class="img-pop-up">
+                                    <div class="single-gallery-image" style="background: url(img/elements/g3.jpg);">
+                                    </div>
+                                </a>
+                            </div>
+                            <div class="col-md-6">
+                                <a href="img/elements/g4.jpg" class="img-pop-up">
+                                    <div class="single-gallery-image" style="background: url(img/elements/g4.jpg);">
+                                    </div>
+                                </a>
+                            </div>
+                            <div class="col-md-6">
+                                <a href="img/elements/g5.jpg" class="img-pop-up">
+                                    <div class="single-gallery-image" style="background: url(img/elements/g5.jpg);">
+                                    </div>
+                                </a>
+                            </div>
+                            <div class="col-md-4">
+                                <a href="img/elements/g6.jpg" class="img-pop-up">
+                                    <div class="single-gallery-image" style="background: url(img/elements/g6.jpg);">
+                                    </div>
+                                </a>
+                            </div>
+                            <div class="col-md-4">
+                                <a href="img/elements/g7.jpg" class="img-pop-up">
+                                    <div class="single-gallery-image" style="background: url(img/elements/g7.jpg);">
+                                    </div>
+                                </a>
+                            </div>
+                            <div class="col-md-4">
+                                <a href="img/elements/g8.jpg" class="img-pop-up">
+                                    <div class="single-gallery-image" style="background: url(img/elements/g8.jpg);">
+                                    </div>
+                                </a>
+                            </div>
+                        </div> --}}
+                        {{-- <div class="instragram_area">
+                            <div class="single_instagram">
+                                <img src="img/functionhall/fn1.jpg" alt="">
+                            </div>
+                            <div class="single_instagram">
+                                <img src="img/functionhall/fn2.jpg" alt="">
+                            </div>
+                            <div class="single_instagram">
+                                <img src="img/functionhall/fn3.jpg" alt="">
+                            </div>
+                            <div class="single_instagram">
+                                <img src="img/functionhall/fn4.jpg" alt="">
+                            </div>
+                            <div class="single_instagram">
+                                <img src="img/functionhall/fn5.jpg" alt="">
+                            </div>
+                        </div> --}}
+                </div>
+            @else
+                {{-- @switch($this->selectedRoom['name'])
+                    @case('Standard Suite')
+                        <div class="text-right"> {{ 7 - $record['standardOccupied'] }} Available Room(s)</div>
+                        {{ $this->standardSuiteForm }}
+                    @break
+
+                    @case('Deluxe Suite')
+                        <div class="text-right"> {{ 7 - $record['deluxeOccupied'] }} Available Room(s)</div>
+                        {{ $this->deluxeSuiteForm }}
+                    @break
+
+                    @case('Executive Suite')
+                        <div class="text-right"> {{ 13 - $record['executiveOccupied'] }} Available Room(s)</div>
+                        {{ $this->executiveSuiteForm }}
+                    @break
+                @endswitch
+
+                <div class="text-right mt-4">
+                    <div class="book_btn d-none d-lg-block">
+                        <a href="#" class="genric-btn info" wire:click.prevent="bookRoom">
+                            Book Now
+                        </a>
+                    </div>
+                </div> --}}
+                @php
+                    $available = 0;
+                @endphp
+
+                @switch($this->selectedRoom['name'])
+                    @case('Standard Suite')
+                        @php $available = 7 - $record['standardOccupied']; @endphp
+                        <div class="text-right"> {{ $available }} Available Room(s) Today</div>
+                        {{ $this->standardSuiteForm }}
+                    @break
+
+                    @case('Deluxe Suite')
+                        @php $available = 7 - $record['deluxeOccupied']; @endphp
+                        <div class="text-right"> {{ $available }} Available Room(s) Today</div>
+                        {{ $this->deluxeSuiteForm }}
+                    @break
+
+                    @case('Executive Suite')
+                        @php $available = 13 - $record['executiveOccupied']; @endphp
+                        <div class="text-right"> {{ $available }} Available Room(s) Today</div>
+                        {{ $this->executiveSuiteForm }}
+                    @break
+                @endswitch
+
+                @if ($available > 0)
+                    <div class="text-right mt-4">
+                        <div class="book_btn d-none d-lg-block">
+                            <a href="#" class="genric-btn info" wire:click.prevent="bookRoom">
+                                Book Now
+                            </a>
+                        </div>
+                    </div>
+                @endif
+    @endif
+
+    @auth
+        <h3 class="text-heading mt-3">Calendar</h3>
+        <div style="height: 500px;" id="calendar" class="p-4 bg-white rounded-lg shadow" x-data="{
+            events: {{ Js::from($this->calendarEvents) }},
+            initCalendar() {
+                const calendarEl = document.getElementById('calendar');
+                const calendar = new FullCalendar.Calendar(calendarEl, {
+                    initialView: 'dayGridMonth',
+                    headerToolbar: {
+                        left: 'prev,next today',
+                        center: 'title',
+                        right: 'dayGridMonth,timeGridWeek,timeGridDay'
+                    },
+                    events: this.events,
+        
+                    // --- Add these new options for tooltips ---
+                    eventMouseEnter: function(info) {
+                        tippy(info.el, {
+                            content: info.event.title, // Use the event's title as the tooltip content
+                            placement: 'top',
+                            animation: 'shift-away',
+                        });
+                    },
+                    eventMouseLeave: function(info) {
+                        if (info.el._tippy) {
+                            info.el._tippy.destroy();
+                        }
+                    }
+                    // --- End of new options ---
+        
+                });
+                calendar.render();
+            }
+        }"
+            x-init="initCalendar()">
+        </div>
+    @endauth
+
+    <div x-data="{ activeTab: 'images' }" class="container mx-auto p-4 sm:p-6 lg:p-8">
+        <!-- Tab navigation -->
+        <div class="border-b border-gray-200 mb-8">
+            <nav class="-mb-px flex space-x-6" aria-label="Tabs">
+                <button @click="activeTab = 'images'" :class="{ 'active-tab': activeTab === 'images' }"
+                    class="whitespace-nowrap py-4 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-blue-600 hover:border-blue-300 transition-colors duration-200">
+                    Images
+                </button>
+                <button @click="activeTab = 'about'" :class="{ 'active-tab': activeTab === 'about' }"
+                    class="whitespace-nowrap py-4 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-blue-600 hover:border-blue-300 transition-colors duration-200">
+                    About Us
+                </button>
+            </nav>
+        </div>
+
+        <!-- Tab content panels -->
+        <!-- Images Tab -->
+        <div x-show="activeTab === 'images'" x-cloak x-transition>
+            <div>
+                <h3 class="text-heading mt-3">Images</h3>
+                <div class="row gallery-item">
+                    @if ($selectedRoom['name'] == 'Function Hall')
+                        <div class="instragram_area p-4">
+                            <div class="single_instagram">
+                                <img src="img/functionhall/fn1.jpg" alt="">
+                            </div>
+                            <div class="single_instagram">
+                                <img src="img/functionhall/fn2.jpg" alt="">
+                            </div>
+                            <div class="single_instagram">
+                                <img src="img/functionhall/fn3.jpg" alt="">
+                            </div>
+                            <div class="single_instagram">
+                                <img src="img/functionhall/fn4.jpg" alt="">
+                            </div>
+                            <div class="single_instagram">
+                                <img src="img/functionhall/fn5.jpg" alt="">
+                            </div>
+                        </div>
+                    @else
+                        @foreach ($selectedRoom['images'] ?? [] as $image)
+                            <div class="col-md-4">
+                                <a class="img-pop-up">
+                                    <div class="single-gallery-image"
+                                        style="background-image: url('{{ asset('suite-photo/' . $image) }}');">
+                                    </div>
+                                </a>
+                            </div>
+                        @endforeach
+                    @endif
+
+                </div>
+
+            </div>
+        </div>
+
+        <!-- About Us Tab -->
+        <div x-show="activeTab === 'about'" x-cloak x-transition>
+            <div>
+                <h3 class="text-heading mt-3">About</h3>
                 <p class="sample-text">
                     @if ($selectedRoom['name'] == 'Standard Suite')
-                        "Our Standard Suite offers a perfect blend of comfort and elegance — featuring a cozy bed,
-                        modern amenities, and a calming atmosphere ideal for both rest and relaxation. Enjoy quality
+                        "Our Standard Suite offers a perfect blend of comfort and elegance — featuring a
+                        cozy bed,
+                        modern amenities, and a calming atmosphere ideal for both rest and relaxation. Enjoy
+                        quality
                         service in a space designed to feel like home."
                     @endif
 
                     @if ($selectedRoom['name'] == 'Deluxe Suite')
-                        "Our Deluxe Suite offers a luxurious experience with a spacious layout, top-of-the-line
-                        amenities, and a comfortable atmosphere that will make you feel at home. Whether you're
+                        "Our Deluxe Suite offers a luxurious experience with a spacious layout,
+                        top-of-the-line
+                        amenities, and a comfortable atmosphere that will make you feel at home. Whether
+                        you're
                         looking
                         for a cozy bed, a comfortable couch, or a stylish sofa, our Deluxe Suite has got you
                         covered."
                     @endif
 
                     @if ($selectedRoom['name'] == 'Executive Suite')
-                        "Our Executive Suite is the perfect choice for those who want a spacious and elegant space
-                        with top-of-the-line amenities. With a modern design and a comfortable atmosphere, our
+                        "Our Executive Suite is the perfect choice for those who want a spacious and elegant
+                        space
+                        with top-of-the-line amenities. With a modern design and a comfortable atmosphere,
+                        our
                         Executive Suite is the perfect place to relax and unwind."
                     @endif
 
                     @if ($selectedRoom['name'] == 'Function Hall')
-                        "Our Function Hall is the perfect place to relax and unwind. With a comfortable bed, a
-                        stylish sofa, and a cozy couch, our Function Hall is the perfect space to unwind and enjoy
+                        "Our Function Hall is the perfect place to relax and unwind. With a comfortable bed,
+                        a
+                        stylish sofa, and a cozy couch, our Function Hall is the perfect space to unwind and
+                        enjoy
                         some much-needed rest."
                     @endif
                 </p>
@@ -488,182 +727,12 @@
                     </div>
 
                 @endif
+
             </div>
-        </section>
+        </div>
+    </div>
 
-        <div class="whole-wrap">
-            <div class="container box_1170">
-                <div class="section-top-border">
-                    @if ($this->selectedRoom['name'] === 'Function Hall')
-                        <h3>Image Gallery</h3>
-                        {{-- <div class="row gallery-item">
-                            <div class="col-md-4">
-                                <a href="img/elements/g1.jpg" class="img-pop-up">
-                                    <div class="single-gallery-image" style="background: url(img/elements/g1.jpg);">
-                                    </div>
-                                </a>
-                            </div>
-                            <div class="col-md-4">
-                                <a href="img/elements/g2.jpg" class="img-pop-up">
-                                    <div class="single-gallery-image" style="background: url(img/elements/g2.jpg);">
-                                    </div>
-                                </a>
-                            </div>
-                            <div class="col-md-4">
-                                <a href="img/elements/g3.jpg" class="img-pop-up">
-                                    <div class="single-gallery-image" style="background: url(img/elements/g3.jpg);">
-                                    </div>
-                                </a>
-                            </div>
-                            <div class="col-md-6">
-                                <a href="img/elements/g4.jpg" class="img-pop-up">
-                                    <div class="single-gallery-image" style="background: url(img/elements/g4.jpg);">
-                                    </div>
-                                </a>
-                            </div>
-                            <div class="col-md-6">
-                                <a href="img/elements/g5.jpg" class="img-pop-up">
-                                    <div class="single-gallery-image" style="background: url(img/elements/g5.jpg);">
-                                    </div>
-                                </a>
-                            </div>
-                            <div class="col-md-4">
-                                <a href="img/elements/g6.jpg" class="img-pop-up">
-                                    <div class="single-gallery-image" style="background: url(img/elements/g6.jpg);">
-                                    </div>
-                                </a>
-                            </div>
-                            <div class="col-md-4">
-                                <a href="img/elements/g7.jpg" class="img-pop-up">
-                                    <div class="single-gallery-image" style="background: url(img/elements/g7.jpg);">
-                                    </div>
-                                </a>
-                            </div>
-                            <div class="col-md-4">
-                                <a href="img/elements/g8.jpg" class="img-pop-up">
-                                    <div class="single-gallery-image" style="background: url(img/elements/g8.jpg);">
-                                    </div>
-                                </a>
-                            </div>
-                        </div> --}}
-                        <div class="instragram_area">
-                            <div class="single_instagram">
-                                <img src="img/functionhall/fn1.jpg" alt="">
-                            </div>
-                            <div class="single_instagram">
-                                <img src="img/functionhall/fn2.jpg" alt="">
-                            </div>
-                            <div class="single_instagram">
-                                <img src="img/functionhall/fn3.jpg" alt="">
-                            </div>
-                            <div class="single_instagram">
-                                <img src="img/functionhall/fn4.jpg" alt="">
-                            </div>
-                            <div class="single_instagram">
-                                <img src="img/functionhall/fn5.jpg" alt="">
-                            </div>
-                        </div>
-                </div>
 
-                @auth
-                    <h3>Calendar</h3>
-                    <div id="calendar" class="p-4 bg-white rounded-lg shadow" x-data="{
-                        events: [{
-                                title: 'Wedding Reception',
-                                start: '2025-07-28T14:00:00',
-                                end: '2025-07-28T18:00:00',
-                                color: '#2563eb' // Blue
-                            },
-                            {
-                                title: 'Corporate Seminar',
-                                start: '2025-07-29T09:00:00',
-                                end: '2025-07-29T17:00:00',
-                                color: '#16a34a' // Green
-                            },
-                            {
-                                title: 'Birthday Party',
-                                start: '2025-07-30T18:00:00',
-                                end: '2025-07-30T22:00:00',
-                                color: '#dc2626' // Red
-                            }
-                        ],
-                    
-                        initCalendar() {
-                            const calendarEl = document.getElementById('calendar');
-                            const calendar = new FullCalendar.Calendar(calendarEl, {
-                                initialView: 'dayGridMonth',
-                                headerToolbar: {
-                                    left: 'prev,next today',
-                                    center: 'title',
-                                    right: 'dayGridMonth,timeGridWeek,timeGridDay'
-                                },
-                                events: this.events
-                            });
-                            calendar.render();
-                        }
-                    }"
-                        x-init="initCalendar()">
-                    </div>
-                @endauth
-            @else
-                {{-- @switch($this->selectedRoom['name'])
-                    @case('Standard Suite')
-                        <div class="text-right"> {{ 7 - $record['standardOccupied'] }} Available Room(s)</div>
-                        {{ $this->standardSuiteForm }}
-                    @break
-
-                    @case('Deluxe Suite')
-                        <div class="text-right"> {{ 7 - $record['deluxeOccupied'] }} Available Room(s)</div>
-                        {{ $this->deluxeSuiteForm }}
-                    @break
-
-                    @case('Executive Suite')
-                        <div class="text-right"> {{ 13 - $record['executiveOccupied'] }} Available Room(s)</div>
-                        {{ $this->executiveSuiteForm }}
-                    @break
-                @endswitch
-
-                <div class="text-right mt-4">
-                    <div class="book_btn d-none d-lg-block">
-                        <a href="#" class="genric-btn info" wire:click.prevent="bookRoom">
-                            Book Now
-                        </a>
-                    </div>
-                </div> --}}
-                @php
-                    $available = 0;
-                @endphp
-
-                @switch($this->selectedRoom['name'])
-                    @case('Standard Suite')
-                        @php $available = 7 - $record['standardOccupied']; @endphp
-                        <div class="text-right"> {{ $available }} Available Room(s) Today</div>
-                        {{ $this->standardSuiteForm }}
-                    @break
-
-                    @case('Deluxe Suite')
-                        @php $available = 7 - $record['deluxeOccupied']; @endphp
-                        <div class="text-right"> {{ $available }} Available Room(s) Today</div>
-                        {{ $this->deluxeSuiteForm }}
-                    @break
-
-                    @case('Executive Suite')
-                        @php $available = 13 - $record['executiveOccupied']; @endphp
-                        <div class="text-right"> {{ $available }} Available Room(s) Today</div>
-                        {{ $this->executiveSuiteForm }}
-                    @break
-                @endswitch
-
-                @if ($available > 0)
-                    <div class="text-right mt-4">
-                        <div class="book_btn d-none d-lg-block">
-                            <a href="#" class="genric-btn info" wire:click.prevent="bookRoom">
-                                Book Now
-                            </a>
-                        </div>
-                    </div>
-                @endif
-    @endif
 </div>
 </div>
 </div>
@@ -707,9 +776,14 @@
         </div>
     </div>
 </footer>
+
+
 </div>
+<script src="https://unpkg.com/popper.js@1"></script>
+<script src="https://unpkg.com/tippy.js@5"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.14/index.global.min.js'></script>
+
 
 <script>
     window.addEventListener('swal:success', event => {

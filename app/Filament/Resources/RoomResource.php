@@ -48,6 +48,13 @@ class RoomResource extends Resource
                                     ->directory('/')
                                     ->image()
                                     ->label('Image'),
+                                FileUpload::make('images')
+                                    ->hint('OTher images of the suite type')
+                                    ->disk('public_uploads_suite')
+                                    ->directory('/')
+                                    ->image()
+                                    ->multiple()
+                                    ->label('Images'),
                             ]),
                     ])
                     ->columnSpan(1),

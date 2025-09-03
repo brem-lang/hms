@@ -10,9 +10,9 @@
                     <div class="progress-table">
                         <div class="table-head">
                             <div class="visit ml-3">Room Type</div>
-                            <div class="country">CheckIn</div>
+                            {{-- <div class="country">CheckIn</div>
                             <div class="country">CheckOut</div>
-                            <div class="country">Duration</div>
+                            <div class="country">Duration</div> --}}
                             <div class="country">Room</div>
                             <div class="country">Status</div>
                             <div class="visit"></div>
@@ -21,13 +21,13 @@
                         @forelse ($this->data as $item)
                             <div class="table-row" wire:key="{{ $item->id }}">
                                 <div class="visit ml-3">{{ $item->room->name }}</div>
-                                <div class="country">
+                                {{-- <div class="country">
                                     {{ Carbon\Carbon::parse($item->check_in_date)->format('F d, Y h:i A') }}
                                 </div>
                                 <div class="country">
                                     {{ Carbon\Carbon::parse($item->check_out_date)->format('F d, Y h:i A') }}
                                 </div>
-                                <div class="country">{{ $item->duration }}</div>
+                                <div class="country">{{ $item->duration }}</div> --}}
                                 <div class="country">{{ $item->room->name }}</div>
                                 <div class="country">{{ ucfirst($item->status) }}</div>
                                 <div class="visit">

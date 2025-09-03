@@ -50,6 +50,8 @@ class CustomerPage extends Component implements HasForms
 
     public $unreadNotificationsCount;
 
+    public $calendarEvents = [];
+
     public function render()
     {
         return view('livewire.customer-page');
@@ -600,6 +602,25 @@ class CustomerPage extends Component implements HasForms
         $this->activePage = 'viewRoom';
 
         $this->selectedRoom = $room;
+
+        $this->calendarEvents = $room->roomBooking
+            ->map(function ($booking) {
+                $color = '#16a34a'; // Default to green
+
+                if ($booking->status === 'pending') {
+                    $color = '#f59e0b'; // Yellow for pending
+                } elseif ($booking->status === 'cancel') {
+                    $color = '#ef4444'; // Red for cancel
+                }
+
+                return [
+                    'title' => $booking->start_date->format('Y-m-d').' - '.$booking->end_date->format('Y-m-d'),
+                    'start' => $booking->start_date->format('Y-m-d').'T'.$booking->start_date->format('H:i:s'),
+                    'end' => $booking->end_date->format('Y-m-d').'T'.$booking->end_date->format('H:i:s'),
+                    'color' => $color,
+                ];
+            })
+            ->values();
 
         // if (Auth::check()) {
         // } else {

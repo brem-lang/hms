@@ -6,6 +6,7 @@ use App\Filament\Resources\BookingResource;
 use App\Filament\Resources\MyBookingResource;
 use App\Mail\MailFrontDesk;
 use App\Models\Booking;
+use App\Models\Charge;
 use App\Models\User;
 use Filament\Actions\Action as ActionsAction;
 use Filament\Forms\Components\FileUpload;
@@ -14,6 +15,7 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
+use Filament\Forms\Set;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Infolists\Infolist;
 use Filament\Notifications\Actions\Action;
@@ -59,11 +61,27 @@ class ViewBookings extends Page
                         ->label('Additional Charges')
                         ->reorderable(false)
                         ->schema([
-                            TextInput::make('name')->required(),
-                            TextInput::make('amount')->numeric()->required(),
+                            Select::make('name')
+                                ->disableOptionsWhenSelectedInSiblingRepeaterItems()
+                                ->required()
+                                ->label('Charge Name')
+                                ->options(Charge::pluck('name', 'id'))
+                                ->live()
+                                ->afterStateUpdated(function (Set $set, ?string $state) {
+                                    $charge = Charge::find($state);
+                                    $set('amount', $charge?->amount);
+                                })
+                                ->searchable(),
+
+                            TextInput::make('amount')
+                                ->label('Amount')
+                                ->prefix('PHP')
+                                ->numeric()
+                                ->readOnly(),
                         ])
                         ->columns(2),
                 ])->action(function ($data) {
+
                     $this->record->additional_charges = $data['charges'];
                     $this->record->save();
 

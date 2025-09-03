@@ -10,6 +10,7 @@ class Room extends Model
 
     protected $casts = [
         'items' => 'array',
+        'images' => 'array',
     ];
 
     public function suite_rooms()

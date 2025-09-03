@@ -10,6 +10,8 @@ class Booking extends Model
 
     protected $casts = [
         'additional_charges' => 'array',
+        'start_date' => 'datetime',
+        'end_date' => 'datetime',
     ];
 
     public function user()

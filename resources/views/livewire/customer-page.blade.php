@@ -513,9 +513,20 @@
                 @if ($available > 0)
                     <div class="text-right mt-4">
                         <div class="book_btn d-none d-lg-block">
-                            <a href="#" class="genric-btn info" wire:click.prevent="bookRoom">
+                            {{-- <a href="#" class="genric-btn info" wire:click.prevent="bookRoom">
                                 Book Now
-                            </a>
+                            </a> --}}
+                            <div x-data="{ booked: false }" x-on:reset-book-button.window="booked = false">
+                                <button type="button" class="genric-btn info" x-show="!booked"
+                                    wire:click.prevent="bookRoom" wire:loading.attr="disabled" wire:target="bookRoom"
+                                    @click="booked = true">
+
+                                    <span wire:loading.remove wire:target="bookRoom">
+                                        Book Now
+                                    </span>
+                                </button>
+                            </div>
+
                         </div>
                     </div>
                 @endif

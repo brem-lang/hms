@@ -108,13 +108,13 @@ class BookingResource extends Resource
                     ->toggleable()
                     ->formatStateUsing(fn ($state) => ucfirst($state))
                     ->searchable(),
-                TextColumn::make('type')
-                    ->label('Booking Type')
-                    ->toggleable()
-                    ->formatStateUsing(function ($state) {
-                        return $state === 'online' ? 'Online' : 'Walk-in';
-                    })
-                    ->searchable(),
+                // TextColumn::make('type')
+                //     ->label('Booking Type')
+                //     ->toggleable()
+                //     ->formatStateUsing(function ($state) {
+                //         return $state === 'online' ? 'Online' : 'Walk-in';
+                //     })
+                //     ->searchable(),
             ])
             ->filters([
                 SelectFilter::make('user_id')
@@ -180,7 +180,7 @@ class BookingResource extends Resource
                     Tables\Actions\DeleteBulkAction::make(),
                 ]),
             ])
-            ->modifyQueryUsing(fn (Builder $query) => $query->latest());
+            ->modifyQueryUsing(fn (Builder $query) => $query->where('type', '!=', 'bulk_head_online')->latest());
     }
 
     public static function getRelations(): array

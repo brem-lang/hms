@@ -37,7 +37,7 @@ class ViewBookings extends Page
 
     public function getTitle(): string
     {
-        return 'View Booking - '.$this->record->booking_number;
+        return 'View Booking - '.$this->record->booking_number.'-'.($this->record->bulk_head_id ? 'Bulk' : '');
     }
 
     public function mount(Booking $record): void

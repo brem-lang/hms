@@ -18,7 +18,7 @@ class ProcessSingleSavingOperation implements ShouldQueue
     /**
      * Create a new job instance.
      */
-    public function __construct(protected array $data, public $type = 'online', public $payment_type = 'gcash')
+    public function __construct(protected array $data, public $type = 'online', public $payment_type = 'gcash', public $bulkHeadId = null)
     {
         //
     }
@@ -38,6 +38,7 @@ class ProcessSingleSavingOperation implements ShouldQueue
         $hours = $data['suiteId'] == 4 ? 0 : ($data['hours'] ?? 0) + ($days * 24);
 
         $booking = Booking::create([
+            'booking_number' => 'BKG-'.strtoupper(uniqid()),
             'payment_type' => $this->payment_type,
             'type' => $this->type,
             'user_id' => $data['userId'],
@@ -54,6 +55,7 @@ class ProcessSingleSavingOperation implements ShouldQueue
             'hours' => $data['suiteId'] == 4 ? 0 : $hours,
             'suite_room_id' => $this->getSuiteRoom($data['suiteId'], $start->setTime(14, 0)->toDateTimeString(), $end->setTime(12, 0)->toDateTimeString()),
             'amount_to_pay' => $this->getPayment($hours, $data['suiteId'], $data['no_persons']),
+            'bulk_head_id' => $this->bulkHeadId,
         ]);
 
         Transaction::create([
@@ -74,10 +76,12 @@ class ProcessSingleSavingOperation implements ShouldQueue
 
     public function getSuiteRoom($suiteID, $checkIn, $checkOut)
     {
-        $bookedRoomIds = Booking::where('status', '!=', 'cancelled')->where(function ($query) use ($checkIn, $checkOut) {
-            $query->where('check_in_date', '<', $checkOut)
-                ->where('check_out_date', '>', $checkIn);
-        })
+        $bookedRoomIds = Booking::where('status', '!=', 'cancelled')
+            ->where('type', '!=', 'bulk_head_online')
+            ->where(function ($query) use ($checkIn, $checkOut) {
+                $query->where('check_in_date', '<', $checkOut)
+                    ->where('check_out_date', '>', $checkIn);
+            })
             ->pluck('suite_room_id');
 
         $availableRoom = SuiteRoom::where('room_id', $suiteID)

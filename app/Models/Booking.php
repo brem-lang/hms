@@ -33,4 +33,9 @@ class Booking extends Model
     {
         return $this->hasOne(WalkinGuest::class);
     }
+
+    public function relatedBookings()
+    {
+        return $this->hasMany(Booking::class, 'bulk_head_id');
+    }
 }

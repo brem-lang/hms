@@ -668,6 +668,7 @@ class CustomerPage extends Component implements HasForms
             if ($data['quantity'] == 1) {
                 $data = $this->saving($data);
             } else {
+                $bulk = $this->bulk($data);
                 for ($i = 0; $i < $data['quantity']; $i++) {
                     if ($this->getSuiteRoom($data['suiteId'], $start->setTime(14, 0)->toDateTimeString(), $end->setTime(12, 0)->toDateTimeString()) === false) {
                         $this->dispatch('swal:success', [
@@ -678,11 +679,16 @@ class CustomerPage extends Component implements HasForms
 
                         return null;
                     } else {
-                        ProcessSingleSavingOperation::dispatch($data);
+                        ProcessSingleSavingOperation::dispatch($data, 'bulk_online', 'gcash', $bulk);
                     }
                 }
 
-                return redirect('/app/my-bookings');
+                $this->dispatch('swal:success', [
+                    'title' => 'Submitted ',
+                    'icon' => 'success',
+                ]);
+
+                return redirect('/view-booking/'.$bulk);
             }
         } else {
             $data = $this->savingHourly($data);
@@ -720,6 +726,7 @@ class CustomerPage extends Component implements HasForms
             if ($data['quantity'] == 1) {
                 $data = $this->saving($data);
             } else {
+                $bulk = $this->bulk($data);
                 for ($i = 0; $i < $data['quantity']; $i++) {
                     if ($this->getSuiteRoom($data['suiteId'], $start->setTime(14, 0)->toDateTimeString(), $end->setTime(12, 0)->toDateTimeString()) === false) {
                         $this->dispatch('swal:success', [
@@ -730,11 +737,16 @@ class CustomerPage extends Component implements HasForms
 
                         return null;
                     } else {
-                        ProcessSingleSavingOperation::dispatch($data);
+                        ProcessSingleSavingOperation::dispatch($data, 'bulk_online', 'gcash', $bulk);
                     }
                 }
 
-                return redirect('/app/my-bookings');
+                $this->dispatch('swal:success', [
+                    'title' => 'Submitted ',
+                    'icon' => 'success',
+                ]);
+
+                return redirect('/view-booking/'.$bulk);
             }
         } else {
             $data = $this->savingHourly($data);
@@ -772,6 +784,7 @@ class CustomerPage extends Component implements HasForms
             if ($data['quantity'] == 1) {
                 $data = $this->saving($data);
             } else {
+                $bulk = $this->bulk($data);
                 for ($i = 0; $i < $data['quantity']; $i++) {
                     if ($this->getSuiteRoom($data['suiteId'], $start->setTime(14, 0)->toDateTimeString(), $end->setTime(12, 0)->toDateTimeString()) === false) {
                         $this->dispatch('swal:success', [
@@ -782,11 +795,16 @@ class CustomerPage extends Component implements HasForms
 
                         return null;
                     } else {
-                        ProcessSingleSavingOperation::dispatch($data);
+                        ProcessSingleSavingOperation::dispatch($data, 'bulk_online', 'gcash', $bulk);
                     }
                 }
 
-                return redirect('/app/my-bookings');
+                $this->dispatch('swal:success', [
+                    'title' => 'Submitted ',
+                    'icon' => 'success',
+                ]);
+
+                return redirect('/view-booking/'.$bulk);
             }
         } else {
             $data = $this->savingHourly($data);
@@ -827,6 +845,7 @@ class CustomerPage extends Component implements HasForms
                 DB::beginTransaction();
 
                 $data = Booking::create([
+                    'booking_number' => 'BKG-'.strtoupper(uniqid()),
                     'payment_type' => 'gcash',
                     'type' => 'online',
                     'user_id' => auth()->user()->id,
@@ -859,19 +878,107 @@ class CustomerPage extends Component implements HasForms
                     ->body('Booking has been created successfully.')
                     ->send();
 
+                // Notification::make()
+                //     ->success()
+                //     ->title('Booking Created')
+                //     ->icon('heroicon-o-check-circle')
+                //     ->body(auth()->user()->name.' has booked '.$data->room->name)
+                //     ->actions([
+                //         Action::make('view')
+                //             ->label('View')
+                //             ->url(fn () => BookingResource::getUrl('view', ['record' => $data->id]))
+                //             ->markAsRead(),
+
+                //     ])
+                //     ->sendToDatabase(User::whereIn('role', ['admin', 'front-desk'])->get());
+            } catch (\Exception $e) {
+                DB::rollBack();
+
+                logger($e->getMessage());
+            }
+
+            return $data?->id;
+        }
+    }
+
+    public function bulk($data)
+    {
+        $start = Carbon::parse($data['start_date']);
+        $end = $data['suiteId'] == 4 ? $start : Carbon::parse($data['end_date']);
+
+        $days = $start->diffInDays($end);
+
+        $hours = $data['suiteId'] == 4 ? 0 : ($data['hours'] ?? 0) + ($days * 24);
+
+        if ($data['suiteId'] == 4 && $this->getFunctionHallTime($start->toDateTimeString(), $data['type']) === false) {
+            Notification::make()
+                ->danger()
+                ->title('Error')
+                ->body('Function Hall is fully booked')
+                ->send();
+
+            return null;
+        }
+
+        if ($data['suiteId'] != 4 && $this->getSuiteRoom($data['suiteId'], $start->setTime(14, 0)->toDateTimeString(), $end->setTime(12, 0)->toDateTimeString()) === false) {
+            Notification::make()
+                ->danger()
+                ->title('Error')
+                ->body('No Available Room')
+                ->send();
+
+            return null;
+        } else {
+            try {
+                DB::beginTransaction();
+
+                $data = Booking::create([
+                    'booking_number' => 'BKG-'.strtoupper(uniqid()),
+                    'payment_type' => 'gcash',
+                    'type' => 'bulk_head_online',
+                    'user_id' => auth()->user()->id,
+                    'room_id' => $data['suiteId'],
+                    'status' => 'pending',
+                    'start_date' => $data['start_date'],
+                    'check_in_date' => $data['suiteId'] == 4 ? $this->getFunctionHallTime($start->toDateTimeString(), $data['type'])['start'] : $start->setTime(14, 0)->toDateTimeString(),
+                    'check_out_date' => $data['suiteId'] == 4 ? $this->getFunctionHallTime($start->toDateTimeString(), $data['type'])['end'] : $end->setTime(12, 0)->toDateTimeString(),
+                    'end_date' => $end->toDateTimeString(),
+                    'duration' => $hours,
+                    'notes' => $data['notes'],
+                    'no_persons' => $data['no_persons'],
+                    'days' => $data['suiteId'] == 4 ? 0 : $days,
+                    'hours' => $data['suiteId'] == 4 ? 0 : $hours,
+                    'suite_room_id' => null,
+                    'amount_to_pay' => $data['suiteId'] == 4 ? SuiteRoom::where('id', $data['type'])->first()->price : $this->getPayment($hours, $data['suiteId'], $data['no_persons']),
+                ]);
+
+                Transaction::create([
+                    'booking_id' => $data->id,
+                    'type' => 'rooms',
+                ]);
+
+                DB::commit();
+
                 Notification::make()
                     ->success()
                     ->title('Booking Created')
                     ->icon('heroicon-o-check-circle')
-                    ->body(auth()->user()->name.' has booked '.$data->room->name)
-                    ->actions([
-                        Action::make('view')
-                            ->label('View')
-                            ->url(fn () => BookingResource::getUrl('view', ['record' => $data->id]))
-                            ->markAsRead(),
+                    ->body('Booking has been created successfully.')
+                    ->send();
 
-                    ])
-                    ->sendToDatabase(User::whereIn('role', ['admin', 'front-desk'])->get());
+                // Notification::make()
+                //     ->success()
+                //     ->title('Booking Created')
+                //     ->icon('heroicon-o-check-circle')
+                //     ->body(auth()->user()->name.' has booked '.$data->room->name)
+                //     ->actions([
+                //         Action::make('view')
+                //             ->label('View')
+                //             ->url(fn () => BookingResource::getUrl('view', ['record' => $data->id]))
+                //             ->markAsRead(),
+
+                //     ])
+                //     ->sendToDatabase(User::whereIn('role', ['admin', 'front-desk'])->get());
             } catch (\Exception $e) {
                 DB::rollBack();
 
@@ -947,19 +1054,19 @@ class CustomerPage extends Component implements HasForms
                     ->body('Booking has been created successfully.')
                     ->send();
 
-                Notification::make()
-                    ->success()
-                    ->title('Booking Created')
-                    ->icon('heroicon-o-check-circle')
-                    ->body(auth()->user()->name.' has booked '.$data->room->name)
-                    ->actions([
-                        Action::make('view')
-                            ->label('View')
-                            ->url(fn () => BookingResource::getUrl('view', ['record' => $data->id]))
-                            ->markAsRead(),
+                // Notification::make()
+                //     ->success()
+                //     ->title('Booking Created')
+                //     ->icon('heroicon-o-check-circle')
+                //     ->body(auth()->user()->name.' has booked '.$data->room->name)
+                //     ->actions([
+                //         Action::make('view')
+                //             ->label('View')
+                //             ->url(fn () => BookingResource::getUrl('view', ['record' => $data->id]))
+                //             ->markAsRead(),
 
-                    ])
-                    ->sendToDatabase(User::whereIn('role', ['admin', 'front-desk'])->get());
+                //     ])
+                //     ->sendToDatabase(User::whereIn('role', ['admin', 'front-desk'])->get());
             } catch (\Exception $e) {
                 DB::rollBack();
 
@@ -972,10 +1079,12 @@ class CustomerPage extends Component implements HasForms
 
     public function getSuiteRoom($suiteID, $checkIn, $checkOut)
     {
-        $bookedRoomIds = Booking::where('status', '!=', 'cancelled')->where(function ($query) use ($checkIn, $checkOut) {
-            $query->where('check_in_date', '<', $checkOut)
-                ->where('check_out_date', '>', $checkIn);
-        })
+        $bookedRoomIds = Booking::where('status', '!=', 'cancelled')
+            ->where('type', '!=', 'bulk_head_online')
+            ->where(function ($query) use ($checkIn, $checkOut) {
+                $query->where('check_in_date', '<', $checkOut)
+                    ->where('check_out_date', '>', $checkIn);
+            })
             ->pluck('suite_room_id');
 
         $availableRoom = SuiteRoom::where('room_id', $suiteID)

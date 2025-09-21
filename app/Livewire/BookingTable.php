@@ -32,6 +32,7 @@ class BookingTable extends Component
         return Booking::query()
             ->when($this->search, fn ($query) => $query->whereHas('room', fn ($q) => $q->where('name', 'like', '%'.$this->search.'%')))
             ->where('user_id', auth()->user()->id)
+            ->whereIn('type', ['online', 'bulk_head_online'])
             ->orderBy('id', 'desc')
             ->paginate(10);
     }

@@ -70,7 +70,6 @@
 
                 <div class="row">
                     <div class="col-md-6">
-                        {{-- Booking Info Left --}}
                         <p><strong>Name:</strong> {{ $booking->user->name }}</p>
                         <p><strong>Contact Number:</strong> {{ $booking->user->contact_number }}</p>
                         <p><strong>Status:</strong>
@@ -101,25 +100,48 @@
                     </div>
 
                     <div class="col-md-6">
-                        {{-- Booking Info Right --}}
-                        <p><strong>Number of Persons:</strong> {{ $booking->no_persons }}</p>
+                        <p><strong>Number of Persons:</strong>
+                            {{ $booking->type != 'bulk_head_online' ? $booking->no_persons : $booking->relatedBookings->sum('no_persons') }}
+                        </p>
                         <p><strong>Check In Time:</strong>
                             {{ \Carbon\Carbon::parse($booking->check_in_date)->format('F j, Y h:i A') }}</p>
                         <p><strong>Check Out Time:</strong>
                             {{ \Carbon\Carbon::parse($booking->check_out_date)->format('F j, Y h:i A') }}</p>
-                        <p><strong>Amount:</strong> ₱ {{ number_format($booking->amount_to_pay, 2) }}</p>
-                        <p><strong>Amount Paid:</strong> ₱ {{ number_format($booking->amount_paid, 2) }}</p>
+                        <p><strong>Amount:</strong> ₱
+                            {{ $booking->type != 'bulk_head_online' ? number_format($booking->amount_to_pay, 2) : number_format($booking->relatedBookings->sum('amount_to_pay'), 2) }}
+                        </p>
+                        <p><strong>Amount Paid:</strong> ₱
+                            {{ $booking->type != 'bulk_head_online' ? number_format($booking->amount_paid, 2) : number_format($booking->relatedBookings->sum('amount_paid'), 2) }}
+                        </p>
 
                         @php
                             $chargesAmount = 0;
-                            foreach ($booking->additional_charges ?? [] as $charge) {
-                                $chargesAmount += $charge['amount'];
+                            if ($booking->type != 'bulk_head_online') {
+                                foreach ($booking->additional_charges ?? [] as $charge) {
+                                    $chargesAmount += $charge['amount'];
+                                }
+                            } else {
+                                foreach ($booking->relatedBookings as $value) {
+                                    foreach ($value->additional_charges ?? [] as $charge) {
+                                        $chargesAmount += $charge['amount'];
+                                    }
+                                }
                             }
+
                         @endphp
 
-                        <p><strong>Balance:</strong> ₱ {{ number_format($booking->balance + $chargesAmount, 2) }}</p>
+                        <p><strong>Balance:</strong> ₱ {{ number_format($booking->balance + $chargesAmount, 2) }}
+                        </p>
                         <p><strong>Suite Type:</strong> {{ $booking->room->name ?? '-' }}</p>
-                        <p><strong>Room:</strong> {{ ucfirst($booking->suiteRoom->name ?? '-') }}</p>
+                        <p><strong>Room:</strong>
+                            @if ($booking->type != 'bulk_head_online')
+                                {{ ucfirst($booking->suiteRoom->name ?? '-') }}
+                            @else
+                                @foreach ($booking->relatedBookings as $value)
+                                    {{ ucfirst($value->suiteRoom->name ?? '-') }},
+                                @endforeach
+                            @endif
+                        </p>
                     </div>
                 </div>
 
@@ -138,16 +160,6 @@
                     <h4>Notes:</h4>
                     <p>{{ $booking->notes }}</p>
                 @endif
-
-                {{-- Payment Form --}}
-                {{-- <div>
-                    Scan to Pay with Gcash <br>
-                    Test USER
-                    <div>
-                        <img src="{{ asset('images/qrcode.png') }}" alt="Image 1" width="200" height="200">
-                    </div>
-                    {{ $this->form }}
-                </div> --}}
                 <div>
 
                     <div
@@ -177,8 +189,6 @@
                         {{ $this->form }}
                     </div>
                 </div>
-
-                {{-- Book Button --}}
             </div>
         </div>
     </div>

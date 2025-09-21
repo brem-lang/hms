@@ -806,6 +806,7 @@ class WalkinGuests extends Page implements HasForms
                 DB::beginTransaction();
 
                 $booking = Booking::create([
+                    'booking_number' => 'BKG-'.strtoupper(uniqid()),
                     'type' => 'walkin_booking',
                     'user_id' => auth()->user()->id,
                     'room_id' => $data['suiteId'],
@@ -886,6 +887,7 @@ class WalkinGuests extends Page implements HasForms
                 DB::beginTransaction();
 
                 $booking = Booking::create([
+                    'booking_number' => 'BKG-'.strtoupper(uniqid()),
                     'type' => 'walkin_booking',
                     'user_id' => auth()->user()->id,
                     'room_id' => $data['suiteId'],

@@ -28,7 +28,7 @@ class ViewBooking extends Component implements HasForms
 
     public function mount($id)
     {
-        $this->booking = Booking::with('user', 'room', 'suiteRoom', 'walkingGuest')->find($id);
+        $this->booking = Booking::with('user', 'room', 'suiteRoom', 'walkingGuest', 'relatedBookings')->find($id);
 
         $this->authorize('view', $this->booking);
 
@@ -60,6 +60,11 @@ class ViewBooking extends Component implements HasForms
         $this->booking->proof_of_payment = $data['proof_of_payment'];
 
         $this->booking->is_proof_send = true;
+
+        $this->booking->relatedBookings()->update([
+            'proof_of_payment' => $data['proof_of_payment'],
+            'is_proof_send' => true,
+        ]);
 
         $this->booking->save();
 

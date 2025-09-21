@@ -15,6 +15,7 @@
                             <div class="country">Duration</div> --}}
                             <div class="country">Room</div>
                             <div class="country">Status</div>
+                            <div class="country">Type</div>
                             <div class="visit"></div>
                         </div>
 
@@ -30,6 +31,7 @@
                                 <div class="country">{{ $item->duration }}</div> --}}
                                 <div class="country">{{ $item->room->name }}</div>
                                 <div class="country">{{ ucfirst($item->status) }}</div>
+                                <div class="country">{{ ucfirst($item->type == 'online' ? 'Single' : 'Bulk') }}</div>
                                 <div class="visit">
                                     <a class="genric-btn info circle"
                                         href="{{ route('view-booking', $item->id) }}">View</a>

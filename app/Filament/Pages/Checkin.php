@@ -94,7 +94,7 @@ class Checkin extends Page implements HasForms, HasTable
                     ->label('Booking Type')
                     ->toggleable()
                     ->formatStateUsing(function ($state) {
-                        return $state === 'online' ? 'Online' : 'Walk-in';
+                        return $state === 'online' ? 'Online' : ($state === 'bulk_online' ? 'Online' : 'Walk-in');
                     })
                     ->searchable(),
             ])

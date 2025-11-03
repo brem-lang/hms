@@ -30,7 +30,7 @@
     {{-- <h4>From {{ \Carbon\Carbon::parse($data['start_date'])->format('F j, Y') }} to
         {{ \Carbon\Carbon::parse($data['end_date'])->format('F j, Y') }}</h4> --}}
 
-    <table border="1">
+    {{-- <table border="1">
         <caption><strong>Room Transactions</strong></caption>
         <thead>
             <tr>
@@ -134,8 +134,9 @@
                 </td>
             </tr>
         </tbody>
-    </table>
-    {{-- @if ($data['type'] == 'Sales Reports')
+    </table> --}}
+
+    @if ($data['type'] == 'Sales Reports')
         <table>
             <thead>
                 <tr>
@@ -198,7 +199,7 @@
                 </tr>
             </tbody>
         </table>
-    @endif --}}
+    @endif
 
     <br><br>
     <div style="width: 100%; text-align: right; margin-top: 50px;">

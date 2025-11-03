@@ -174,6 +174,11 @@
                             <p class="text-2xl font-semibold text-blue-600">
                                 JOHN DOE
                             </p>
+
+                            <h1 class="text-sm font-bold text-gray-800">
+                                50% Deposit Required ₱
+                                {{ $booking->type != 'bulk_head_online' ? number_format($booking->amount_to_pay / 2, 2) : number_format($booking->relatedBookings->sum('amount_to_pay') / 2, 2) }}
+                            </h1>
                         </div>
 
                         <div>

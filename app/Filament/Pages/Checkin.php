@@ -149,6 +149,11 @@ class Checkin extends Page implements HasForms, HasTable
                             ->success()
                             ->title('Check In')
                             ->send();
+                    })
+                    ->disabled(function ($record) {
+                        if ($record->check_in_date != now()->format('F d, Y h:i A')) {
+                            return true;
+                        }
                     }),
                 Action::make('check_out')
                     ->icon('heroicon-o-check-circle')

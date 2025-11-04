@@ -34,8 +34,8 @@ class CheckoutAlertCommand extends Command
         $endWindow = now()->addMinutes(10);
 
         $bookingsToRemind = Booking::with('user')
+            ->where('status', 'pending')
             ->whereBetween('check_out_date', [$startWindow, $endWindow])
-            // ->whereNull('checkout_notified_at')
             ->get();
 
         foreach ($bookingsToRemind as $booking) {

@@ -604,6 +604,7 @@ class CustomerPage extends Component implements HasForms
         $this->selectedRoom = $room;
 
         $this->calendarEvents = $room->roomBooking
+            ->where('status', '!=', 'done')
             ->map(function ($booking) {
                 $color = '#16a34a'; // Default to green
 

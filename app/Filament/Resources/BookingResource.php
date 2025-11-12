@@ -6,6 +6,7 @@ use App\Filament\Resources\BookingResource\Pages;
 use App\Mail\MailFrontDesk;
 use App\Models\Booking;
 use App\Models\User;
+use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\ToggleButtons;
@@ -174,6 +175,38 @@ class BookingResource extends Resource
                     ->icon('heroicon-o-eye')
                     ->color('success')
                     ->url(fn ($record) => BookingResource::getUrl('view', ['record' => $record->id])),
+                ActionsAction::make('edit_date')
+                    ->label('Edit Date')
+                    ->icon('heroicon-o-calendar')
+                    ->color('warning')
+                    ->action(function ($record, $data) {
+                        $record->check_in_date = $data['check_in_date'];
+                        $record->check_out_date = $data['check_out_date'];
+                        $record->save();
+
+                        Notification::make()
+                            ->success()
+                            ->title('Date Updated')
+                            ->send();
+                    })
+                    ->form(function (Booking $booking) {
+                        return [
+                            DateTimePicker::make('check_in_date')
+                                ->label('Check In Date')
+                                ->date('F d, Y h:i A')
+                                ->required()
+                                ->formatStateUsing(function ($record) {
+                                    return $record->check_in_date;
+                                }),
+                            DateTimePicker::make('check_out_date')
+                                ->label('Check Out Date')
+                                ->date('F d, Y h:i A')
+                                ->required()
+                                ->formatStateUsing(function ($record) {
+                                    return $record->check_out_date;
+                                }),
+                        ];
+                    }),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([

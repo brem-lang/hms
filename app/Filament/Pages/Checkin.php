@@ -4,6 +4,7 @@ namespace App\Filament\Pages;
 
 use App\Filament\Resources\BookingResource;
 use App\Models\Booking;
+use Carbon\Carbon;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
@@ -140,8 +141,12 @@ class Checkin extends Page implements HasForms, HasTable
                     ->color('success')
                     ->requiresConfirmation()
                     ->visible(fn ($record) => $record->suiteRoom->is_occupied == 0)
+                    ->disabled(function ($record) {
+                        if (Carbon::parse($record->check_in_date, 'Asia/Manila')->setTimezone('UTC')->format('Y-m-d H:i:s') > Carbon::now('UTC')->format('Y-m-d H:i:s')) {
+                            return true;
+                        }
+                    })
                     ->action(function ($record) {
-
                         $record->suiteRoom->is_occupied = 1;
                         $record->suiteRoom->save();
 
@@ -149,11 +154,6 @@ class Checkin extends Page implements HasForms, HasTable
                             ->success()
                             ->title('Check In')
                             ->send();
-                    })
-                    ->disabled(function ($record) {
-                        if ($record->check_in_date != now()->format('F d, Y h:i A')) {
-                            return true;
-                        }
                     }),
                 Action::make('check_out')
                     ->icon('heroicon-o-check-circle')
@@ -188,8 +188,7 @@ class Checkin extends Page implements HasForms, HasTable
                                 }),
 
                             Repeater::make('charges')
-                                ->formatStateUsing(fn ($record) => $record->additional_charges)
-                                ->label('Additional Charges')
+                                ->formatStateUsing(fn ($record) => $record->additional_charges)->label('Additional Charges')
                                 ->reorderable(false)
                                 ->schema([
                                     TextInput::make('name')->required(),

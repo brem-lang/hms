@@ -30,15 +30,16 @@ class CheckoutAlertCommand extends Command
      */
     public function handle()
     {
-        $startWindow = now()->addMinutes(9);
-        $endWindow = now()->addMinutes(10);
+        $startWindow = now()->timezone('Asia/Manila')->addMinutes(8);
+        $endWindow = now()->timezone('Asia/Manila')->addMinutes(10);
 
         $bookingsToRemind = Booking::with('user')
-            ->where('status', 'pending')
+            ->where('status', 'completed')
             ->whereBetween('check_out_date', [$startWindow, $endWindow])
             ->get();
 
         foreach ($bookingsToRemind as $booking) {
+
             Notification::make()
                 ->success()
                 ->title('10 Minutes Left to Check Out')

@@ -170,10 +170,10 @@
                         </h1>
 
                         <div class="text-center">
-                            <p class="text-sm text-gray-500">GCash Name</p>
+                            {{-- <p class="text-sm text-gray-500">GCash Name</p>
                             <p class="text-2xl font-semibold text-blue-600">
-                                JOHN DOE
-                            </p>
+                                JERIC BALAGOT
+                            </p> --}}
 
                             <h1 class="text-sm font-bold text-gray-800">
                                 50% Deposit Required ₱
@@ -182,8 +182,8 @@
                         </div>
 
                         <div>
-                            <img src="{{ asset('images/qrcode.png') }}" alt="GCash QR Code" width="200"
-                                height="200" class="rounded-md border-2 border-gray-200">
+                            <img src="{{ asset('images/qr.jpg') }}" alt="GCash QR Code" width="400" height="400"
+                                class="rounded-md border-2 border-gray-200">
                         </div>
 
 

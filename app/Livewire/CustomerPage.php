@@ -64,37 +64,60 @@ class CustomerPage extends Component implements HasForms
             abort(404);
         }
 
-        $room = Room::with('suite_rooms', 'roomBooking')->get();
+        $room = Room::with('suite_rooms', 'roomBooking.suiteRoom')->get();
 
         if (Auth::check()) {
             $this->loadNotifications();
         }
+
+        // dd(Room::with('roomBooking.suiteRoom')
+        //     ->find(1)?->roomBooking
+        //     ->where('status', 'completed')
+        //     ->filter(function ($booking) {
+        //         return $booking->suiteRoom &&
+        //             $booking->suiteRoom->is_occupied == 1 &&
+        //             Carbon::parse($booking->start_date)->isSameDay(Carbon::now('Asia/Manila'));
+        //     })
+        //     ->count());
 
         $this->record = [
             'standard' => $room->where('id', 1)->first(),
             'deluxe' => $room->where('id', 2)->first(),
             'executive' => $room->where('id', 3)->first(),
             'functionHall' => $room->where('id', 4)->first(),
-            'standardOccupied' => $room->where('id', 1)->first()?->roomBooking
-                ->filter(function ($booking) {
-                    return Carbon::parse($booking->start_date)->toDateString() === Carbon::now('Asia/Manila')->toDateString();
-                })
-                ->count(),
-            'deluxeOccupied' => $room->where('id', 2)->first()?->roomBooking
-                ->filter(function ($booking) {
-                    return Carbon::parse($booking->start_date)->toDateString() === Carbon::now('Asia/Manila')->toDateString();
-                })
-                ->count(),
-            'executiveOccupied' => $room->where('id', 3)->first()?->roomBooking
-                ->filter(function ($booking) {
-                    return Carbon::parse($booking->start_date)->toDateString() === Carbon::now('Asia/Manila')->toDateString();
-                })
-                ->count(),
-            'functionHallOccupied' => $room->where('id', 4)->first()?->roomBooking
-                ->filter(function ($booking) {
-                    return Carbon::parse($booking->start_date)->toDateString() === Carbon::now('Asia/Manila')->toDateString();
-                })
-                ->count(),
+            // 'standardOccupied' => Room::with('roomBooking.suiteRoom')
+            //     ->find(1)?->roomBooking
+            //     ->where('status', 'completed')
+            //     ->filter(function ($booking) {
+            //         return $booking->suiteRoom &&
+            //             $booking->suiteRoom->is_occupied == 1 &&
+            //             Carbon::parse($booking->start_date)->isSameDay(Carbon::now('Asia/Manila'));
+            //     })
+            //     ->count(),
+            'standardOccupied' => Booking::whereNotIn('status', ['cancelled', 'done'])
+                ->whereHas('suiteRoom', fn ($q) => $q->where('room_id', 1)) // room_id = 1
+                ->where('check_in_date', '<=', now('Asia/Manila'))
+                ->where('check_out_date', '>', now('Asia/Manila'))
+                ->distinct('suite_room_id')
+                ->count('suite_room_id'),
+            'deluxeOccupied' => Booking::whereNotIn('status', ['cancelled', 'done'])
+                ->whereHas('suiteRoom', fn ($q) => $q->where('room_id', 2)) // room_id = 1
+                ->where('check_in_date', '<=', now('Asia/Manila'))
+                ->where('check_out_date', '>', now('Asia/Manila'))
+                ->distinct('suite_room_id')
+                ->count('suite_room_id'),
+            'executiveOccupied' => Booking::whereNotIn('status', ['cancelled', 'done'])
+                ->whereHas('suiteRoom', fn ($q) => $q->where('room_id', 3)) // room_id = 1
+                ->where('check_in_date', '<=', now('Asia/Manila'))
+                ->where('check_out_date', '>', now('Asia/Manila'))
+                ->distinct('suite_room_id')
+                ->count('suite_room_id'),
+            'functionHallOccupied' => Booking::whereNotIn('status', ['cancelled', 'done'])
+                ->whereHas('suiteRoom', fn ($q) => $q->where('room_id', 4)) // room_id = 1
+                ->where('check_in_date', '<=', now('Asia/Manila'))
+                ->where('check_out_date', '>', now('Asia/Manila'))
+                ->distinct('suite_room_id')
+                ->count('suite_room_id'),
         ];
         $this->standardSuiteForm->fill([
             'bookingType' => 'daily',
@@ -604,7 +627,7 @@ class CustomerPage extends Component implements HasForms
         $this->selectedRoom = $room;
 
         $this->calendarEvents = $room->roomBooking
-            ->where('status', '!=', 'done')
+            ->filter(fn ($b) => $b->suiteRoom && $b->suiteRoom->is_occupied && $b->status == 'completed')
             ->map(function ($booking) {
                 $color = '#16a34a'; // Default to green
 
@@ -840,6 +863,11 @@ class CustomerPage extends Component implements HasForms
                 ->body('No Available Room')
                 ->send();
 
+            $this->dispatch('swal:success', [
+                'title' => 'Error No Available Room',
+                'icon' => 'error',
+            ]);
+
             return null;
         } else {
             try {
@@ -879,19 +907,19 @@ class CustomerPage extends Component implements HasForms
                     ->body('Booking has been created successfully.')
                     ->send();
 
-                // Notification::make()
-                //     ->success()
-                //     ->title('Booking Created')
-                //     ->icon('heroicon-o-check-circle')
-                //     ->body(auth()->user()->name.' has booked '.$data->room->name)
-                //     ->actions([
-                //         Action::make('view')
-                //             ->label('View')
-                //             ->url(fn () => BookingResource::getUrl('view', ['record' => $data->id]))
-                //             ->markAsRead(),
+                Notification::make()
+                    ->success()
+                    ->title('Booking Created')
+                    ->icon('heroicon-o-check-circle')
+                    ->body(auth()->user()->name.' has booked '.$data->room->name)
+                    ->actions([
+                        Action::make('view')
+                            ->label('View')
+                            ->url(fn () => BookingResource::getUrl('view', ['record' => $data->id]))
+                            ->markAsRead(),
 
-                //     ])
-                //     ->sendToDatabase(User::whereIn('role', ['admin', 'front-desk'])->get());
+                    ])
+                    ->sendToDatabase(User::whereIn('role', ['admin', 'front-desk'])->get());
             } catch (\Exception $e) {
                 DB::rollBack();
 
@@ -967,19 +995,19 @@ class CustomerPage extends Component implements HasForms
                     ->body('Booking has been created successfully.')
                     ->send();
 
-                // Notification::make()
-                //     ->success()
-                //     ->title('Booking Created')
-                //     ->icon('heroicon-o-check-circle')
-                //     ->body(auth()->user()->name.' has booked '.$data->room->name)
-                //     ->actions([
-                //         Action::make('view')
-                //             ->label('View')
-                //             ->url(fn () => BookingResource::getUrl('view', ['record' => $data->id]))
-                //             ->markAsRead(),
+                Notification::make()
+                    ->success()
+                    ->title('Booking Created')
+                    ->icon('heroicon-o-check-circle')
+                    ->body(auth()->user()->name.' has booked '.$data->room->name)
+                    ->actions([
+                        Action::make('view')
+                            ->label('View')
+                            ->url(fn () => BookingResource::getUrl('view', ['record' => $data->id]))
+                            ->markAsRead(),
 
-                //     ])
-                //     ->sendToDatabase(User::whereIn('role', ['admin', 'front-desk'])->get());
+                    ])
+                    ->sendToDatabase(User::whereIn('role', ['admin', 'front-desk'])->get());
             } catch (\Exception $e) {
                 DB::rollBack();
 
@@ -1015,6 +1043,11 @@ class CustomerPage extends Component implements HasForms
                 ->title('Error')
                 ->body('No Available Room')
                 ->send();
+
+            $this->dispatch('swal:success', [
+                'title' => 'Error No Available Room',
+                'icon' => 'error',
+            ]);
 
             return null;
         } else {
@@ -1055,19 +1088,19 @@ class CustomerPage extends Component implements HasForms
                     ->body('Booking has been created successfully.')
                     ->send();
 
-                // Notification::make()
-                //     ->success()
-                //     ->title('Booking Created')
-                //     ->icon('heroicon-o-check-circle')
-                //     ->body(auth()->user()->name.' has booked '.$data->room->name)
-                //     ->actions([
-                //         Action::make('view')
-                //             ->label('View')
-                //             ->url(fn () => BookingResource::getUrl('view', ['record' => $data->id]))
-                //             ->markAsRead(),
+                Notification::make()
+                    ->success()
+                    ->title('Booking Created')
+                    ->icon('heroicon-o-check-circle')
+                    ->body(auth()->user()->name.' has booked '.$data->room->name)
+                    ->actions([
+                        Action::make('view')
+                            ->label('View')
+                            ->url(fn () => BookingResource::getUrl('view', ['record' => $data->id]))
+                            ->markAsRead(),
 
-                //     ])
-                //     ->sendToDatabase(User::whereIn('role', ['admin', 'front-desk'])->get());
+                    ])
+                    ->sendToDatabase(User::whereIn('role', ['admin', 'front-desk'])->get());
             } catch (\Exception $e) {
                 DB::rollBack();
 
@@ -1081,6 +1114,7 @@ class CustomerPage extends Component implements HasForms
     public function getSuiteRoom($suiteID, $checkIn, $checkOut)
     {
         $bookedRoomIds = Booking::where('status', '!=', 'cancelled')
+            ->where('status', '!=', 'done')
             ->where('type', '!=', 'bulk_head_online')
             ->where(function ($query) use ($checkIn, $checkOut) {
                 $query->where('check_in_date', '<', $checkOut)
@@ -1096,20 +1130,48 @@ class CustomerPage extends Component implements HasForms
         return $availableRoom?->id ?? false;
     }
 
+    // public function getSuiteRoomHours($suiteID, $checkIn, $checkOut)
+    // {
+    //     // $bookedRoomIds = Booking::where('status', '!=', 'cancelled')->where(function ($query) use ($checkIn, $checkOut) {
+    //     //     $query->where('check_in_date', '<', $checkOut)
+    //     //         ->where('check_out_date', '>', $checkIn);
+    //     // })
+    //     //     ->pluck('suite_room_id');
+    //     $bookedRoomIds = Booking::where('status', '!=', 'cancelled')
+    //         // ->where('status', 'pending')
+    //         // ->where('type', '!=', 'bulk_head_online')
+    //         // ->where('status', '!=', 'done')
+    //         ->whereHas('suiteRoom', fn ($q) => $q->where('is_occupied', false))
+    //         // ->where('duration', '<', 24)
+    //         ->where(function ($query) use ($checkIn, $checkOut) {
+    //             $query->where('check_in_date', '<', $checkOut)
+    //                 ->where('check_out_date', '>', $checkIn);
+    //         })
+    //         ->pluck('suite_room_id');
+
+    //     $availableRoom = SuiteRoom::where('room_id', $suiteID)
+    //         ->where('is_active', true)
+    //         ->whereNotIn('id', $bookedRoomIds)
+    //         ->where('is_occupied', false)
+    //         ->first();
+
+    //     return $availableRoom?->id ?? false;
+    // }
     public function getSuiteRoomHours($suiteID, $checkIn, $checkOut)
     {
-        $bookedRoomIds = Booking::where('status', '!=', 'cancelled')->where(function ($query) use ($checkIn, $checkOut) {
-            $query->where('check_in_date', '<', $checkOut)
-                ->where('check_out_date', '>', $checkIn);
-        })
+        // Get rooms that have overlapping bookings (hourly or daily)
+        $bookedRoomIds = Booking::whereNotIn('status', ['cancelled', 'done'])
+            ->where(function ($query) use ($checkIn, $checkOut) {
+                $query->where('check_in_date', '<', $checkOut)     // overlaps
+                    ->where('check_out_date', '>', $checkIn);
+            })
             ->pluck('suite_room_id');
 
-        $availableRoom = SuiteRoom::where('room_id', $suiteID)
+        // Find available room
+        return SuiteRoom::where('room_id', $suiteID)
             ->where('is_active', true)
             ->whereNotIn('id', $bookedRoomIds)
-            ->first();
-
-        return $availableRoom?->id ?? false;
+            ->value('id') ?? false;
     }
 
     public function getPayment($hours, $suiteId, $no_persons)

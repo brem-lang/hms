@@ -77,6 +77,7 @@ class ProcessSingleSavingOperation implements ShouldQueue
     public function getSuiteRoom($suiteID, $checkIn, $checkOut)
     {
         $bookedRoomIds = Booking::where('status', '!=', 'cancelled')
+            ->where('status', '!=', 'done')
             ->where('type', '!=', 'bulk_head_online')
             ->where(function ($query) use ($checkIn, $checkOut) {
                 $query->where('check_in_date', '<', $checkOut)

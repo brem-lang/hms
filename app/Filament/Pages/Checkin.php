@@ -4,6 +4,7 @@ namespace App\Filament\Pages;
 
 use App\Filament\Resources\BookingResource;
 use App\Models\Booking;
+use App\Models\Charge;
 use Carbon\Carbon;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
@@ -43,7 +44,7 @@ class Checkin extends Page implements HasForms, HasTable
     public function table(Table $table): Table
     {
         return $table
-            ->query(Booking::query()->where('status', 'completed')->latest())
+            ->query(Booking::query()->where('type', '!=', 'bulk_head_online')->where('status', 'completed')->latest())
             ->paginated([10, 25, 50])
             ->columns([
                 TextColumn::make('user.name')
@@ -77,7 +78,7 @@ class Checkin extends Page implements HasForms, HasTable
                 //     })
                 //     ->formatStateUsing(fn (string $state): string => __(ucfirst($state)))
                 //     ->searchable(),
-                TextColumn::make('suiteRoom.is_occupied')
+                TextColumn::make('is_occupied')
                     ->label('Occupied')
                     ->toggleable()
                     ->badge()->color(fn (string $state): string => match ($state) {
@@ -140,15 +141,41 @@ class Checkin extends Page implements HasForms, HasTable
                     ->label('Check In')
                     ->color('success')
                     ->requiresConfirmation()
-                    ->visible(fn ($record) => $record->suiteRoom->is_occupied == 0)
+                    ->visible(fn ($record) => $record->is_occupied == 0)
                     ->disabled(function ($record) {
                         if (Carbon::parse($record->check_in_date, 'Asia/Manila')->setTimezone('UTC')->format('Y-m-d H:i:s') > Carbon::now('UTC')->format('Y-m-d H:i:s')) {
                             return true;
                         }
                     })
                     ->action(function ($record) {
-                        $record->suiteRoom->is_occupied = 1;
-                        $record->suiteRoom->save();
+
+                        // dd($record->suiteRoom->bookings()->get());
+                        // $record->is_occupied = 1;
+                        // $record->suiteRoom->is_occupied = 1;
+                        // $record->suiteRoom->save();
+                        // $record->save();
+
+                        // Notification::make()
+                        //     ->success()
+                        //     ->title('Check In')
+                        //     ->send();
+                        // Mark this booking as occupied
+                        $record->is_occupied = 1;
+                        $record->save();
+
+                        $room = $record->suiteRoom;
+
+                        // Check if any OTHER active booking is already occupying this room
+                        $active = $room->bookings()
+                            ->where('id', '!=', $record->id)
+                            ->where('is_occupied', 1)
+                            ->exists();
+
+                        // Only mark room as occupied if no other booking has occupied it
+                        if (! $active) {
+                            $room->is_occupied = 1;
+                            $room->save();
+                        }
 
                         Notification::make()
                             ->success()
@@ -160,7 +187,7 @@ class Checkin extends Page implements HasForms, HasTable
                     ->label('Check Out')
                     ->color('warning')
                     // ->requiresConfirmation()
-                    ->visible(fn ($record) => $record->suiteRoom->is_occupied == 1)
+                    ->visible(fn ($record) => $record->is_occupied == 1)
                     ->form(function ($record) {
                         return [
                             TextInput::make('amount')
@@ -191,7 +218,8 @@ class Checkin extends Page implements HasForms, HasTable
                                 ->formatStateUsing(fn ($record) => $record->additional_charges)->label('Additional Charges')
                                 ->reorderable(false)
                                 ->schema([
-                                    TextInput::make('name')->required(),
+                                    Select::make('name')
+                                        ->options(Charge::pluck('name', 'id')),
                                     TextInput::make('amount')->numeric()->required(),
                                 ])
                                 ->addable(false)
@@ -209,12 +237,26 @@ class Checkin extends Page implements HasForms, HasTable
                     })
                     ->action(function ($record, $data) {
                         if ($data['status'] == 'paid') {
+
+                            $chargesAmount = 0;
+                            foreach ($record['additional_charges'] ?? [] as $charge) {
+                                $chargesAmount += $charge['amount'];
+                            }
+
                             $record->status = 'done';
+                            $record->is_occupied = 0;
                             $record->balance = 0;
-                            $record->amount_paid = $record->amount_to_pay;
+                            $record->amount_paid = $record->amount_to_pay + $chargesAmount;
+                            $record->amount_to_pay = $record->amount_to_pay + $chargesAmount;
                             $record->suiteRoom->is_occupied = 0;
                             $record->suiteRoom->save();
                             $record->save();
+
+                            if ($record->getBookingHead) {
+                                $record->getBookingHead->update([
+                                    'status' => 'done',
+                                ]);
+                            }
 
                             Notification::make()
                                 ->success()

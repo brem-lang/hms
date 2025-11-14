@@ -38,4 +38,9 @@ class Booking extends Model
     {
         return $this->hasMany(Booking::class, 'bulk_head_id');
     }
+
+    public function getBookingHead()
+    {
+        return $this->belongsTo(Booking::class, 'bulk_head_id');
+    }
 }

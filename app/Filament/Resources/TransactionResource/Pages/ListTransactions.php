@@ -41,7 +41,8 @@ class ListTransactions extends ListRecords
                             'trasanctions' => Transaction::where('type', 'rooms')
                                 ->whereBetween('created_at', [$startDate, $endDate])
                                 ->whereHas('booking', function ($query) {
-                                    $query->where('status', 'done');
+                                    $query->where('status', 'done')
+                                        ->where('type', '!=', 'bulk_head_online');
                                 })->with('booking')->get(),
                         ];
 
@@ -52,7 +53,8 @@ class ListTransactions extends ListRecords
                         $transactions = Transaction::where('type', 'rooms')
                             ->whereBetween('created_at', [$startDate, $endDate])
                             ->whereHas('booking', function ($query) {
-                                $query->where('status', 'done');
+                                $query->where('status', 'done')
+                                    ->where('type', '!=', 'bulk_head_online');
                             })
                             ->with('booking.room')
                             ->get();
@@ -90,8 +92,7 @@ class ListTransactions extends ListRecords
                             'checkout' => Booking::whereDate('created_at', now())->with('suiteRoom')->get(),
                         ];
 
-                        $bookings = Booking::whereNotNull('additional_charges')
-                            ->whereDate('created_at', now())
+                        $bookings = Booking::whereDate('created_at', now())
                             ->with('suiteRoom')
                             ->get();
 
@@ -154,7 +155,7 @@ class ListTransactions extends ListRecords
                         ->options([
                             'sales' => 'Sales',
                             'rooms' => 'Room Trends',
-                            'reports' => 'Daily Report',
+                            // 'reports' => 'Daily Report',
                         ])
                         ->live()
                         ->required(),

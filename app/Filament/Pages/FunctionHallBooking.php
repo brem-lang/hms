@@ -123,6 +123,7 @@ class FunctionHallBooking extends Page implements HasForms
                 DB::beginTransaction();
 
                 $data = Booking::create([
+                    'booking_number' => 'BKG-'.strtoupper(uniqid()),
                     'payment_type' => 'gcash',
                     'type' => 'online',
                     'user_id' => auth()->user()->id,
@@ -155,19 +156,19 @@ class FunctionHallBooking extends Page implements HasForms
                     ->body('Booking has been created successfully.')
                     ->send();
 
-                Notification::make()
-                    ->success()
-                    ->title('Booking Created')
-                    ->icon('heroicon-o-check-circle')
-                    ->body(auth()->user()->name.' has booked '.$data->room->name)
-                    ->actions([
-                        Action::make('view')
-                            ->label('View')
-                            ->url(fn () => BookingResource::getUrl('view', ['record' => $data->id]))
-                            ->markAsRead(),
+                // Notification::make()
+                //     ->success()
+                //     ->title('Booking Created')
+                //     ->icon('heroicon-o-check-circle')
+                //     ->body(auth()->user()->name.' has booked '.$data->room->name)
+                //     ->actions([
+                //         Action::make('view')
+                //             ->label('View')
+                //             ->url(fn () => BookingResource::getUrl('view', ['record' => $data->id]))
+                //             ->markAsRead(),
 
-                    ])
-                    ->sendToDatabase(User::whereIn('role', ['admin', 'front-desk'])->get());
+                //     ])
+                //     ->sendToDatabase(User::whereIn('role', ['admin', 'front-desk'])->get());
             } catch (\Exception $e) {
                 DB::rollBack();
 

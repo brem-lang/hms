@@ -213,7 +213,7 @@ class BookingResource extends Resource
                     Tables\Actions\DeleteBulkAction::make(),
                 ]),
             ])
-            ->modifyQueryUsing(fn (Builder $query) => $query->where('type', '!=', 'bulk_head_online')->latest());
+            ->modifyQueryUsing(fn (Builder $query) => $query->where('type', '!=', 'bulk_online')->latest());
     }
 
     public static function getRelations(): array

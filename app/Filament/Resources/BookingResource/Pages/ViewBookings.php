@@ -37,7 +37,7 @@ class ViewBookings extends Page
 
     public function getTitle(): string
     {
-        return 'View Booking - '.$this->record->booking_number.'-'.($this->record->bulk_head_id ? 'Bulk' : '');
+        return 'View Booking - '.$this->record->booking_number;
     }
 
     public function mount(Booking $record): void
@@ -91,7 +91,7 @@ class ViewBookings extends Page
                         ->icon('heroicon-o-check-circle')
                         ->send();
                 })
-                ->visible(fn () => $this->record->status === 'completed' && $this->record->suiteRoom->is_occupied === 1),
+                ->visible(fn () => $this->record->status === 'completed' && $this->record?->suiteRoom?->is_occupied === 1),
 
             ActionsAction::make('more_details')
                 ->icon('heroicon-o-document-text')
@@ -239,7 +239,10 @@ class ViewBookings extends Page
                 }),
                 TextEntry::make('days')->label('Days'),
                 TextEntry::make('duration')->label('Duration Hrs'),
-                TextEntry::make('no_persons')->label('Number of Persons'),
+                TextEntry::make('no_persons')->label('Number of Persons')
+                    ->formatStateUsing(function ($record) {
+                        return $record->type != 'bulk_head_online' ? $record->no_persons : $record->relatedBookings->sum('no_persons');
+                    }),
                 TextEntry::make('check_in_date')->dateTime()->label('Check In Time')
                     ->formatStateUsing(function ($state) {
                         return \Carbon\Carbon::parse($state)->format('F j, Y h:i A');
@@ -248,7 +251,10 @@ class ViewBookings extends Page
                     ->formatStateUsing(function ($state) {
                         return \Carbon\Carbon::parse($state)->format('F j, Y h:i A');
                     }),
-                TextEntry::make('amount_to_pay')->label('Amount')->prefix('₱ '),
+                TextEntry::make('amount_to_pay')->label('Amount')->prefix('₱ ')
+                    ->formatStateUsing(function ($record) {
+                        return $record->type != 'bulk_head_online' ? number_format($record->amount_to_pay, 2) : number_format($record->relatedBookings->sum('amount_to_pay'), 2);
+                    }),
                 TextEntry::make('amount_paid')->label('Amount Paid')->prefix('₱ '),
                 TextEntry::make('balance')->label('Balance')
                     ->formatStateUsing(function ($state, $record) {
@@ -262,8 +268,21 @@ class ViewBookings extends Page
                     ->prefix('₱ '),
                 TextEntry::make('room.name')->label('Suite Type'),
                 TextEntry::make('notes')->label('Notes/Requests'),
-                TextEntry::make('suiteRoom.name')
-                    ->formatStateUsing(fn ($state) => ucfirst($state))
+                TextEntry::make('created_at')
+                    ->formatStateUsing(function ($record) {
+                        if ($record->type !== 'bulk_head_online') {
+                            return ucfirst($record->suiteRoom->name ?? '');
+                        }
+
+                        // Collect all related suiteRoom names
+                        $names = $record->relatedBookings
+                            ->pluck('suiteRoom.name')
+                            ->filter()               // remove nulls
+                            ->map('ucfirst')
+                            ->implode(', ');
+
+                        return $names;
+                    })
                     ->label('Room'),
                 TextEntry::make('type')->label('Booking Type')
                     ->formatStateUsing(function ($state) {
@@ -276,9 +295,17 @@ class ViewBookings extends Page
     public function confirm()
     {
         $data = $this->paymentForm->getState();
+        if ($this->record->type === 'bulk_head_online' && $data['amount_paid'] > $this->record->relatedBookings->sum('amount_to_pay')) {
+            Notification::make()
+                ->danger()
+                ->title('Error')
+                ->body('Amount paid is greater than amount to pay')
+                ->send();
 
+            return;
+        }
         $this->record->amount_paid = $data['amount_paid'];
-        $this->record->balance = $this->record->amount_to_pay - $data['amount_paid'];
+        $this->record->balance = $this->record->type === 'bulk_head_online' ? $this->record->relatedBookings->sum('amount_to_pay') - $data['amount_paid'] : $this->record->amount_to_pay - $data['amount_paid'];
         $this->record->proof_of_payment = $data['proof_of_payment'] ?? null;
         $this->record->payment_type = $data['payment_type'];
 
@@ -286,36 +313,70 @@ class ViewBookings extends Page
 
         $this->record->save();
 
+        $total = $data['amount_paid'];
+        $related = $this->record->relatedBookings;
+
+        if ($related->count() > 0) {
+            $share = $total / $related->count();
+
+            foreach ($related as $booking) {
+                $booking->update([
+                    'amount_paid' => $share,
+                    'status' => 'completed',
+                    'balance' => $booking->amount_to_pay - $share,
+                ]);
+
+                // $booking->suiteRoom->update([
+                //     'is_occupied' => 1,
+                // ]);
+            }
+        }
+
         Notification::make()
             ->success()
             ->title('Booking Confirmed')
             ->icon('heroicon-o-check-circle')
             ->send();
 
-        Notification::make()
-            ->success()
-            ->title('Payment Confirmed')
-            ->icon('heroicon-o-check-circle')
-            ->body($this->record->user->name.' your booking has been confirmed')
-            ->actions([
-                Action::make('view')
-                    ->label('View')
-                    ->url(fn () => MyBookingResource::getUrl('payment', ['record' => $this->record->id]))->markAsRead(),
-                // ->openUrlInNewTab()
-            ])
-            ->sendToDatabase(User::where('id', $this->record->user_id)->get());
+        if (auth()->user()?->role == 'customer') {
+            Notification::make()
+                ->success()
+                ->title('Payment Confirmed')
+                ->icon('heroicon-o-check-circle')
+                ->body($this->record->user->name.' your booking has been confirmed')
+                ->actions([
+                    Action::make('view')
+                        ->label('View')
+                        ->url(fn () => MyBookingResource::getUrl('payment', ['record' => $this->record->id]))->markAsRead(),
+                ])
+                ->sendToDatabase(User::where('id', $this->record->user_id)->get());
 
-        $details = [
-            'name' => $this->record->user->name,
-            'message' => 'Your booking has been confirmed. Thank you for choosing us!',
-            'amount_paid' => $this->record->amount_paid,
-            'balance' => $this->record->balance,
-            'type' => 'approved_booking',
-        ];
+            $details = [
+                'name' => $this->record->user->name,
+                'message' => 'Your booking has been confirmed. Thank you for choosing us!',
+                'amount_paid' => $this->record->amount_paid,
+                'balance' => $this->record->balance,
+                'type' => 'approved_booking',
+            ];
 
-        Mail::to($this->record->user->email)->send(new MailFrontDesk($details));
+            Mail::to($this->record->user->email)->send(new MailFrontDesk($details));
+        }
 
-        redirect(BookingResource::getUrl('view', ['record' => $this->record->id]));
+        // $details = [
+        //     'name' => $this->record->user->name,
+        //     'message' => 'Your booking has been confirmed. Thank you for choosing us!',
+        //     'amount_paid' => $this->record->amount_paid,
+        //     'balance' => $this->record->balance,
+        //     'type' => 'approved_booking',
+        // ];
+
+        // Mail::to($this->record->user->email)->send(new MailFrontDesk($details));
+
+        if ($this->record->id) {
+            redirect(BookingResource::getUrl('view', ['record' => $this->record->id]));
+        } else {
+            redirect(BookingResource::getUrl('index'));
+        }
     }
 
     public function return()
@@ -325,6 +386,14 @@ class ViewBookings extends Page
         $this->record->status = 'returned';
         $this->record->return_notes = $data['cancel_reason'];
         $this->record->save();
+
+        $related = $this->record->relatedBookings;
+        foreach ($related as $booking) {
+            $booking->update([
+                'status' => 'returned',
+                'return_notes' => $data['cancel_reason'],
+            ]);
+        }
 
         Notification::make()
             ->success()
@@ -345,7 +414,7 @@ class ViewBookings extends Page
             'type' => 'cancel_booking',
         ];
 
-        Mail::to($this->record->user->email)->send(new MailFrontDesk($details));
+        // Mail::to($this->record->user->email)->send(new MailFrontDesk($details));
 
         Notification::make()
             ->success()
@@ -353,7 +422,11 @@ class ViewBookings extends Page
             ->icon('heroicon-o-check-circle')
             ->send();
 
-        redirect(BookingResource::getUrl('view', ['record' => $this->record->id]));
+        if ($this->record->id) {
+            redirect(BookingResource::getUrl('view', ['record' => $this->record->id]));
+        } else {
+            redirect(BookingResource::getUrl('index'));
+        }
     }
 
     public function cancel()
@@ -364,6 +437,15 @@ class ViewBookings extends Page
         $this->record->cancel_reason = $data['cancel_reason'];
         $this->record->want_cancel = true;
         $this->record->save();
+
+        $related = $this->record->relatedBookings;
+        foreach ($related as $booking) {
+            $booking->update([
+                'status' => 'cancelled',
+                'cancel_reason' => $data['cancel_reason'],
+                'want_cancel' => true,
+            ]);
+        }
 
         Notification::make()
             ->success()
@@ -384,7 +466,7 @@ class ViewBookings extends Page
             'type' => 'cancel_booking',
         ];
 
-        Mail::to($this->record->user->email)->send(new MailFrontDesk($details));
+        // Mail::to($this->record->user->email)->send(new MailFrontDesk($details));
 
         Notification::make()
             ->success()

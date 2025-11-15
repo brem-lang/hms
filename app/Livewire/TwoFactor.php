@@ -42,25 +42,25 @@ class TwoFactor extends Component implements HasForms
             } else {
                 return redirect()->intended(Filament::getUrl());
             }
-            // $find = UserCode::where('user_id', auth()->id())
-            //     ->where('code', $data['otp'])
-            //     ->where('updated_at', '>=', now()->subMinutes(2))
-            //     ->first();
+            $find = UserCode::where('user_id', auth()->id())
+                ->where('code', $data['otp'])
+                ->where('updated_at', '>=', now()->subMinutes(2))
+                ->first();
 
-            // if ($find) {
-            //     session()->put('user_2fa', auth()->id());
+            if ($find) {
+                session()->put('user_2fa', auth()->id());
 
-            //     if (auth()->user()->isCustomer()) {
-            //         return redirect()->route('index');
-            //     } else {
-            //         return redirect()->intended(Filament::getUrl());
-            //     }
-            // } else {
-            //     $this->dispatch('swal:success', [
-            //         'title' => 'Expired or Invalid Code',
-            //         'icon' => 'error',
-            //     ]);
-            // }
+                if (auth()->user()->isCustomer()) {
+                    return redirect()->route('index');
+                } else {
+                    return redirect()->intended(Filament::getUrl());
+                }
+            } else {
+                $this->dispatch('swal:success', [
+                    'title' => 'Expired or Invalid Code',
+                    'icon' => 'error',
+                ]);
+            }
         } catch (TooManyRequestsException $exception) {
             $this->dispatch('swal:success', [
                 'title' => 'Too many attempts!',

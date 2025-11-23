@@ -85,15 +85,10 @@ class CustomerPage extends Component implements HasForms
             'deluxe' => $room->where('id', 2)->first(),
             'executive' => $room->where('id', 3)->first(),
             'functionHall' => $room->where('id', 4)->first(),
-            // 'standardOccupied' => Room::with('roomBooking.suiteRoom')
-            //     ->find(1)?->roomBooking
-            //     ->where('status', 'completed')
-            //     ->filter(function ($booking) {
-            //         return $booking->suiteRoom &&
-            //             $booking->suiteRoom->is_occupied == 1 &&
-            //             Carbon::parse($booking->start_date)->isSameDay(Carbon::now('Asia/Manila'));
-            //     })
-            //     ->count(),
+            'standardAvailable' => $room->where('id', 1)->first()->suite_rooms->where('is_active', true)->count(),
+            'deluxeAvailable' => $room->where('id', 2)->first()->suite_rooms->where('is_active', true)->count(),
+            'executiveAvailable' => $room->where('id', 3)->first()->suite_rooms->where('is_active', true)->count(),
+            'functionHallAvailable' => $room->where('id', 4)->first()->suite_rooms->where('is_active', true)->count(),
             'standardOccupied' => Booking::whereNotIn('status', ['cancelled', 'done'])
                 ->whereHas('suiteRoom', fn ($q) => $q->where('room_id', 1)) // room_id = 1
                 ->where('check_in_date', '<=', now('Asia/Manila'))

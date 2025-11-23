@@ -10,7 +10,7 @@
                     Two Factor Authentication
                 </h1>
                 <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
-                    Please check your email account and enter the code below.
+                    Please check your email and enter the verification code below. The code is valid for only 2 minutes.
                 </p>
             </div>
 

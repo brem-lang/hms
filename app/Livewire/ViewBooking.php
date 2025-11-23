@@ -103,7 +103,7 @@ class ViewBooking extends Component implements HasForms
             ])
             ->sendToDatabase(User::where('role', '!=', 'customer')->get());
 
-        redirect('/view-booking/'.$this->booking->id);
+        // redirect('/view-booking/'.$this->booking->id);
     }
 
     public function cancel()
@@ -119,6 +119,15 @@ class ViewBooking extends Component implements HasForms
 
         Mail::to($frontDesk->email)->send(new MailFrontDesk($details));
 
-        return redirect('/my-bookings');
+        $this->reason = '';
+
+        $this->dispatch('close-modal', id: 'mail-modal');
+
+        $this->dispatch('swal:success', [
+            'title' => 'Your cancellation request has been sent to the front desk. We will process it shortly.',
+            'icon' => 'success',
+        ]);
+
+        // return redirect('/my-bookings');
     }
 }

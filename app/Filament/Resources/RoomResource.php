@@ -75,16 +75,16 @@ class RoomResource extends Resource
                                     ])
                                     ->required()
                                     ->columnSpanFull(),
-                                TextInput::make('available_rooms')
-                                    ->numeric()
-                                    ->label('Available Rooms')
-                                    ->required()
-                                    ->maxLength(255),
-                                TextInput::make('total_rooms')
-                                    ->numeric()
-                                    ->label('Total Rooms')
-                                    ->required()
-                                    ->maxLength(255),
+                                // TextInput::make('available_rooms')
+                                //     ->numeric()
+                                //     ->label('Available Rooms')
+                                //     ->required()
+                                //     ->maxLength(255),
+                                // TextInput::make('total_rooms')
+                                //     ->numeric()
+                                //     ->label('Total Rooms')
+                                //     ->required()
+                                //     ->maxLength(255),
 
                                 Repeater::make('items')
                                     ->maxItems(6)

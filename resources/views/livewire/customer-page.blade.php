@@ -697,19 +697,19 @@
 
                 @switch($this->selectedRoom['name'])
                     @case('Standard Suite')
-                        @php $available = 7 - $record['standardOccupied']; @endphp
+                        @php $available = $record['standardAvailable'] - $record['standardOccupied']; @endphp
                         <div class="text-right"> {{ $available }} Available Room(s) Today</div>
                         {{ $this->standardSuiteForm }}
                     @break
 
                     @case('Deluxe Suite')
-                        @php $available = 7 - $record['deluxeOccupied']; @endphp
+                        @php $available = $record['deluxeAvailable'] - $record['deluxeOccupied']; @endphp
                         <div class="text-right"> {{ $available }} Available Room(s) Today</div>
                         {{ $this->deluxeSuiteForm }}
                     @break
 
                     @case('Executive Suite')
-                        @php $available = 13 - $record['executiveOccupied']; @endphp
+                        @php $available = $record['executiveAvailable'] - $record['executiveOccupied']; @endphp
                         <div class="text-right"> {{ $available }} Available Room(s) Today</div>
                         {{ $this->executiveSuiteForm }}
                     @break

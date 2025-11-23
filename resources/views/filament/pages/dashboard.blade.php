@@ -42,9 +42,14 @@
             <div id="london-date" class="text-lg text-gray-600 dark:text-gray-300 md:text-xl"></div>
         </div>
     </div>
+
+    @if (auth()->user()->isAdmin())
+        <div id="calendar"
+            class="filament-stats-card relative p-6 rounded-2xl bg-white shadow dark:bg-gray-800 filament-stats-overview-widget-card">
+        </div>
+    @endif
+
     @if (auth()->user()->isFrontDesk())
-
-
         <div class="filament-stats grid gap-4 lg:gap-8 md:grid-cols-2">
             <div>
                 <h1 class="text-2xl font-bold"> Rooms Available </h1>
@@ -214,6 +219,38 @@
         }
     </style>
 </x-filament-panels::page>
+
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+<script src="https://unpkg.com/@popperjs/core@2/dist/umd/popper.min.js"></script>
+<script src="https://unpkg.com/tippy.js@6/dist/tippy-bundle.umd.js"></script>
+
+<script>
+    var $loading = $('.sk-chase').hide();
+    $(document)
+        .ajaxStart(function() {
+            $loading.show();
+        })
+        .ajaxStop(function() {
+            $loading.hide();
+        });
+
+    var calendarEl = document.getElementById('calendar');
+    var calendar = new FullCalendar.Calendar(calendarEl, {
+        headerToolbar: {
+            left: 'prev,next today',
+            center: 'title',
+            right: 'dayGridMonth,timeGridWeek,timeGridDay'
+        },
+        initialView: 'dayGridMonth',
+        selectable: true,
+        events: @json($this->calendarEvents),
+    });
+
+    calendar.render();
+</script>
+
+
 <script>
     function startTime() {
         const today = new Date();

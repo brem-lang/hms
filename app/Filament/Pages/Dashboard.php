@@ -2,6 +2,7 @@
 
 namespace App\Filament\Pages;
 
+use App\Models\Booking;
 use App\Models\SuiteRoom;
 use Filament\Pages\Dashboard as BasePage;
 
@@ -10,6 +11,8 @@ class Dashboard extends BasePage
     protected static ?string $navigationIcon = 'heroicon-o-home';
 
     protected static string $view = 'filament.pages.dashboard';
+
+    public $calendarEvents;
 
     public $widgetData = [];
 
@@ -20,6 +23,19 @@ class Dashboard extends BasePage
             $this->widgetData['occupiedRooms'] = SuiteRoom::with('room')->where('is_active', true)->where('is_occupied', true)->limit(10)->get();
         }
 
-        // dd($this->widgetData);
+        if (auth()->user()->isAdmin()) {
+            $this->calendarEvents = Booking::query()
+                ->get()
+                ->map(
+                    fn (Booking $booking) => [
+                        'id' => $booking->id,
+                        'title' => 'Booking for '.$booking->user->name,
+                        'start' => $booking->start_date,
+                        'end' => $booking->end_date,
+                        'backgroundColor' => $booking->balance == 0 ? '#10B981' : '#F59E0B',
+                    ]
+                )
+                ->toArray();
+        }
     }
 }

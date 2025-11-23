@@ -69,7 +69,7 @@
                 <div class="d-flex justify-content-between align-items-center mb-4">
                     <h3 class="mb-0">Booking Information - {{ $booking->booking_number }}</h3>
 
-                    <x-filament::modal id="cancel-modal">
+                    <x-filament::modal id="mail-modal">
                         <x-slot name="trigger">
                             <x-filament::button color="success" class="mb-5">
                                 Mail
@@ -81,7 +81,7 @@
                         <x-slot name="footerActions">
                             <a href="#" class="genric-btn info w-full" wire:click="cancel">Confirm</a>
                             <a href="#" class="genric-btn danger w-full"
-                                x-on:click.prevent="$dispatch('close-modal', {id: 'cancel-modal'})">Cancel</a>
+                                x-on:click.prevent="$dispatch('close-modal', {id: 'mail-modal'})">Cancel</a>
                         </x-slot>
                     </x-filament::modal>
 
@@ -315,7 +315,7 @@
             icon: icon ?? 'success',
             toast: true,
             position: 'top-end',
-            timer: 3000,
+            timer: 10000,
             showConfirmButton: false,
         });
     });

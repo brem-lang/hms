@@ -3,6 +3,7 @@
 namespace App\Livewire;
 
 use App\Filament\Resources\BookingResource;
+use App\Mail\MailFrontDesk;
 use App\Models\Booking;
 use App\Models\User;
 use Filament\Forms\Components\FileUpload;
@@ -11,6 +12,7 @@ use Filament\Forms\Contracts\HasForms;
 use Filament\Forms\Form;
 use Filament\Notifications\Actions\Action;
 use Filament\Notifications\Notification;
+use Illuminate\Support\Facades\Mail;
 use Livewire\Component;
 
 class ViewBooking extends Component implements HasForms
@@ -20,6 +22,8 @@ class ViewBooking extends Component implements HasForms
     public Booking $booking;
 
     public ?array $formData = [];
+
+    public $reason;
 
     public function render()
     {
@@ -48,13 +52,26 @@ class ViewBooking extends Component implements HasForms
                     ->disk('public_uploads_payment')
                     ->directory('/')
                     ->image()
-                    ->hint('You can pay 50% || Please upload the proof of payment for gcash.'),
+                    ->hint('You may pay 50% of the total amount. Please upload your GCash payment proof. Kindly complete your payment within 2 hours to confirm your reservation.
+                    '),
             ])
             ->statePath('formData');
     }
 
     public function pay()
     {
+        if ($this->booking->created_at->diffInHours(now()) > 2) {
+            $this->dispatch('swal:success', [
+                'title' => 'The payment deadline has passed, and your booking has been automatically cancelled.',
+                'icon' => 'error',
+            ]);
+
+            $this->booking->status = 'cancelled';
+            $this->booking->save();
+
+            return;
+        }
+
         $data = $this->form->getState();
 
         $this->booking->proof_of_payment = $data['proof_of_payment'];
@@ -69,7 +86,7 @@ class ViewBooking extends Component implements HasForms
         $this->booking->save();
 
         $this->dispatch('swal:success', [
-            'title' => 'Submitted',
+            'title' => 'Thank you! Your booking is confirmed. We look forward to serving you.',
             'icon' => 'success',
         ]);
 
@@ -87,5 +104,21 @@ class ViewBooking extends Component implements HasForms
             ->sendToDatabase(User::where('role', '!=', 'customer')->get());
 
         redirect('/view-booking/'.$this->booking->id);
+    }
+
+    public function cancel()
+    {
+        $frontDesk = User::where('role', 'front-desk')->first();
+
+        $details = [
+            'name' => $frontDesk->name,
+            'message' => $this->reason,
+            'user' => auth()->user()->name,
+            'type' => 'mail_from_user',
+        ];
+
+        Mail::to($frontDesk->email)->send(new MailFrontDesk($details));
+
+        return redirect('/my-bookings');
     }
 }

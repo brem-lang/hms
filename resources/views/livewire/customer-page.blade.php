@@ -262,38 +262,50 @@
                     </div>
                 </div>
             </div>
+            @php
+                $items1 = $record['standard']['items'];
+                $overnight1 = collect($items1)->firstWhere('item', 'Overnight Stay');
+            @endphp
             <div class="rooms_here">
                 <div class="single_rooms">
                     <div class="room_thumb">
                         <img src="{{ asset('suite-photo/' . $record['standard']['image']) }}" alt="">
                         <div class="room_heading d-flex justify-content-between align-items-center">
                             <div class="room_heading_inner">
-                                <span>From ₱ 1300/night</span>
+                                <span>From ₱ {{ $overnight1['price'] }}/night</span>
                                 <h3>Standard Suite</h3>
                             </div>
                             <a href="#" class="line-button" wire:click.prevent="viewRoom('1')">View</a>
                         </div>
                     </div>
                 </div>
+                @php
+                    $items2 = $record['deluxe']['items'];
+                    $overnight2 = collect($items2)->firstWhere('item', 'Overnight Stay');
+                @endphp
                 <div class="single_rooms">
                     <div class="room_thumb">
                         <img src="{{ asset('suite-photo/' . $record['deluxe']['image']) }}" alt="">
                         <div class="room_heading d-flex justify-content-between align-items-center">
                             <div class="room_heading_inner">
-                                <span>From ₱ 1500/night</span>
+                                <span>From ₱ {{ $overnight2['price'] }}/night</span>
                                 <h3>Deluxe Suite</h3>
                             </div>
                             <a href="#" class="line-button" wire:click.prevent="viewRoom('2')">View</a>
                         </div>
                     </div>
                 </div>
+                @php
+                    $items3 = $record['executive']['items'];
+                    $overnight3 = collect($items3)->firstWhere('item', 'Overnight Stay');
+                @endphp
                 <div class="single_rooms">
                     <div class="room_thumb">
                         <img src="{{ asset('suite-photo/' . $record['executive']['image']) }}" alt=""
                             style="height: 600px;">
                         <div class="room_heading d-flex justify-content-between align-items-center">
                             <div class="room_heading_inner">
-                                <span>From ₱ 1700/night</span>
+                                <span>From ₱ {{ $overnight3['price'] }}/night</span>
                                 <h3>Executive Suite</h3>
                             </div>
                             <a href="#" class="line-button" wire:click.prevent="viewRoom('3')">View</a>
@@ -388,9 +400,202 @@
 
         <!-- Start Sample Area -->
 
+        <div x-data="{ activeTab: 'images' }" class="container mx-auto p-4 sm:p-6 lg:p-8">
+            <!-- Tab navigation -->
+            <div class="border-b border-gray-200 mb-8">
+                <nav class="-mb-px flex space-x-6" aria-label="Tabs">
+                    <button @click="activeTab = 'images'" :class="{ 'active-tab': activeTab === 'images' }"
+                        class="whitespace-nowrap py-4 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-blue-600 hover:border-blue-300 transition-colors duration-200">
+                        Images
+                    </button>
+                    <button @click="activeTab = 'about'" :class="{ 'active-tab': activeTab === 'about' }"
+                        class="whitespace-nowrap py-4 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-blue-600 hover:border-blue-300 transition-colors duration-200">
+                        About Us
+                    </button>
+                </nav>
+            </div>
+
+            <!-- Tab content panels -->
+            <!-- Images Tab -->
+            <div x-show="activeTab === 'images'" x-cloak x-transition>
+                <div>
+                    <h3 class="text-heading mt-3">Images</h3>
+                    <div class="row gallery-item">
+                        @if ($selectedRoom['name'] == 'Function Hall')
+                            <div class="instragram_area p-4">
+                                <div class="single_instagram">
+                                    <img src="img/functionhall/fn1.jpg" alt="">
+                                </div>
+                                <div class="single_instagram">
+                                    <img src="img/functionhall/fn2.jpg" alt="">
+                                </div>
+                                <div class="single_instagram">
+                                    <img src="img/functionhall/fn3.jpg" alt="">
+                                </div>
+                                <div class="single_instagram">
+                                    <img src="img/functionhall/fn4.jpg" alt="">
+                                </div>
+                                <div class="single_instagram">
+                                    <img src="img/functionhall/fn5.jpg" alt="">
+                                </div>
+                            </div>
+                        @else
+                            @foreach ($selectedRoom['images'] ?? [] as $image)
+                                <div class="col-md-4">
+                                    <a class="img-pop-up">
+                                        <div class="single-gallery-image"
+                                            style="background-image: url('{{ asset('suite-photo/' . $image) }}');">
+                                        </div>
+                                    </a>
+
+                                    <x-filament::modal>
+                                        <x-slot name="trigger">
+                                            <x-filament::button size="sm" variant="primary"
+                                                icon="heroicon-o-viewfinder-circle">
+                                            </x-filament::button>
+                                        </x-slot>
+
+                                        <img src="{{ asset('suite-photo/' . $image) }}" alt="">
+
+                                    </x-filament::modal>
+                                </div>
+                            @endforeach
+                        @endif
+
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- About Us Tab -->
+            <div x-show="activeTab === 'about'" x-cloak x-transition>
+                <div>
+                    <h3 class="text-heading mt-3">About</h3>
+                    <p class="sample-text">
+                        @if ($selectedRoom['name'] == 'Standard Suite')
+                            "Our Standard Suite offers a perfect blend of comfort and elegance — featuring a
+                            cozy bed,
+                            modern amenities, and a calming atmosphere ideal for both rest and relaxation.
+                            Enjoy
+                            quality
+                            service in a space designed to feel like home."
+                        @endif
+
+                        @if ($selectedRoom['name'] == 'Deluxe Suite')
+                            "Our Deluxe Suite offers a luxurious experience with a spacious layout,
+                            top-of-the-line
+                            amenities, and a comfortable atmosphere that will make you feel at home. Whether
+                            you're
+                            looking
+                            for a cozy bed, a comfortable couch, or a stylish sofa, our Deluxe Suite has got
+                            you
+                            covered."
+                        @endif
+
+                        @if ($selectedRoom['name'] == 'Executive Suite')
+                            "Our Executive Suite is the perfect choice for those who want a spacious and
+                            elegant
+                            space
+                            with top-of-the-line amenities. With a modern design and a comfortable
+                            atmosphere,
+                            our
+                            Executive Suite is the perfect place to relax and unwind."
+                        @endif
+
+                        @if ($selectedRoom['name'] == 'Function Hall')
+                            "Our Function Hall is the perfect place to relax and unwind. With a comfortable
+                            bed,
+                            a
+                            stylish sofa, and a cozy couch, our Function Hall is the perfect space to unwind
+                            and
+                            enjoy
+                            some much-needed rest."
+                        @endif
+                    </p>
+
+                    @if ($selectedRoom['name'] != 'Function Hall')
+                        <div class="row">
+                            <!-- Rates Column -->
+                            <div class="col-md-6 mb-4">
+                                <h3 class="mb-20">Rates</h3>
+                                @if ($selectedRoom['name'] == 'Standard Suite')
+                                    @foreach ($record['standard']['items'] ?? [] as $item)
+                                        <ul class="features-list"
+                                            style="list-style-type: none; padding: 0; font-size: 15px;">
+                                            <li>₱ {{ $item['price'] }} - {{ $item['item'] }}</li>
+                                        </ul>
+                                    @endforeach
+                                @endif
+
+                                @if ($selectedRoom['name'] == 'Deluxe Suite')
+                                    @foreach ($record['deluxe']['items'] ?? [] as $item)
+                                        <ul class="features-list"
+                                            style="list-style-type: none; padding: 0; font-size: 15px;">
+                                            <li>₱ {{ $item['price'] }} - {{ $item['item'] }}</li>
+                                        </ul>
+                                    @endforeach
+                                @endif
+
+                                @if ($selectedRoom['name'] == 'Executive Suite')
+                                    @foreach ($record['executive']['items'] ?? [] as $item)
+                                        <ul class="features-list"
+                                            style="list-style-type: none; padding: 0; font-size: 15px;">
+                                            <li>₱ {{ $item['price'] }} - {{ $item['item'] }}</li>
+                                        </ul>
+                                    @endforeach
+                                @endif
+                            </div>
+
+                            <!-- Amenities Column -->
+                            <div class="col-md-6 mb-4">
+                                <h3 class="mb-20">Amenities</h3>
+                                <ul class="unordered-list" style="font-size: 14px;">
+                                    <li>Airconditioned Room</li>
+                                    <li>Essential Kit</li>
+                                    <li>Complimentary Bottled Water</li>
+                                    <li>Parking space</li>
+                                    <li>Fire Alarm</li>
+                                    <li>Good for 2 pax</li>
+                                </ul>
+                            </div>
+                        </div>
+                    @else
+                        <div class="row">
+                            <!-- Rates Column -->
+                            <div class="col-md-6 mb-4">
+                                <h3 class="mb-20">Rates</h3>
+                                @foreach ($record['functionHall']['items'] ?? [] as $item)
+                                    <ul class="features-list"
+                                        style="list-style-type: none; padding: 0; font-size: 15px;">
+                                        <li>₱ {{ $item['price'] }} - {{ $item['item'] }}</li>
+                                    </ul>
+                                @endforeach
+                            </div>
+
+                            <!-- Amenities Column -->
+                            <div class="col-md-6 mb-4">
+                                <h3 class="mb-20">Amenities</h3>
+                                <ul class="unordered-list" style="font-size: 14px;">
+                                    <li>4 hours Rental</li>
+                                    <li>Airconditioned Room</li>
+                                    <li>Basic Sound System</li>
+                                    <li>Standby Generator</li>
+                                    <li>Good for 30 pax</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                    @endif
+
+                </div>
+            </div>
+        </div>
+
+
         <div class="whole-wrap">
             <div class="container box_1170">
                 <div class="section-top-border">
+
                     @if ($this->selectedRoom['name'] === 'Function Hall')
                         {{-- <h3>Image Gallery</h3> --}}
                         {{-- <div class="row gallery-item">
@@ -568,179 +773,6 @@
             x-init="initCalendar()">
         </div>
     @endauth
-
-    <div x-data="{ activeTab: 'images' }" class="container mx-auto p-4 sm:p-6 lg:p-8">
-        <!-- Tab navigation -->
-        <div class="border-b border-gray-200 mb-8">
-            <nav class="-mb-px flex space-x-6" aria-label="Tabs">
-                <button @click="activeTab = 'images'" :class="{ 'active-tab': activeTab === 'images' }"
-                    class="whitespace-nowrap py-4 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-blue-600 hover:border-blue-300 transition-colors duration-200">
-                    Images
-                </button>
-                <button @click="activeTab = 'about'" :class="{ 'active-tab': activeTab === 'about' }"
-                    class="whitespace-nowrap py-4 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-blue-600 hover:border-blue-300 transition-colors duration-200">
-                    About Us
-                </button>
-            </nav>
-        </div>
-
-        <!-- Tab content panels -->
-        <!-- Images Tab -->
-        <div x-show="activeTab === 'images'" x-cloak x-transition>
-            <div>
-                <h3 class="text-heading mt-3">Images</h3>
-                <div class="row gallery-item">
-                    @if ($selectedRoom['name'] == 'Function Hall')
-                        <div class="instragram_area p-4">
-                            <div class="single_instagram">
-                                <img src="img/functionhall/fn1.jpg" alt="">
-                            </div>
-                            <div class="single_instagram">
-                                <img src="img/functionhall/fn2.jpg" alt="">
-                            </div>
-                            <div class="single_instagram">
-                                <img src="img/functionhall/fn3.jpg" alt="">
-                            </div>
-                            <div class="single_instagram">
-                                <img src="img/functionhall/fn4.jpg" alt="">
-                            </div>
-                            <div class="single_instagram">
-                                <img src="img/functionhall/fn5.jpg" alt="">
-                            </div>
-                        </div>
-                    @else
-                        @foreach ($selectedRoom['images'] ?? [] as $image)
-                            <div class="col-md-4">
-                                <a class="img-pop-up">
-                                    <div class="single-gallery-image"
-                                        style="background-image: url('{{ asset('suite-photo/' . $image) }}');">
-                                    </div>
-                                </a>
-                            </div>
-                        @endforeach
-                    @endif
-
-                </div>
-
-            </div>
-        </div>
-
-        <!-- About Us Tab -->
-        <div x-show="activeTab === 'about'" x-cloak x-transition>
-            <div>
-                <h3 class="text-heading mt-3">About</h3>
-                <p class="sample-text">
-                    @if ($selectedRoom['name'] == 'Standard Suite')
-                        "Our Standard Suite offers a perfect blend of comfort and elegance — featuring a
-                        cozy bed,
-                        modern amenities, and a calming atmosphere ideal for both rest and relaxation. Enjoy
-                        quality
-                        service in a space designed to feel like home."
-                    @endif
-
-                    @if ($selectedRoom['name'] == 'Deluxe Suite')
-                        "Our Deluxe Suite offers a luxurious experience with a spacious layout,
-                        top-of-the-line
-                        amenities, and a comfortable atmosphere that will make you feel at home. Whether
-                        you're
-                        looking
-                        for a cozy bed, a comfortable couch, or a stylish sofa, our Deluxe Suite has got you
-                        covered."
-                    @endif
-
-                    @if ($selectedRoom['name'] == 'Executive Suite')
-                        "Our Executive Suite is the perfect choice for those who want a spacious and elegant
-                        space
-                        with top-of-the-line amenities. With a modern design and a comfortable atmosphere,
-                        our
-                        Executive Suite is the perfect place to relax and unwind."
-                    @endif
-
-                    @if ($selectedRoom['name'] == 'Function Hall')
-                        "Our Function Hall is the perfect place to relax and unwind. With a comfortable bed,
-                        a
-                        stylish sofa, and a cozy couch, our Function Hall is the perfect space to unwind and
-                        enjoy
-                        some much-needed rest."
-                    @endif
-                </p>
-
-                @if ($selectedRoom['name'] != 'Function Hall')
-                    <div class="row">
-                        <!-- Rates Column -->
-                        <div class="col-md-6 mb-4">
-                            <h3 class="mb-20">Rates</h3>
-                            @if ($selectedRoom['name'] == 'Standard Suite')
-                                @foreach ($record['standard']['items'] ?? [] as $item)
-                                    <ul class="features-list"
-                                        style="list-style-type: none; padding: 0; font-size: 15px;">
-                                        <li>₱ {{ $item['price'] }} - {{ $item['item'] }}</li>
-                                    </ul>
-                                @endforeach
-                            @endif
-
-                            @if ($selectedRoom['name'] == 'Deluxe Suite')
-                                @foreach ($record['deluxe']['items'] ?? [] as $item)
-                                    <ul class="features-list"
-                                        style="list-style-type: none; padding: 0; font-size: 15px;">
-                                        <li>₱ {{ $item['price'] }} - {{ $item['item'] }}</li>
-                                    </ul>
-                                @endforeach
-                            @endif
-
-                            @if ($selectedRoom['name'] == 'Executive Suite')
-                                @foreach ($record['executive']['items'] ?? [] as $item)
-                                    <ul class="features-list"
-                                        style="list-style-type: none; padding: 0; font-size: 15px;">
-                                        <li>₱ {{ $item['price'] }} - {{ $item['item'] }}</li>
-                                    </ul>
-                                @endforeach
-                            @endif
-                        </div>
-
-                        <!-- Amenities Column -->
-                        <div class="col-md-6 mb-4">
-                            <h3 class="mb-20">Amenities</h3>
-                            <ul class="unordered-list" style="font-size: 14px;">
-                                <li>Airconditioned Room</li>
-                                <li>Essential Kit</li>
-                                <li>Complimentary Bottled Water</li>
-                                <li>Parking space</li>
-                                <li>Fire Alarm</li>
-                                <li>Good for 2 pax</li>
-                            </ul>
-                        </div>
-                    </div>
-                @else
-                    <div class="row">
-                        <!-- Rates Column -->
-                        <div class="col-md-6 mb-4">
-                            <h3 class="mb-20">Rates</h3>
-                            @foreach ($record['functionHall']['items'] ?? [] as $item)
-                                <ul class="features-list" style="list-style-type: none; padding: 0; font-size: 15px;">
-                                    <li>₱ {{ $item['price'] }} - {{ $item['item'] }}</li>
-                                </ul>
-                            @endforeach
-                        </div>
-
-                        <!-- Amenities Column -->
-                        <div class="col-md-6 mb-4">
-                            <h3 class="mb-20">Amenities</h3>
-                            <ul class="unordered-list" style="font-size: 14px;">
-                                <li>4 hours Rental</li>
-                                <li>Airconditioned Room</li>
-                                <li>Basic Sound System</li>
-                                <li>Standby Generator</li>
-                                <li>Good for 30 pax</li>
-                            </ul>
-                        </div>
-                    </div>
-
-                @endif
-
-            </div>
-        </div>
-    </div>
 
 
 </div>

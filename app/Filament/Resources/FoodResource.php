@@ -29,7 +29,7 @@ class FoodResource extends Resource
 
     public static function canViewAny(): bool
     {
-        return false;
+        return true;
     }
 
     public static function form(Form $form): Form

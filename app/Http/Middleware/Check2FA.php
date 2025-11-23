@@ -14,18 +14,41 @@ class Check2FA
      *
      * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
      */
+    // public function handle(Request $request, Closure $next)
+    // {
+
+    //     if (! Session::has('user_2fa')) {
+    //         if (! Auth::check()) {
+
+    //             return $next($request);
+    //         } else {
+    //             return redirect()->route('2fa.index');
+    //         }
+    //     }
+
+    //     return $next($request);
+    // }
+
     public function handle(Request $request, Closure $next)
     {
-
-        if (! Session::has('user_2fa')) {
-            if (! Auth::check()) {
-
-                return $next($request);
-            } else {
-                return redirect()->route('2fa.index');
-            }
+        // If not logged in → no 2FA needed yet
+        if (! Auth::check()) {
+            return $next($request);
         }
 
-        return $next($request);
+        $user = Auth::user();
+
+        // If user is ADMIN → skip 2FA
+        if (! $user->isCustomer()) {
+            return $next($request);
+        }
+
+        // If user already passed 2FA → allow
+        if (Session::has('user_2fa')) {
+            return $next($request);
+        }
+
+        // All other authenticated users → require 2FA
+        return redirect()->route('2fa.index');
     }
 }

@@ -57,19 +57,45 @@ class FunctionHallBooking extends Page implements HasForms
     public function form(Form $form): Form
     {
         return $form->schema([
+            TextInput::make('contact_number')
+                ->numeric()
+                ->label('Contact Number')
+                ->required()
+                ->maxLength(255),
+            TextInput::make('email')
+                ->label('Email')
+                ->required()
+                ->maxLength(255),
+            TextInput::make('organization')
+                ->label('Organization')
+                ->hint('Optional')
+                ->maxLength(255),
+            TextInput::make('position')
+                ->label('Position')
+                ->hint('Optional')
+                ->maxLength(255),
+            Select::make('event_type')
+                ->label('Event Type')
+                ->required()
+                ->options([
+                    'wedding' => 'Wedding',
+                    'birthday' => 'Birthday',
+                    'corporate_event' => 'Corporate Event',
+                    'seminar' => 'Seminar',
+                    'meeting' => 'Meeting',
+                    'others' => 'Others',
+                ]),
             DatePicker::make('start_date')
                 ->label('Date')
                 ->required()
                 ->minDate(now()->startOfDay())
                 ->live()
                 ->reactive(),
-            TextInput::make('no_persons')
-                ->numeric()
-                ->label('Persons')
-                ->required()
-                ->maxLength(255),
+            TextInput::make('no_persons')->numeric()->label('Persons')->required()->maxLength(255),
             Select::make('type')
                 ->required()
+                ->reactive()
+                ->live()
                 ->options(SuiteRoom::where('room_id', 4)->pluck('name', 'id')->toArray()),
             Textarea::make('notes')
                 ->label('Requests / Notes'),
@@ -93,12 +119,36 @@ class FunctionHallBooking extends Page implements HasForms
 
     public function saving($data)
     {
+
         $start = Carbon::parse($data['start_date']);
         $end = $data['suiteId'] == 4 ? $start : Carbon::parse($data['end_date']);
 
         $days = $start->diffInDays($end);
 
         $hours = $data['suiteId'] == 4 ? 0 : ($data['hours'] ?? 0) + ($days * 24);
+
+        $typeId = (int) $this->form->getState()['type'];
+        $noPersons = (int) $this->form->getState()['no_persons'];
+
+        $maxPersons = match ($typeId) {
+            28 => 15,
+            29 => 20,
+            30 => 30,
+            31 => 40,
+            default => null,
+        };
+
+        if ($maxPersons && $noPersons > $maxPersons) {
+            Notification::make()
+                ->title('Error')
+                ->body("The number of persons cannot exceed {$maxPersons} for the selected room type.")
+                ->danger()
+                ->send();
+
+            $this->form->fill();
+
+            return; // stop saving
+        }
 
         if ($data['suiteId'] == 4 && $this->getFunctionHallTime($start->toDateTimeString(), $data['type']) === false) {
             Notification::make()
@@ -124,6 +174,11 @@ class FunctionHallBooking extends Page implements HasForms
 
                 $data = Booking::create([
                     'booking_number' => 'BKG-'.strtoupper(uniqid()),
+                    'contact_number' => $data['contact_number'],
+                    'email' => $data['email'],
+                    'organization' => $data['organization'],
+                    'position' => $data['position'],
+                    'event_type' => $data['event_type'],
                     'payment_type' => 'gcash',
                     'type' => 'online',
                     'user_id' => auth()->user()->id,

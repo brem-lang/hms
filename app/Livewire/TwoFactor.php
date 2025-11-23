@@ -50,9 +50,15 @@ class TwoFactor extends Component implements HasForms
             if ($find) {
                 session()->put('user_2fa', auth()->id());
 
-                if (auth()->user()->isCustomer()) {
+                if (auth()->user()->isCustomer() && ! auth()->user()->is_new_user) {
                     return redirect()->route('index');
-                } else {
+                }
+
+                if (auth()->user()->isCustomer() && auth()->user()->is_new_user) {
+                    return redirect()->route('new-prompt');
+                }
+
+                if (! auth()->user()->isCustomer()) {
                     return redirect()->intended(Filament::getUrl());
                 }
             } else {

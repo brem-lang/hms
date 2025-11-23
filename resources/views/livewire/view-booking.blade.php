@@ -66,7 +66,27 @@
     <div class="about_area" style="margin-top: -120px;">
         <div class="container">
             <div class="mb-5">
-                <h3 class="mb-30">Booking Information - {{ $booking->booking_number }}</h3>
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h3 class="mb-0">Booking Information - {{ $booking->booking_number }}</h3>
+
+                    <x-filament::modal id="cancel-modal">
+                        <x-slot name="trigger">
+                            <x-filament::button color="success" class="mb-5">
+                                Mail
+                            </x-filament::button>
+                        </x-slot>
+
+                        <Textarea label="Reason for cancellation" wire:model.defer="reason"></Textarea>
+
+                        <x-slot name="footerActions">
+                            <a href="#" class="genric-btn info w-full" wire:click="cancel">Confirm</a>
+                            <a href="#" class="genric-btn danger w-full"
+                                x-on:click.prevent="$dispatch('close-modal', {id: 'cancel-modal'})">Cancel</a>
+                        </x-slot>
+                    </x-filament::modal>
+
+                </div>
+
 
                 <div class="row">
                     <div class="col-md-6">

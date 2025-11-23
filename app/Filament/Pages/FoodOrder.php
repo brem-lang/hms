@@ -2,17 +2,15 @@
 
 namespace App\Filament\Pages;
 
-use App\Filament\Resources\MyOrderResource;
+use App\Filament\Resources\FoodOrderResource;
 use App\Models\Food;
 use App\Models\FoodOrder as ModelsFoodOrder;
 use App\Models\Transaction;
-use App\Models\User;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
 use Filament\Forms\Form;
-use Filament\Notifications\Actions\Action;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Illuminate\Support\Facades\DB;
@@ -92,24 +90,11 @@ class FoodOrder extends Page implements HasForms
                 ->icon('heroicon-o-check-circle')
                 ->body('Food order has been created successfully.')
                 ->send();
-
-            Notification::make()
-                ->success()
-                ->title('Food Order Created')
-                ->icon('heroicon-o-check-circle')
-                ->body(auth()->user()->name.' has booked '.$data->room->name)
-                ->actions([
-                    Action::make('view')
-                        ->label('View')
-                    // ->url(fn () => BookingResource::getUrl('view', ['record' => $data->id]))
-                    ,
-                ])
-                ->sendToDatabase(User::whereIn('role', ['admin', 'front-desk'])->get());
         } catch (\Exception $e) {
             logger($e->getMessage());
         }
 
-        redirect(MyOrderResource::getUrl('payment', ['record' => $order->id]));
+        redirect(FoodOrderResource::getUrl('view', ['record' => $order->id]));
     }
 
     public function calculatePrice(int $id)

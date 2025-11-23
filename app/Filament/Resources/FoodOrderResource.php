@@ -28,7 +28,7 @@ class FoodOrderResource extends Resource
 
     public static function canViewAny(): bool
     {
-        return false;
+        return true;
     }
 
     public static function form(Form $form): Form
@@ -105,7 +105,7 @@ class FoodOrderResource extends Resource
             'index' => Pages\ListFoodOrders::route('/'),
             'view' => Pages\ViewOrder::route('/{record}/view'),
             // 'create' => Pages\CreateFoodOrder::route('/create'),
-            // 'edit' => Pages\EditFoodOrder::route('/{record}/edit'),
+            'edit' => Pages\EditFoodOrder::route('/{record}/edit'),
         ];
     }
 }

@@ -357,6 +357,11 @@
                             <h3 style="font-size: 15px">Message :<b> {{ $details['message'] }} </b> </h3>
                         @endif
 
+                        @if ($details['type'] == 'mail_from_user')
+                            <h3 style="font-size: 15px">Message :<b> {{ $details['message'] }} </b> </h3>
+                            <h3 style="font-size: 15px">User :<b> {{ $details['user'] }} </b> </h3>
+                        @endif
+
                         @if ($details['type'] == 'cancel_booking')
                             <h3 style="font-size: 15px">Message :<b> {{ $details['message'] }} </b> </h3>
                         @endif

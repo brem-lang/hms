@@ -3,6 +3,7 @@
 use App\Http\Controllers\SocialiteController;
 use App\Livewire\CustomerPage;
 use App\Livewire\MyBooking;
+use App\Livewire\NewUserPrompt;
 use App\Livewire\Policy;
 use App\Livewire\TwoFactor;
 use App\Livewire\ViewBooking;
@@ -18,6 +19,8 @@ Route::redirect('/login', '/app/login');
 Route::redirect('/', '/index');
 
 Route::get('/index', CustomerPage::class)->name('index');
+
+Route::get('/new-prompt', NewUserPrompt::class)->name('new-prompt');
 
 Route::get('policy', Policy::class)->name('policy');
 

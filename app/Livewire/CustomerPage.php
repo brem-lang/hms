@@ -318,6 +318,7 @@ class CustomerPage extends Component implements HasForms
             TextInput::make('no_persons')
                 ->numeric()
                 ->label('Persons')
+                ->readOnly()
                 ->required()
                 ->maxLength(255),
             Textarea::make('notes')
@@ -460,6 +461,7 @@ class CustomerPage extends Component implements HasForms
                 ->numeric()
                 ->label('Persons')
                 ->required()
+                ->readOnly()
                 ->maxLength(255),
             Textarea::make('notes')
                 ->label('Requests / Notes'),

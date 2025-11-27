@@ -35,7 +35,7 @@ class GuestOrders extends Page implements HasForms
 
     public static function canAccess(): bool
     {
-        return true;
+        return false;
     }
 
     public function mount()

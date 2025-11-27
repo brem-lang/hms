@@ -84,6 +84,14 @@ return [
             'throw' => false,
         ],
 
+        'public_charts' => [
+            'driver' => 'local',
+            'root' => public_path('public_charts'),
+            'url' => env('APP_URL').'/public_charts',
+            'visibility' => 'public',
+            'throw' => false,
+        ],
+
     ],
 
     /*

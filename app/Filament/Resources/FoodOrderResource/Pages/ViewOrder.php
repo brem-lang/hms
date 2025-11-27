@@ -35,14 +35,14 @@ class ViewOrder extends Page
     {
         return $form
             ->schema([
-                FileUpload::make('proof_of_payment')
-                    ->required()
-                    ->label('Proof of Payment')
-                    ->openable()
-                    ->disk('public_uploads_payment')
-                    ->directory('/')
-                    ->image()
-                    ->hint('Please upload the proof of payment for gcash.'),
+                // FileUpload::make('proof_of_payment')
+                //     ->required()
+                //     ->label('Proof of Payment')
+                //     ->openable()
+                //     ->disk('public_uploads_payment')
+                //     ->directory('/')
+                //     ->image()
+                //     ->hint('Please upload the proof of payment for gcash.'),
             ])
             ->statePath('formData');
     }

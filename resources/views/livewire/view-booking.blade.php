@@ -165,12 +165,16 @@
                     </div>
                 </div>
 
+
                 @if (!empty($booking->additional_charges))
                     <div style="margin-bottom: 30px;">
                         <h3 class="mb-30">Additional Charges</h3>
                         <ul class="features-list" style="list-style-type: none; padding: 0;">
                             @foreach ($booking->additional_charges as $charge)
-                                <li>₱ {{ number_format($charge['amount'], 2) }} - {{ $charge['name'] }}</li>
+                                <li>
+                                    ₱ {{ number_format($charge['amount'], 2) }} -
+                                    {{ $charges[$charge['name']] }}
+                                </li>
                             @endforeach
                     </div>
                 @endif
@@ -218,7 +222,7 @@
         </div>
     </div>
 
-    <div class="container" style="margin-top:200px;" class="text-right">
+    <div class="container" class="text-right">
         {{-- <div class="text-right" style="margin-bottom: 20px;">
             <a href="#" class="genric-btn info" wire:click.prevent="bookRoom">
                 Book Now

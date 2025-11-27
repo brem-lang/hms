@@ -5,6 +5,7 @@ namespace App\Livewire;
 use App\Filament\Resources\BookingResource;
 use App\Mail\MailFrontDesk;
 use App\Models\Booking;
+use App\Models\Charge;
 use App\Models\User;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Concerns\InteractsWithForms;
@@ -12,6 +13,7 @@ use Filament\Forms\Contracts\HasForms;
 use Filament\Forms\Form;
 use Filament\Notifications\Actions\Action;
 use Filament\Notifications\Notification;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
 use Livewire\Component;
 
@@ -25,6 +27,8 @@ class ViewBooking extends Component implements HasForms
 
     public $reason;
 
+    public $charges = [];
+
     public function render()
     {
         return view('livewire.view-booking');
@@ -35,6 +39,9 @@ class ViewBooking extends Component implements HasForms
         $this->booking = Booking::with('user', 'room', 'suiteRoom', 'walkingGuest', 'relatedBookings')->find($id);
 
         $this->authorize('view', $this->booking);
+
+        $chargeIds = collect($this->booking->additional_charges)->pluck('name')->unique();
+        $this->charges = Charge::whereIn('id', $chargeIds)->pluck('name', 'id');
 
         $this->form->fill([
             'proof_of_payment' => $this->booking->proof_of_payment,
@@ -128,6 +135,28 @@ class ViewBooking extends Component implements HasForms
             'icon' => 'success',
         ]);
 
+        Notification::make()
+            ->success()
+            ->title('Received Email Request')
+            ->icon('heroicon-o-check-circle')
+            ->body(auth()->user()->name.' has sent an email request')
+            ->actions([
+                Action::make('view')
+                    ->label('View')
+                    ->url(fn () => BookingResource::getUrl('view', ['record' => $this->booking->id]))
+                    ->markAsRead(),
+            ])
+            ->sendToDatabase(User::where('role', '!=', 'customer')->get());
+
         // return redirect('/my-bookings');
+    }
+
+    public function logout()
+    {
+        Auth::logout();
+        session()->invalidate();
+        session()->regenerateToken();
+
+        return redirect()->to('/');
     }
 }

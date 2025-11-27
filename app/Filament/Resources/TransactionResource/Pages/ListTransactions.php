@@ -14,6 +14,8 @@ use Filament\Actions\Action;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
 use Filament\Resources\Pages\ListRecords;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 
 class ListTransactions extends ListRecords
 {
@@ -33,49 +35,176 @@ class ListTransactions extends ListRecords
                     }
 
                     if ($type == 'sales') {
-                        $data = [
-                            'authorized_name' => auth()->user()->name,
-                            'type' => 'Sales Reports',
-                            'start_date' => $startDate->toDateString(),
-                            'end_date' => $endDate->toDateString(),
-                            'trasanctions' => Transaction::where('type', 'rooms')
-                                ->whereBetween('created_at', [$startDate, $endDate])
-                                ->whereHas('booking', function ($query) {
-                                    $query->where('status', 'done')
-                                        ->where('type', '!=', 'bulk_head_online');
-                                })->with('booking')->get(),
-                        ];
-
-                        $pdf = Pdf::loadView('reports.reports', compact('data'));
-                    }
-
-                    if ($type == 'rooms') {
                         $transactions = Transaction::where('type', 'rooms')
                             ->whereBetween('created_at', [$startDate, $endDate])
                             ->whereHas('booking', function ($query) {
                                 $query->where('status', 'done')
                                     ->where('type', '!=', 'bulk_head_online');
                             })
-                            ->with('booking.room')
+                            ->with('booking.room', 'booking.suiteRoom')
                             ->get();
 
-                        // Group by room name and compute stats
-                        $roomTrends = $transactions->groupBy(fn ($tx) => $tx->booking->room->name)
-                            ->map(function ($group) {
+                        $totalRevenue = $transactions->sum(function ($transaction) {
+                            return $transaction->booking->amount_to_pay ?? 0;
+                        });
+
+                        $salesByRoomType = $transactions->groupBy(function ($transaction) {
+                            return $transaction->booking->room->name ?? 'Unknown Room Type';
+                        })->map(function ($groupedTransactions) {
+                            return $groupedTransactions->sum(function ($transaction) {
+                                return $transaction->booking->amount_to_pay ?? 0;
+                            });
+                        });
+
+                        $chartConfig = [
+                            'type' => 'bar',
+                            'data' => [
+                                'labels' => $salesByRoomType->keys()->toArray(),
+                                'datasets' => [[
+                                    'label' => 'Revenue (₱)',
+                                    'data' => $salesByRoomType->values()->toArray(),
+                                    'backgroundColor' => ['#2563eb', '#10b981', '#f59e0b', '#ef4444', '#6366f1'],
+                                ]],
+                            ],
+                            'options' => [
+                                'title' => ['display' => true, 'text' => 'Revenue by Room Type'],
+                                'scales' => [
+                                    'yAxes' => [['ticks' => ['beginAtZero' => true]]],
+                                ],
+                            ],
+                        ];
+
+                        $chartJson = urlencode(json_encode($chartConfig));
+                        $quickChartUrl = 'https://quickchart.io/chart?c='.$chartJson.'&width=700&height=400';
+                        $imageContents = file_get_contents($quickChartUrl);
+                        $chartFileName = 'charts/sales-chart-'.time().'.png';
+                        Storage::disk('public_charts')->put($chartFileName, $imageContents);
+
+                        $data = [
+                            'type' => 'Sales Reports',
+                            'authorized_name' => auth()->user()->name,
+                            'report_title' => 'Millenium Sales Report',
+                            'start_date' => $startDate->toDateString(),
+                            'end_date' => $endDate->toDateString(),
+                            'transactions' => $transactions,
+                            'total_revenue' => $totalRevenue,
+                            'total_transactions' => $transactions->count(),
+                            'sales_by_room_type' => $salesByRoomType,
+                            'chart_image_url' => public_path('public_charts/'.$chartFileName),
+                        ];
+
+                        $pdf = Pdf::loadView('reports.reports', compact('data'));
+                    }
+
+                    if ($type == 'rooms') {
+                        // $transactions = Transaction::where('type', 'rooms')
+                        //     ->whereBetween('created_at', [$startDate, $endDate])
+                        //     ->whereHas('booking', function ($query) {
+                        //         $query->where('status', 'done')
+                        //             ->where('type', '!=', 'bulk_head_online');
+                        //     })
+                        //     ->with('booking.room')
+                        //     ->get();
+
+                        // // Group by room name and compute stats
+                        // $roomTrends = $transactions->groupBy(fn ($tx) => $tx->booking->room->name)
+                        //     ->map(function ($group) {
+                        //         return [
+                        //             'total_bookings' => $group->count(),
+                        //             'total_sales' => $group->sum(fn ($tx) => $tx->booking->amount_to_pay),
+                        //         ];
+                        //     });
+
+                        // $data = [
+                        //     'authorized_name' => auth()->user()->name,
+                        //     'type' => 'Room Trends Report',
+                        //     'start_date' => $startDate->toDateString(),
+                        //     'end_date' => $endDate->toDateString(),
+                        //     'trends' => $roomTrends,
+                        // ];
+
+                        // $pdf = Pdf::loadView('reports.reports', compact('data'));
+
+                        // 2. Date Setup
+                        $startDate = Carbon::parse($startDate)->startOfDay();
+                        $endDate = Carbon::parse($endDate)->endOfDay();
+
+                        // Define the format for grouping (e.g., 'Y-m-d' for daily, 'Y-m' for monthly)
+                        $groupFormat = 'Y-m-d';
+
+                        // 2. Fetch Transactions
+                        $transactions = Transaction::where('type', 'rooms')
+                            ->whereBetween('created_at', [$startDate, $endDate])
+                            ->whereHas(
+                                'booking',
+                                fn ($query) => $query->where('status', 'done')
+                                    ->where('type', '!=', 'bulk_head_online')
+                            )
+                            ->with('booking') // Only need booking amount
+                            ->get();
+
+                        // 3. Calculate Time Trends and Grand Total
+                        $timeTrends = $transactions->groupBy(
+                            fn ($tx) => Carbon::parse($tx->created_at)->format($groupFormat)
+                        )
+                            ->map(function ($dateGroup) {
+                                $totalSales = $dateGroup->sum(fn ($tx) => $tx->booking->amount_to_pay ?? 0);
+
                                 return [
-                                    'total_bookings' => $group->count(),
-                                    'total_sales' => $group->sum(fn ($tx) => $tx->booking->amount_to_pay),
+                                    'total_sales' => $totalSales,
+                                    'transaction_count' => $dateGroup->count(),
                                 ];
                             });
 
-                        $data = [
-                            'authorized_name' => auth()->user()->name,
-                            'type' => 'Room Trends Report',
-                            'start_date' => $startDate->toDateString(),
-                            'end_date' => $endDate->toDateString(),
-                            'trends' => $roomTrends,
+                        $grandTotalSales = $timeTrends->sum('total_sales');
+                        $grandTotalBookings = $timeTrends->sum('transaction_count');
+
+                        // 4. Generate Chart, Download Image, and Get Local Path (The Fix)
+                        $chartConfig = [
+                            'type' => 'line', // Line chart for time-series data
+                            'data' => [
+                                'labels' => $timeTrends->keys()->toArray(), // Dates/Months
+                                'datasets' => [[
+                                    'label' => 'Daily Sales (₱)',
+                                    'data' => $timeTrends->pluck('total_sales')->toArray(), // Sales Amounts
+                                    'backgroundColor' => 'rgba(37, 99, 235, 0.5)',
+                                    'borderColor' => '#2563eb',
+                                    'fill' => true,
+                                ]],
+                            ],
+                            'options' => [
+                                'title' => ['display' => true, 'text' => 'Sales Performance Over Time'],
+                                'scales' => [
+                                    'yAxes' => [['ticks' => ['beginAtZero' => true]]],
+                                ],
+                            ],
                         ];
 
+                        $chartJson = urlencode(json_encode($chartConfig));
+                        $quickChartUrl = 'https://quickchart.io/chart?c='.$chartJson.'&width=800&height=400';
+
+                        // Download and save the image
+                        $imageContents = file_get_contents($quickChartUrl);
+                        $chartFileName = 'charts/time-trends-chart-'.time().'.png';
+                        Storage::disk('public_charts')->put($chartFileName, $imageContents);
+
+                        $data['chart_image_path'] = public_path('public_charts/'.$chartFileName);
+
+                        // 5. Assemble Final Data Array
+                        $data = [
+                            'authorized_name' => Auth::user()->name,
+                            'report_title' => 'Trends Report',
+                            'start_date' => $startDate->toDateString(),
+                            'end_date' => $endDate->toDateString(),
+                            'trends' => $timeTrends,
+                            'grand_total_sales' => $grandTotalSales,
+                            'grand_total_bookings' => $grandTotalBookings,
+                            'chart_image_path' => $data['chart_image_path'],
+                            'group_by' => ($groupFormat === 'Y-m-d' ? 'Day' : 'Month'),
+                            'type' => 'Room Trends Report',
+                        ];
+
+                        // 6. Generate PDF
                         $pdf = Pdf::loadView('reports.reports', compact('data'));
                     }
 

@@ -37,6 +37,8 @@ class FunctionHallBooking extends Page implements HasForms
 
     public ?array $data = [];
 
+    public $calendarEvents = [];
+
     public function mount()
     {
 
@@ -47,6 +49,19 @@ class FunctionHallBooking extends Page implements HasForms
             'functionHallOccupied' => $room->where('id', 4)->first()->suite_rooms->where('is_occupied', 0)
                 ->count(),
         ];
+
+        $this->calendarEvents = Booking::whereNotNull('event_type')
+            ->whereNotNull('email')
+            ->get()
+            ->map(function ($booking) {
+                return [
+                    // Use properties from the $booking model
+                    'title' => $booking->booking_number, // Assuming 'event_type' is the title
+                    'start' => $booking->check_in_date, // Assuming these fields exist
+                    'end' => $booking->check_out_date,     // Assuming these fields exist
+                    'color' => '#2563eb', // Static color is fine
+                ];
+            });
     }
 
     public static function canAccess(): bool
@@ -137,6 +152,18 @@ class FunctionHallBooking extends Page implements HasForms
             31 => 40,
             default => null,
         };
+
+        if ($data['no_persons'] > 40) {
+            Notification::make()
+                ->title('Error')
+                ->body('The max number to be input is 40')
+                ->danger()
+                ->send();
+
+            $this->form->fill();
+
+            return;
+        }
 
         if ($maxPersons && $noPersons > $maxPersons) {
             Notification::make()

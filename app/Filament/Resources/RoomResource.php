@@ -117,7 +117,10 @@ class RoomResource extends Resource
                 TextColumn::make('suite_rooms_available_count')
                     ->label('Available Rooms')
                     ->searchable(),
-                TextColumn::make('total_rooms')->searchable(),
+                TextColumn::make('total_rooms')->searchable()
+                    ->formatStateUsing(function ($record) {
+                        return $record->suite_rooms->count();
+                    }),
             ])
             ->filters([
                 //

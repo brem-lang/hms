@@ -110,7 +110,7 @@
                 </div>
 
                 <div style="margin-top: 20px;">
-                    <div id="calendar" class="p-4 bg-white rounded-lg shadow" x-data="{
+                    {{-- <div id="calendar" class="p-4 bg-white rounded-lg shadow" x-data="{
                         events: [{
                                 title: 'Wedding Reception',
                                 start: '2025-07-28T14:00:00',
@@ -146,6 +146,10 @@
                         }
                     }"
                         x-init="initCalendar()">
+                    </div> --}}
+                    <div class="p-4 bg-white rounded-lg shadow" x-data="fullCalendarComponent()" x-init="initCalendar();
+                    Livewire.hook('element.updated', () => { $nextTick(() => initCalendar()) });">
+                        <div x-ref="fullcalendar"></div>
                     </div>
                 </div>
             </div>
@@ -153,3 +157,31 @@
     </div>
 </x-filament-panels::page>
 <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.14/index.global.min.js'></script>
+<script>
+    function fullCalendarComponent() {
+        return {
+            events: @json($this->calendarEvents),
+
+            calendar: null,
+
+            initCalendar() {
+                if (this.calendar) {
+                    this.calendar.destroy();
+                }
+
+                const calendarEl = this.$refs.fullcalendar;
+
+                this.calendar = new FullCalendar.Calendar(calendarEl, {
+                    initialView: 'dayGridMonth',
+                    headerToolbar: {
+                        left: 'prev,next today',
+                        center: 'title',
+                        right: 'dayGridMonth,timeGridWeek,timeGridDay'
+                    },
+                    events: this.events
+                });
+                this.calendar.render();
+            }
+        }
+    }
+</script>

@@ -2,7 +2,7 @@
 
     @if ($activePage == 'home')
         <!-- header-start -->
-        <header>
+        {{-- <header>
             <div class="header-area ">
                 <div id="sticky-header" class="main-header-area">
                     <div class="container-fluid p-0">
@@ -61,6 +61,100 @@
                                     </div>
                                 </div>
                             </div>
+                            <div class="col-12">
+                                <div class="mobile_menu d-block d-lg-none"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header> --}}
+        <header>
+            <div class="header-area ">
+                <div id="sticky-header" class="main-header-area">
+                    <div class="container-fluid p-0">
+                        <div class="row align-items-center no-gutters">
+                            {{-- 
+                        MAIN NAVIGATION (Hidden on mobile, duplicated into .mobile_menu)
+                        The fix is inside this section.
+                    --}}
+                            <div class="col-xl-5 col-lg-6">
+                                <div class="main-menu d-none d-lg-block">
+                                    <nav>
+                                        <ul id="navigation">
+                                            <li><a class="active" href="{{ route('index') }}">home</a></li>
+
+                                            @auth
+                                                <li><a class="" href="{{ route('my-bookings') }}">my bookings</a></li>
+                                            @endauth
+
+                                            {{-- 
+                                        ✨ FIX FOR MOBILE VIEW: 
+                                        This <li> is only displayed on small screens (d-block d-lg-none) 
+                                        and will be picked up by the mobile menu script. 
+                                    --}}
+                                            <li class="d-block d-lg-none">
+                                                @auth
+                                                    <a wire:click.prevent="logout">Logout</a>
+                                                @endauth
+                                                @guest
+                                                    <a href="login">Login</a>
+                                                @endguest
+                                            </li>
+                                        </ul>
+                                    </nav>
+                                </div>
+                            </div>
+
+                            {{-- Logo --}}
+                            <div class="col-xl-2 col-lg-2">
+                                <div class="logo-img">
+                                    <a href="{{ route('index') }}">
+                                        <img src="img/logo.png" alt="">
+                                    </a>
+                                </div>
+                            </div>
+
+                            {{-- BOOK ROOM / SOCIAL LINKS / NOTIFICATION (Desktop View) --}}
+                            <div class="col-xl-5 col-lg-4 d-none d-lg-block">
+                                <div class="book_room">
+                                    <div class="socail_links">
+                                        <ul>
+                                            <li>
+                                                <a href="https://www.facebook.com/MilleniumSuitesPanabo">
+                                                    <i class="fa fa-facebook-square"></i>
+                                                </a>
+                                            </li>
+                                        </ul>
+                                    </div>
+
+                                    {{-- Notification Bell (Desktop View) --}}
+                                    @auth
+                                        <button @click="open = true" class="btn btn-outline-secondary position-relative ">
+                                            <i class="fa fa-bell fs-5"></i>
+                                            @if ($unreadNotificationsCount)
+                                                <span
+                                                    class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                                                    {{ $unreadNotificationsCount }}
+                                                </span>
+                                            @endif
+                                        </button>
+                                    @endauth
+
+                                    {{-- Login/Logout Buttons (Desktop View) --}}
+                                    <div class="book_btn d-none d-lg-block">
+                                        @auth
+                                            <a wire:click.prevent="logout">Logout</a>
+                                        @endauth
+
+                                        @guest
+                                            <a href="login">Login</a>
+                                        @endguest
+                                    </div>
+                                </div>
+                            </div>
+
+                            {{-- Mobile Menu Trigger/Container (The content is dynamically populated by JS) --}}
                             <div class="col-12">
                                 <div class="mobile_menu d-block d-lg-none"></div>
                             </div>
@@ -580,7 +674,7 @@
                                     <li>Airconditioned Room</li>
                                     <li>Basic Sound System</li>
                                     <li>Standby Generator</li>
-                                    <li>Good for 30 pax</li>
+                                    <li>Good for 40 pax</li>
                                 </ul>
                             </div>
                         </div>

@@ -4,7 +4,9 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\ChargeResource\Pages;
 use App\Models\Charge;
+use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Section;
+use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
@@ -52,6 +54,24 @@ class ChargeResource extends Resource
                             ->label('Status')
                             ->required()
                             ->default(true),
+                        Select::make('type')
+                            ->label('Type')
+                            ->dehydrated(false)
+                            ->live()
+                            ->options([
+                                'food' => 'Food',
+                                'other' => 'Other',
+                            ])
+                            ->required(),
+                        FileUpload::make('image')
+                            ->disk('public_uploads_food')
+                            ->required(function ($get) {
+                                return $get('type') === 'food';
+                            })
+                            ->directory('/')
+                            ->image()
+                            ->label('Image')
+                            ->columnSpanFull(),
                     ])->columns(2),
             ]);
     }

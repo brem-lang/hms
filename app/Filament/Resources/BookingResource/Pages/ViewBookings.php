@@ -7,8 +7,10 @@ use App\Filament\Resources\MyBookingResource;
 use App\Mail\MailFrontDesk;
 use App\Models\Booking;
 use App\Models\Charge;
+use App\Models\SuiteRoom;
 use App\Models\User;
 use Filament\Actions\Action as ActionsAction;
+use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
@@ -156,7 +158,107 @@ class ViewBookings extends Page
                 ])
                 ->modalWidth('lg')
                 ->icon('heroicon-o-check-circle'),
+            ActionsAction::make('rebook')
+                ->label('Rebook')
+                ->icon('heroicon-o-calendar-days')
+                ->action(function ($record, $data) {
+
+                    if ($this->record->check_in_date == $data['check_in_date'] && $this->record->check_out_date == $data['check_out_date']) {
+                        Notification::make()
+                            ->danger()
+                            ->title('Error')
+                            ->body('Please select different dates for rebooking')
+                            ->send();
+
+                        return;
+                    }
+
+                    $room = $this->getSuiteRoom($this->record->room_id, $data['check_in_date'], $data['check_out_date']);
+
+                    if (! $room) {
+                        Notification::make()
+                            ->danger()
+                            ->title('Error')
+                            ->body('Please select different dates for rebooking')
+                            ->send();
+
+                        return;
+                    }
+
+                    $this->record->suite_room_id = $room;
+                    $this->record->check_in_date = $data['check_in_date'];
+                    $this->record->check_out_date = $data['check_out_date'];
+                    $this->record->rebook_notes = $data['rebook_notes'] ?? null;
+
+                    $this->record->save();
+
+                    Notification::make()
+                        ->success()
+                        ->title('Booking Updated')
+                        ->icon('heroicon-o-check-circle')
+                        ->send();
+
+                    Notification::make()
+                        ->success()
+                        ->title('Booking Updated')
+                        ->icon('heroicon-o-check-circle')
+                        ->body(auth()->user()->name.' has rebooked your booking')
+                        ->actions([
+                            Action::make('view')
+                                ->label('View')
+                                ->url(fn () => MyBookingResource::getUrl('payment', ['record' => $this->record->id]))
+                                ->markAsRead(),
+                        ])
+                        ->sendToDatabase(User::where('id', $this->record->user_id)->get());
+                })
+                ->form([
+                    DateTimePicker::make('check_in_date')
+                        ->label('Check In Date')
+                        ->date('F d, Y h:i A')
+                        ->required()
+                        ->formatStateUsing(function ($record) {
+                            return $this->record->check_in_date;
+                        }),
+                    DateTimePicker::make('check_out_date')
+                        ->label('Check Out Date')
+                        ->date('F d, Y h:i A')
+                        ->required()
+                        ->formatStateUsing(function ($record) {
+                            return $this->record->check_out_date;
+                        }),
+
+                    Textarea::make('rebook_notes')
+                        ->label('Notes/Requests')
+                        ->required()
+                        ->maxLength(255)
+                        ->formatStateUsing(function ($record) {
+                            return $this->record->rebook_notes;
+                        })
+                        ->placeholder('Please provide any notes or requests'),
+                ])
+                ->modalCancelAction(false),
+
         ];
+    }
+
+    public function getSuiteRoom($suiteID, $checkIn, $checkOut)
+    {
+        $bookedRoomIds = Booking::where('status', '!=', 'cancelled')
+            ->where('status', '!=', 'done')
+            ->where('type', '!=', 'bulk_head_online')
+            ->where(function ($query) use ($checkIn, $checkOut) {
+                $query->where('check_in_date', '<', $checkOut)
+                    ->where('check_out_date', '>', $checkIn);
+            })
+            ->pluck('suite_room_id');
+
+        $availableRoom = SuiteRoom::where('room_id', $suiteID)
+            ->where('is_active', true)
+            ->where('is_occupied', false)
+            ->whereNotIn('id', $bookedRoomIds)
+            ->first();
+
+        return $availableRoom?->id ?? false;
     }
 
     protected function getForms(): array
@@ -338,29 +440,30 @@ class ViewBookings extends Page
             ->icon('heroicon-o-check-circle')
             ->send();
 
-        if (auth()->user()?->role == 'customer') {
-            Notification::make()
-                ->success()
-                ->title('Payment Confirmed')
-                ->icon('heroicon-o-check-circle')
-                ->body($this->record->user->name.' your booking has been confirmed')
-                ->actions([
-                    Action::make('view')
-                        ->label('View')
-                        ->url(fn () => MyBookingResource::getUrl('payment', ['record' => $this->record->id]))->markAsRead(),
-                ])
-                ->sendToDatabase(User::where('id', $this->record->user_id)->get());
+        // if (auth()->user()?->role == 'customer') {
+        Notification::make()
+            ->success()
+            ->title('Payment Confirmed')
+            ->icon('heroicon-o-check-circle')
+            ->body($this->record->user->name.' your booking has been confirmed')
+            ->actions([
+                Action::make('view')
+                    ->label('View')
+                    ->url(fn () => MyBookingResource::getUrl('payment', ['record' => $this->record->id]))
+                    ->markAsRead(),
+            ])
+            ->sendToDatabase(User::where('id', $this->record->user_id)->get());
 
-            $details = [
-                'name' => $this->record->user->name,
-                'message' => 'Your booking has been confirmed. Thank you for choosing us!',
-                'amount_paid' => $this->record->amount_paid,
-                'balance' => $this->record->balance,
-                'type' => 'approved_booking',
-            ];
+        $details = [
+            'name' => $this->record->user->name,
+            'message' => 'Your booking has been confirmed. Thank you for choosing us!',
+            'amount_paid' => $this->record->amount_paid,
+            'balance' => $this->record->balance,
+            'type' => 'approved_booking',
+        ];
 
-            Mail::to($this->record->user->email)->send(new MailFrontDesk($details));
-        }
+        Mail::to($this->record->user->email)->send(new MailFrontDesk($details));
+        // }
 
         // $details = [
         //     'name' => $this->record->user->name,
@@ -414,7 +517,7 @@ class ViewBookings extends Page
             'type' => 'cancel_booking',
         ];
 
-        // Mail::to($this->record->user->email)->send(new MailFrontDesk($details));
+        Mail::to($this->record->user->email)->send(new MailFrontDesk($details));
 
         Notification::make()
             ->success()
@@ -466,7 +569,7 @@ class ViewBookings extends Page
             'type' => 'cancel_booking',
         ];
 
-        // Mail::to($this->record->user->email)->send(new MailFrontDesk($details));
+        Mail::to($this->record->user->email)->send(new MailFrontDesk($details));
 
         Notification::make()
             ->success()

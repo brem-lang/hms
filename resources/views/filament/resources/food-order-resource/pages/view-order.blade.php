@@ -24,7 +24,7 @@
                             </div>
                         </section>
                     </div>
-                    <div style="--col-span-default: 1 / -1;" class="col-[--col-span-default]">
+                    {{-- <div style="--col-span-default: 1 / -1;" class="col-[--col-span-default]">
                         <section
                             class="fi-section rounded-xl bg-white shadow-sm ring-1 ring-gray-950/5 dark:bg-gray-900 dark:ring-white/10">
                             <div class="fi-section-content-ctn">
@@ -41,7 +41,7 @@
                                 </div>
                             </div>
                         </section>
-                    </div>
+                    </div> --}}
                 </div>
             </div>
         </div>
@@ -110,7 +110,7 @@
                                 <br />
                                 {{ $this->form }}
                                 <br />
-                                <div class="text-right">
+                                {{-- <div class="text-right">
                                     @if ($record->status == 'completed')
                                         <x-filament::button size="md" color="primary" disabled>
                                             Order Confirm
@@ -144,7 +144,7 @@
                                             </x-slot>
                                         </x-filament::modal>
                                     @endif
-                                </div>
+                                </div> --}}
                             </div>
                         </section>
                     </div>

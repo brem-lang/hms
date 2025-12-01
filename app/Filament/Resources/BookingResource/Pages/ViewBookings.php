@@ -17,6 +17,7 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
+use Filament\Forms\Get;
 use Filament\Forms\Set;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Infolists\Infolist;
@@ -80,8 +81,31 @@ class ViewBookings extends Page
                                 ->prefix('PHP')
                                 ->numeric()
                                 ->readOnly(),
+
+                            TextInput::make('quantity')
+                                ->label('Quantity')
+                                ->live()
+                                ->numeric()
+                                ->minValue(1)
+                                ->afterStateUpdated(function (Set $set, ?string $state, Get $get) {
+                                    $quantity = (float) $state;
+                                    $amount = (float) $get('amount') ?: 0;
+                                    $set('total_charges', $quantity * $amount);
+                                }),
+
+                            TextInput::make('total_charges')
+                                ->label('Total Charges')
+                                ->prefix('PHP')
+                                ->numeric()
+                                ->readOnly()
+                                ->dehydrateStateUsing(function (Get $get) {
+                                    $quantity = (float) $get('quantity') ?: 0;
+                                    $amount = (float) $get('amount') ?: 0;
+
+                                    return $quantity * $amount;
+                                }),
                         ])
-                        ->columns(2),
+                        ->columns(4),
                 ])->action(function ($data) {
 
                     $this->record->additional_charges = $data['charges'];
@@ -461,17 +485,6 @@ class ViewBookings extends Page
             'balance' => $this->record->balance,
             'type' => 'approved_booking',
         ];
-
-        Mail::to($this->record->user->email)->send(new MailFrontDesk($details));
-        // }
-
-        // $details = [
-        //     'name' => $this->record->user->name,
-        //     'message' => 'Your booking has been confirmed. Thank you for choosing us!',
-        //     'amount_paid' => $this->record->amount_paid,
-        //     'balance' => $this->record->balance,
-        //     'type' => 'approved_booking',
-        // ];
 
         // Mail::to($this->record->user->email)->send(new MailFrontDesk($details));
 

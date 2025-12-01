@@ -123,6 +123,9 @@
                         <p><strong>Number of Persons:</strong>
                             {{ $booking->type != 'bulk_head_online' ? $booking->no_persons : $booking->relatedBookings->sum('no_persons') }}
                         </p>
+                        <p><strong>Additional Persons:</strong>
+                            {{ $booking->type != 'bulk_head_online' ? $booking->additional_persons : $booking->relatedBookings->sum('additional_persons') }}
+                        </p>
                         <p><strong>Check In Time:</strong>
                             {{ \Carbon\Carbon::parse($booking->check_in_date)->format('F j, Y h:i A') }}</p>
                         <p><strong>Check Out Time:</strong>
@@ -138,12 +141,12 @@
                             $chargesAmount = 0;
                             if ($booking->type != 'bulk_head_online') {
                                 foreach ($booking->additional_charges ?? [] as $charge) {
-                                    $chargesAmount += $charge['amount'];
+                                    $chargesAmount += $charge['total_charges'];
                                 }
                             } else {
                                 foreach ($booking->relatedBookings as $value) {
                                     foreach ($value->additional_charges ?? [] as $charge) {
-                                        $chargesAmount += $charge['amount'];
+                                        $chargesAmount += $charge['total_charges'];
                                     }
                                 }
                             }
@@ -172,9 +175,9 @@
                         <ul class="features-list" style="list-style-type: none; padding: 0;">
                             @foreach ($booking->additional_charges as $charge)
                                 <li>
-                                    ₱ {{ number_format($charge['amount'], 2) }} -
-                                    {{ $charges[$charge['name']] }}
-                                </li>
+                                    {{ $charges[$charge['name']] }} -
+                                    ₱ {{ number_format($charge['amount'], 2) }} x {{ $charge['quantity'] }} =
+                                    {{ $charge['total_charges'] }}
                             @endforeach
                     </div>
                 @endif

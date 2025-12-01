@@ -5,9 +5,11 @@ namespace App\Filament\Resources\TransactionResource\Pages;
 use App\Filament\Resources\TransactionResource;
 use App\Models\Booking;
 use App\Models\Charge;
+use App\Models\Room;
 use App\Models\Transaction;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
+use Carbon\CarbonPeriod;
 use Closure;
 use Filament\Actions;
 use Filament\Actions\Action;
@@ -97,34 +99,6 @@ class ListTransactions extends ListRecords
                     }
 
                     if ($type == 'rooms') {
-                        // $transactions = Transaction::where('type', 'rooms')
-                        //     ->whereBetween('created_at', [$startDate, $endDate])
-                        //     ->whereHas('booking', function ($query) {
-                        //         $query->where('status', 'done')
-                        //             ->where('type', '!=', 'bulk_head_online');
-                        //     })
-                        //     ->with('booking.room')
-                        //     ->get();
-
-                        // // Group by room name and compute stats
-                        // $roomTrends = $transactions->groupBy(fn ($tx) => $tx->booking->room->name)
-                        //     ->map(function ($group) {
-                        //         return [
-                        //             'total_bookings' => $group->count(),
-                        //             'total_sales' => $group->sum(fn ($tx) => $tx->booking->amount_to_pay),
-                        //         ];
-                        //     });
-
-                        // $data = [
-                        //     'authorized_name' => auth()->user()->name,
-                        //     'type' => 'Room Trends Report',
-                        //     'start_date' => $startDate->toDateString(),
-                        //     'end_date' => $endDate->toDateString(),
-                        //     'trends' => $roomTrends,
-                        // ];
-
-                        // $pdf = Pdf::loadView('reports.reports', compact('data'));
-
                         // 2. Date Setup
                         $startDate = Carbon::parse($startDate)->startOfDay();
                         $endDate = Carbon::parse($endDate)->endOfDay();
@@ -190,6 +164,81 @@ class ListTransactions extends ListRecords
 
                         $data['chart_image_path'] = public_path('public_charts/'.$chartFileName);
 
+                        $period = CarbonPeriod::create($startDate->copy()->startOfMonth(), '1 month', $endDate->copy()->endOfMonth());
+                        $allMonths = collect();
+                        foreach ($period as $month) {
+                            $allMonths->push($month->format('Y-m'));
+                        }
+
+                        $roomStats = Room::with(['roomBooking' => function ($q) use ($startDate, $endDate) {
+                            $q->whereBetween('created_at', [$startDate, $endDate]);
+                        }])->get()->map(function ($room) use ($allMonths) {
+
+                            $bookings = $room->roomBooking ?? collect();
+
+                            // Group bookings by month
+                            $grouped = $bookings->groupBy(function ($booking) {
+                                return Carbon::parse($booking->created_at)->format('Y-m');
+                            });
+
+                            // Fill missing months with 0
+                            $monthly = $allMonths->mapWithKeys(function ($month) use ($grouped) {
+                                $group = $grouped->get($month, collect());
+
+                                return [
+                                    $month => [
+                                        'total_bookings' => $group->count(),
+                                        'done' => $group->where('status', 'done')->count(),
+                                        'completed' => $group->where('status', 'completed')->count(),
+                                        'cancelled' => $group->where('status', 'cancelled')->count(),
+                                        'sales' => $group->filter(
+                                            fn ($b) => in_array($b->status, ['done', 'completed'])
+                                        )->sum('amount_to_pay'),
+                                    ],
+                                ];
+                            });
+
+                            // -------------------------------------------
+                            // Generate BAR CHART for Room Utilization
+                            // -------------------------------------------
+                            $labels = $monthly->keys()->toArray();
+                            $values = $monthly->pluck('total_bookings')->toArray();
+
+                            $chartConfig = [
+                                'type' => 'bar',
+                                'data' => [
+                                    'labels' => $labels,
+                                    'datasets' => [[
+                                        'label' => 'Utilization (Bookings per Month)',
+                                        'data' => array_values($values),
+                                        'backgroundColor' => 'rgba(37, 99, 235, 0.7)',
+                                    ]],
+                                ],
+                                'options' => [
+                                    'title' => [
+                                        'display' => true,
+                                        'text' => 'Room Utilization Chart',
+                                    ],
+                                ],
+                            ];
+
+                            $chartJson = urlencode(json_encode($chartConfig));
+                            $quickChartUrl = "https://quickchart.io/chart?c={$chartJson}&width=800&height=400";
+
+                            // Download and save chart
+                            $chartFileName = 'charts/room-utilization-'.$room->id.'-'.time().'.png';
+                            $imageContents = file_get_contents($quickChartUrl);
+                            Storage::disk('public_charts')->put($chartFileName, $imageContents);
+
+                            $chartPath = public_path('public_charts/'.$chartFileName);
+
+                            return [
+                                'room_name' => $room->name,
+                                'monthly' => $monthly,
+                                'chart' => $chartPath,
+                            ];
+                        });
+
                         // 5. Assemble Final Data Array
                         $data = [
                             'authorized_name' => Auth::user()->name,
@@ -202,6 +251,7 @@ class ListTransactions extends ListRecords
                             'chart_image_path' => $data['chart_image_path'],
                             'group_by' => ($groupFormat === 'Y-m-d' ? 'Day' : 'Month'),
                             'type' => 'Room Trends Report',
+                            'room_stats' => $roomStats,
                         ];
 
                         // 6. Generate PDF

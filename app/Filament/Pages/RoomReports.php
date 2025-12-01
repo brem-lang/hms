@@ -27,6 +27,8 @@ class RoomReports extends Page implements HasForms, HasTable
 
     protected static ?string $navigationGroup = 'Accommodation Control Panel';
 
+    protected static ?int $navigationSort = 4;
+
     public static function canAccess(): bool
     {
         return auth()->user()->isAdmin() || auth()->user()->isFrontDesk();

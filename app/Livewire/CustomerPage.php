@@ -316,6 +316,10 @@ class CustomerPage extends Component implements HasForms
                 ->readOnly()
                 ->required()
                 ->maxLength(255),
+            TextInput::make('additional_persons')
+                ->numeric()
+                ->label('Additional Persons')
+                ->maxLength(255),
             Textarea::make('notes')
                 ->label('Requests / Notes'),
         ])
@@ -458,6 +462,10 @@ class CustomerPage extends Component implements HasForms
                 ->required()
                 ->readOnly()
                 ->maxLength(255),
+            TextInput::make('additional_persons')
+                ->numeric()
+                ->label('Additional Persons')
+                ->maxLength(255),
             Textarea::make('notes')
                 ->label('Requests / Notes'),
         ])
@@ -598,6 +606,10 @@ class CustomerPage extends Component implements HasForms
                 ->numeric()
                 ->label('Persons')
                 ->required()
+                ->maxLength(255),
+            TextInput::make('additional_persons')
+                ->numeric()
+                ->label('Additional Persons')
                 ->maxLength(255),
             Textarea::make('notes')
                 ->label('Requests / Notes'),
@@ -887,7 +899,8 @@ class CustomerPage extends Component implements HasForms
                     'days' => 0,
                     'hours' => $hours,
                     'suite_room_id' => $this->getSuiteRoomHours($data['suiteId'], $start, $end),
-                    'amount_to_pay' => $this->getPayment($hours, $data['suiteId'], $data['no_persons']),
+                    'amount_to_pay' => $this->getPayment($hours, $data['suiteId'], $data['no_persons'] + $data['additional_persons'] ?? 0),
+                    'additional_persons' => $data['additional_persons'] ?? 0,
                 ]);
 
                 Transaction::create([
@@ -975,7 +988,8 @@ class CustomerPage extends Component implements HasForms
                     'days' => $data['suiteId'] == 4 ? 0 : $days,
                     'hours' => $data['suiteId'] == 4 ? 0 : $hours,
                     'suite_room_id' => null,
-                    'amount_to_pay' => $data['suiteId'] == 4 ? SuiteRoom::where('id', $data['type'])->first()->price : $this->getPayment($hours, $data['suiteId'], $data['no_persons']),
+                    'amount_to_pay' => $data['suiteId'] == 4 ? SuiteRoom::where('id', $data['type'])->first()->price : $this->getPayment($hours, $data['suiteId'], $data['no_persons'] + $data['additional_persons'] ?? 0),
+                    'additional_persons' => $data['additional_persons'] ?? 0,
                 ]);
 
                 Transaction::create([
@@ -1068,7 +1082,8 @@ class CustomerPage extends Component implements HasForms
                     'days' => $data['suiteId'] == 4 ? 0 : $days,
                     'hours' => $data['suiteId'] == 4 ? 0 : $hours,
                     'suite_room_id' => $data['suiteId'] == 4 ? $data['type'] : $this->getSuiteRoom($data['suiteId'], $start->setTime(14, 0)->toDateTimeString(), $end->setTime(12, 0)->toDateTimeString()),
-                    'amount_to_pay' => $data['suiteId'] == 4 ? SuiteRoom::where('id', $data['type'])->first()->price : $this->getPayment($hours, $data['suiteId'], $data['no_persons']),
+                    'amount_to_pay' => $data['suiteId'] == 4 ? SuiteRoom::where('id', $data['type'])->first()->price : $this->getPayment($hours, $data['suiteId'], $data['no_persons'] + $data['additional_persons'] ?? 0),
+                    'additional_persons' => $data['additional_persons'] ?? 0,
                 ]);
 
                 Transaction::create([
@@ -1093,8 +1108,7 @@ class CustomerPage extends Component implements HasForms
                     ->actions([
                         Action::make('view')
                             ->label('View')
-                            ->url(fn () => BookingResource::getUrl('view', ['record' => $data->id]))
-                            ->markAsRead(),
+                            ->url(fn () => BookingResource::getUrl('view', ['record' => $data->id]))->markAsRead(),
 
                     ])
                     ->sendToDatabase(User::whereIn('role', ['admin', 'front-desk'])->get());

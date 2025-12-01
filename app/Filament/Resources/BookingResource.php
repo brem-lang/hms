@@ -29,6 +29,8 @@ class BookingResource extends Resource
 
     protected static ?string $navigationGroup = 'Settlement';
 
+    protected static ?int $navigationSort = 2;
+
     public static function canViewAny(): bool
     {
         return auth()->user()->isAdmin() || auth()->user()->isFrontDesk();

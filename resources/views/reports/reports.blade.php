@@ -329,26 +329,92 @@
 
         <hr>
 
-        <div style="text-align: center;">
-            <div class="summary-box" style="margin-right: 20px;">
-                <h3>Total Sales</h3>
-                <p style="font-size: 16pt; color: #10b981;">₱ **{{ number_format($data['grand_total_sales'], 2) }}**
+        <div style="text-align: center; margin: 40px 0;">
+            <div
+                style="
+        display: inline-block;
+        width: 200px;
+        padding: 15px;
+        margin-right: 20px;
+        border-radius: 8px;
+        background: #f0fdf4;
+        border: 1px solid #86efac;
+        text-align: center;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    ">
+                <h3 style="margin: 0; font-size: 14pt; color: #065f46;">Total Sales</h3>
+                <p style="font-size: 18pt; margin: 10px 0; color: #10b981;">
+                    ₱ {{ number_format($data['grand_total_sales'], 2) }}
                 </p>
             </div>
-            <div class="summary-box">
-                <h3>Total Bookings</h3>
-                <p style="font-size: 16pt; color: #f59e0b;">**{{ $data['grand_total_bookings'] }}**</p>
+
+            <div
+                style="
+        display: inline-block;
+        width: 200px;
+        padding: 15px;
+        border-radius: 8px;
+        background: #fffbeb;
+        border: 1px solid #fcd34d;
+        text-align: center;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    ">
+                <h3 style="margin: 0; font-size: 14pt; color: #92400e;">Total Bookings</h3>
+                <p style="font-size: 18pt; margin: 10px 0; color: #f59e0b;">
+                    {{ $data['grand_total_bookings'] }}
+                </p>
             </div>
         </div>
 
-        <hr style="clear: both; margin-top: 30px;">
+
+
+        <hr style="clear: both; margin-top: 10px;">
+
+        <h2>Room Utilization & Sales (Monthly)</h2>
+
+        @foreach ($data['room_stats'] as $room)
+            <h3 style="margin-top:25px; color:#2563eb;">
+                Room: {{ $room['room_name'] }}
+            </h3>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Month</th>
+                        <th>Total Bookings</th>
+                        <th>Done</th>
+                        <th>Completed</th>
+                        <th>Cancelled</th>
+                        <th style="text-align:right;">Sales (₱)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach ($room['monthly'] as $month => $stats)
+                        <tr>
+                            <td>{{ $month }}</td>
+                            <td>{{ $stats['total_bookings'] }}</td>
+                            <td>{{ $stats['done'] }}</td>
+                            <td>{{ $stats['completed'] }}</td>
+                            <td>{{ $stats['cancelled'] }}</td>
+                            <td style="text-align:right;">
+                                ₱ {{ number_format($stats['sales'], 2) }}
+                            </td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+
+            <div style="text-align:center; margin:20px 0;">
+                <h4>Room Utilization Chart</h4>
+                <img src="{{ $room['chart'] }}" style="width:90%; border:1px solid #ccc;">
+            </div>
+
+            <hr>
+        @endforeach
+
 
         <div class="chart-container">
             <h2>Sales Performance Trend (Grouped by {{ $data['group_by'] }})</h2>
-
-
-            [Image of Sales Trends Line Chart]
-
             <img src="{{ $data['chart_image_path'] }}" alt="Sales Trend Chart"
                 style="width: 90%; margin: 10px auto; border: 1px solid #ccc;">
         </div>

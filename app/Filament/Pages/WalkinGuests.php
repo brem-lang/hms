@@ -45,6 +45,8 @@ class WalkinGuests extends Page implements HasForms
 
     protected static ?string $navigationGroup = 'Entry';
 
+    protected static ?int $navigationSort = 2;
+
     public $record = [];
 
     public function mount()

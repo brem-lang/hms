@@ -67,9 +67,9 @@
                                             </div>
                                             <div class="column"
                                                 style="flex: auto; padding: 0 10px; word-break: break-word;">
-                                                <h1 style="font-weight: 700">
+                                                {{-- <h1 style="font-weight: 700">
                                                     {{ $record['functionHallOccupied'] }} Available Room(s)
-                                                </h1>
+                                                </h1> --}}
                                                 <br>
                                                 @if (auth()->user()->isFrontDesk())
                                                     @if ($record['functionHallOccupied'] > 0)

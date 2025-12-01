@@ -1,45 +1,36 @@
 <?php
 
-namespace App\Filament\Pages;
+namespace App\Filament\Resources;
 
-use App\Filament\Resources\BookingResource;
+use App\Filament\Resources\CheckinResource\Pages;
 use App\Models\Booking;
 use App\Models\Charge;
-use App\Models\SuiteRoom;
 use Carbon\Carbon;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
-use Filament\Forms\Concerns\InteractsWithForms;
-use Filament\Forms\Contracts\HasForms;
+use Filament\Forms\Form;
 use Filament\Forms\Get;
 use Filament\Forms\Set;
 use Filament\Notifications\Notification;
-use Filament\Pages\Page;
+use Filament\Resources\Resource;
 use Filament\Tables\Actions\Action;
 use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Concerns\InteractsWithTable;
-use Filament\Tables\Contracts\HasTable;
 use Filament\Tables\Enums\FiltersLayout;
 use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 
-use function Symfony\Component\Clock\now;
-
-class Checkin extends Page implements HasForms, HasTable
+class CheckinResource extends Resource
 {
-    use InteractsWithForms;
-    use InteractsWithTable;
+    protected static ?string $model = Booking::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-document-text';
+    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
-    protected static string $view = 'filament.pages.checkin';
-
-    protected static ?string $title = 'Checkin & Checkout';
+    protected static ?string $modelLabel = 'Checkin & Checkout';
 
     protected static ?string $navigationGroup = 'Settlement';
 
@@ -47,21 +38,29 @@ class Checkin extends Page implements HasForms, HasTable
 
     public static function canAccess(): bool
     {
-        return false;
+        return auth()->user()->isAdmin() || auth()->user()->isFrontDesk();
     }
 
-    public function table(Table $table): Table
+    public static function form(Form $form): Form
+    {
+        return $form
+            ->schema([
+                //
+            ]);
+    }
+
+    public static function getEloquentQuery(): Builder
+    {
+
+        $data = parent::getEloquentQuery()->where('type', '!=', 'bulk_head_online')
+            ->where('status', 'completed');
+
+        return $data;
+    }
+
+    public static function table(Table $table): Table
     {
         return $table
-            ->query(
-                Booking::query()
-                    ->where('type', '!=', 'bulk_head_online')
-                    ->where('status', 'completed')
-                    // ->when($this->activeTab == 'all', fn ($query) => $query)
-                    // ->when($this->activeTab == 'checkIn', fn ($query) => $query->where('is_occupied', 0))
-                    // ->when($this->activeTab == 'checkOut', fn ($query) => $query->where('is_occupied', 1))
-                    ->latest()
-            )
             ->paginated([10, 25, 50])
             ->columns([
                 TextColumn::make('user.name')
@@ -86,15 +85,6 @@ class Checkin extends Page implements HasForms, HasTable
                     ->searchable()
                     ->toggleable()
                     ->sortable(),
-                // TextColumn::make('status')
-                //     ->toggleable()
-                //     ->badge()->color(fn (string $state): string => match ($state) {
-                //         'pending' => 'gray',
-                //         'completed' => 'success',
-                //         'cancelled' => 'danger',
-                //     })
-                //     ->formatStateUsing(fn (string $state): string => __(ucfirst($state)))
-                //     ->searchable(),
                 TextColumn::make('is_occupied')
                     ->label('Occupied')
                     ->toggleable()
@@ -116,6 +106,21 @@ class Checkin extends Page implements HasForms, HasTable
                         return $state === 'online' ? 'Online' : ($state === 'bulk_online' ? 'Online' : 'Walk-in');
                     })
                     ->searchable(),
+                TextColumn::make('is_no_show')
+                    ->label('Guest Status')
+                    ->toggleable()
+                    ->badge()
+                    ->formatStateUsing(fn (string $state): string => match ($state) {
+                        '1' => 'No Show', // ⬅️ If TRUE (1), display the label "No Show"
+                        '0' => '',        // ⬅️ If FALSE (0), display EMPTY STRING
+                        default => '',
+                    })
+                    ->color(fn (string $state): string => match ($state) {
+                        // Apply the color only when the badge is visible (i.e., when $state is '1')
+                        '1' => 'danger', // ⬅️ Use danger/red color when the status is true
+                        '0' => 'gray',   // If false, the color doesn't matter much as the badge is empty
+                        default => 'gray',
+                    }),
             ])
             ->filters([
                 Filter::make('name')
@@ -159,11 +164,11 @@ class Checkin extends Page implements HasForms, HasTable
                     ->color('success')
                     ->visible(fn ($record) => $record->is_occupied == 0)
                     ->modalWidth('5xl')
-                    ->disabled(function ($record) {
-                        if (Carbon::parse($record->check_in_date, 'Asia/Manila')->setTimezone('UTC')->format('Y-m-d H:i:s') > Carbon::now('UTC')->format('Y-m-d H:i:s')) {
-                            return true;
-                        }
-                    })
+                    // ->disabled(function ($record) {
+                    //     if (Carbon::parse($record->check_in_date, 'Asia/Manila')->setTimezone('UTC')->format('Y-m-d H:i:s') > Carbon::now('UTC')->format('Y-m-d H:i:s')) {
+                    //         return true;
+                    //     }
+                    // })
                     ->form([
                         Section::make()
                             ->schema([
@@ -552,9 +557,6 @@ class Checkin extends Page implements HasForms, HasTable
                             ->title('Booking Extended')
                             ->send();
                     }),
-            ])
-            ->bulkActions([
-                //
             ]);
     }
 
@@ -583,25 +585,19 @@ class Checkin extends Page implements HasForms, HasTable
         return $conflicts;
     }
 
-    protected function cleanAdditionalCharges(array $charges): array
+    public static function getRelations(): array
     {
-        if (empty($charges) || ! is_array($charges)) {
-            return [];
-        }
+        return [
+            //
+        ];
+    }
 
-        $cleanedCharges = [];
-
-        foreach ($charges as $charge) {
-            // Check if the required keys (name, amount) have non-null/non-empty values.
-            if (
-                isset($charge['name']) && ! empty($charge['name']) &&
-                isset($charge['amount']) && ! empty($charge['amount'])
-            ) {
-                // Only include entries that look valid.
-                $cleanedCharges[] = $charge;
-            }
-        }
-
-        return $cleanedCharges;
+    public static function getPages(): array
+    {
+        return [
+            'index' => Pages\ListCheckins::route('/'),
+            // 'create' => Pages\CreateCheckin::route('/create'),
+            // 'edit' => Pages\EditCheckin::route('/{record}/edit'),
+        ];
     }
 }

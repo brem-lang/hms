@@ -560,7 +560,7 @@ class CheckinResource extends Resource
             ]);
     }
 
-    public function cleanAdditionalCharges(array $charges): array
+    public static function cleanAdditionalCharges(array $charges): array
     {
         if (empty($charges) || ! is_array($charges)) {
             return [];
@@ -582,7 +582,7 @@ class CheckinResource extends Resource
         return $cleanedCharges;
     }
 
-    public function ExtendChecker($roomId, $currentCheckoutDate, $newCheckoutDate, $currentBookingId)
+    public static function ExtendChecker($roomId, $currentCheckoutDate, $newCheckoutDate, $currentBookingId)
     {
         $extensionStart = $currentCheckoutDate;
         $extensionEnd = $newCheckoutDate;

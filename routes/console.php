@@ -9,3 +9,7 @@ Artisan::command('inspire', function () {
 })->purpose('Display an inspiring quote');
 
 Schedule::command('app:checkout-alert-command')->everyMinute();
+
+Schedule::command('app:check-no-shows')->everyMinute();
+
+Schedule::command('app:apply-overdue-charges')->everyMinute();

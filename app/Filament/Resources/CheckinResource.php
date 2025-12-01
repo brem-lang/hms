@@ -384,7 +384,7 @@ class CheckinResource extends Resource
                     ->modalSubmitActionLabel('Check In')
                     ->action(function ($record, $data) {
 
-                        $record->additional_charges = $this->cleanAdditionalCharges($data['charges']);
+                        $record->additional_charges = CheckinResource::cleanAdditionalCharges($data['charges']);
                         $record->is_occupied = 1;
                         $record->save();
 
@@ -523,8 +523,8 @@ class CheckinResource extends Resource
                     ])
                     ->modalWidth('lg')
                     ->action(function ($record, $data) {
-
-                        if ($this->ExtendChecker($record->room_id, $record->check_out_date, $data['extend_date'], $record->id)) {
+                        // CheckinResource::extendChecker($record->room_id, $record->check_out_date, $data['extend_date'], $record->id);
+                        if (CheckinResource::extendChecker($record->room_id, $record->check_out_date, $data['extend_date'], $record->id)) {
                             Notification::make()
                                 ->danger()
                                 ->title('Error')

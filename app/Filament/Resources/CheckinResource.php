@@ -560,6 +560,28 @@ class CheckinResource extends Resource
             ]);
     }
 
+    public function cleanAdditionalCharges(array $charges): array
+    {
+        if (empty($charges) || ! is_array($charges)) {
+            return [];
+        }
+
+        $cleanedCharges = [];
+
+        foreach ($charges as $charge) {
+            // Check if the required keys (name, amount) have non-null/non-empty values.
+            if (
+                isset($charge['name']) && ! empty($charge['name']) &&
+                isset($charge['amount']) && ! empty($charge['amount'])
+            ) {
+                // Only include entries that look valid.
+                $cleanedCharges[] = $charge;
+            }
+        }
+
+        return $cleanedCharges;
+    }
+
     public function ExtendChecker($roomId, $currentCheckoutDate, $newCheckoutDate, $currentBookingId)
     {
         $extensionStart = $currentCheckoutDate;

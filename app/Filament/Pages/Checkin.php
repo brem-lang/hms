@@ -57,9 +57,6 @@ class Checkin extends Page implements HasForms, HasTable
                 Booking::query()
                     ->where('type', '!=', 'bulk_head_online')
                     ->where('status', 'completed')
-                    // ->when($this->activeTab == 'all', fn ($query) => $query)
-                    // ->when($this->activeTab == 'checkIn', fn ($query) => $query->where('is_occupied', 0))
-                    // ->when($this->activeTab == 'checkOut', fn ($query) => $query->where('is_occupied', 1))
                     ->latest()
             )
             ->paginated([10, 25, 50])
@@ -583,7 +580,7 @@ class Checkin extends Page implements HasForms, HasTable
         return $conflicts;
     }
 
-    protected function cleanAdditionalCharges(array $charges): array
+    public function cleanAdditionalCharges(array $charges): array
     {
         if (empty($charges) || ! is_array($charges)) {
             return [];

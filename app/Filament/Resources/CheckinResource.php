@@ -165,11 +165,11 @@ class CheckinResource extends Resource
                     ->color('success')
                     ->visible(fn ($record) => $record->is_occupied == 0)
                     ->modalWidth('5xl')
-                    // ->disabled(function ($record) {
-                    //     if (Carbon::parse($record->check_in_date, 'Asia/Manila')->setTimezone('UTC')->format('Y-m-d H:i:s') > Carbon::now('UTC')->format('Y-m-d H:i:s')) {
-                    //         return true;
-                    //     }
-                    // })
+                    ->disabled(function ($record) {
+                        if (Carbon::parse($record->check_in_date, 'Asia/Manila')->setTimezone('UTC')->format('Y-m-d H:i:s') > Carbon::now('UTC')->format('Y-m-d H:i:s')) {
+                            return true;
+                        }
+                    })
                     ->form([
                         Section::make()
                             ->schema([
@@ -335,7 +335,7 @@ class CheckinResource extends Resource
 
                             ])
                             ->columns(2),
-                        Repeater::make('charges')
+                        Repeater::make('room_charges')
                             ->label('Room Charges')
                             ->reorderable(false)
                             ->schema([
@@ -380,11 +380,58 @@ class CheckinResource extends Resource
                                     }),
                             ])
                             ->columns(4),
+
+                        Repeater::make('food_charges')
+                            ->label('Food Charges')
+                            ->reorderable(false)
+                            ->schema([
+                                Select::make('name')
+                                    ->disableOptionsWhenSelectedInSiblingRepeaterItems()
+                                    ->label('Charge Name')
+                                    ->options(Food::pluck('name', 'id'))
+                                    ->live()
+                                    ->afterStateUpdated(function (Set $set, ?string $state) {
+                                        $charge = Food::find($state);
+                                        $set('amount', $charge?->price);
+                                    })
+                                    ->searchable(),
+
+                                TextInput::make('amount')
+                                    ->label('Amount')
+                                    ->prefix('PHP')
+                                    ->numeric()
+                                    ->readOnly(),
+
+                                TextInput::make('quantity')
+                                    ->label('Quantity')
+                                    ->live()
+                                    ->numeric()
+                                    ->minValue(1)
+                                    ->afterStateUpdated(function (Set $set, ?string $state, Get $get) {
+                                        $quantity = (float) $state;
+                                        $amount = (float) $get('amount') ?: 0;
+                                        $set('total_charges', $quantity * $amount);
+                                    }),
+
+                                TextInput::make('total_charges')
+                                    ->label('Total Charges')
+                                    ->prefix('PHP')
+                                    ->numeric()
+                                    ->readOnly()
+                                    ->dehydrateStateUsing(function (Get $get) {
+                                        $quantity = (float) $get('quantity') ?: 0;
+                                        $amount = (float) $get('amount') ?: 0;
+
+                                        return $quantity * $amount;
+                                    }),
+                            ])
+                            ->columns(4),
                     ])
                     ->modalSubmitActionLabel('Check In')
                     ->action(function ($record, $data) {
 
-                        $record->additional_charges = CheckinResource::cleanAdditionalCharges($data['charges']);
+                        $record->food_charges = CheckinResource::cleanAdditionalCharges($data['food_charges']);
+                        $record->additional_charges = CheckinResource::cleanAdditionalCharges($data['room_charges']);
                         $record->is_occupied = 1;
                         $record->save();
 
@@ -412,6 +459,7 @@ class CheckinResource extends Resource
                     ->label('Check Out')
                     ->color('warning')
                     // ->requiresConfirmation()
+                    ->modalSubmitActionLabel('Check Out')
                     ->visible(fn ($record) => $record->is_occupied == 1)
                     ->form(function ($record) {
                         return [
@@ -479,16 +527,9 @@ class CheckinResource extends Resource
                                 ->deletable(false)
                                 ->reorderable(false)
                                 ->columns(4),
-
-                            // Select::make('status')
-                            //     ->label('Status')
-                            //     ->options([
-                            //         'paid' => 'Paid',
-                            //     ]),
                         ];
                     })
                     ->action(function ($record, $data) {
-                        // if ($data['status'] == 'paid') {
 
                         $chargesAmount = 0;
                         foreach ($record['additional_charges'] ?? [] as $charge) {
@@ -519,16 +560,6 @@ class CheckinResource extends Resource
                             ->success()
                             ->title('Check Out')
                             ->send();
-                        // }
-                        // $record->status = 'done';
-                        // $record->suiteRoom->is_occupied = 0;
-                        // $record->suiteRoom->save();
-                        // $record->save();
-
-                        // Notification::make()
-                        //     ->success()
-                        //     ->title('Check In')
-                        //     ->send();
                     }),
                 Action::make('extend')
                     ->icon('heroicon-o-clock')
@@ -554,7 +585,6 @@ class CheckinResource extends Resource
                     ])
                     ->modalWidth('lg')
                     ->action(function ($record, $data) {
-                        // CheckinResource::extendChecker($record->room_id, $record->check_out_date, $data['extend_date'], $record->id);
                         if (CheckinResource::extendChecker($record->room_id, $record->check_out_date, $data['extend_date'], $record->id)) {
                             Notification::make()
                                 ->danger()
@@ -569,16 +599,22 @@ class CheckinResource extends Resource
 
                         $extendCharge = Charge::find(2);
 
-                        $charges = [
-                            [
-                                'name' => $extendCharge->id,
-                                'amount' => $extendCharge->amount,
-                                'quantity' => $diffHours,
-                                'total_charges' => $extendCharge->amount * $diffHours,
-                            ],
+                        $newExtendCharge = [
+                            'name' => (string) $extendCharge->id,
+                            'amount' => number_format($extendCharge->amount, 2, '.', ''),
+                            'quantity' => (string) $diffHours,
+                            'total_charges' => $extendCharge->amount * $diffHours,
                         ];
 
-                        $record->additional_charges = $charges;
+                        $existingCharges = $record->additional_charges ?? [];
+
+                        if (! is_array($existingCharges)) {
+                            $existingCharges = [];
+                        }
+
+                        $existingCharges[] = $newExtendCharge;
+
+                        $record->additional_charges = $existingCharges;
                         $record->is_extend = 1;
                         $record->extend_date = $data['extend_date'];
                         $record->save();

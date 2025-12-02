@@ -433,6 +433,14 @@ class ViewBookings extends Page
                     ->formatStateUsing(function ($record) {
                         return $record->type != 'bulk_head_online' ? $record->no_persons : $record->relatedBookings->sum('no_persons');
                     }),
+                TextEntry::make('additional_persons')->label('Additional Adults')
+                    ->formatStateUsing(function ($record) {
+                        return $record->type != 'bulk_head_online' ? $record->additional_persons : $record->relatedBookings->sum('additional_persons');
+                    }),
+                TextEntry::make('additional_child')->label('Additional Children')
+                    ->formatStateUsing(function ($record) {
+                        return $record->type != 'bulk_head_online' ? $record->additional_child : $record->relatedBookings->sum('additional_child');
+                    }),
                 TextEntry::make('check_in_date')->dateTime()->label('Check In Time')
                     ->formatStateUsing(function ($state) {
                         return \Carbon\Carbon::parse($state)->format('F j, Y h:i A');
@@ -448,14 +456,25 @@ class ViewBookings extends Page
                 TextEntry::make('amount_paid')->label('Amount Paid ')
                     ->formatStateUsing(fn ($record) => number_format($record->amount_paid, 2))
                     ->prefix('₱ '),
+                TextEntry::make('adult_payment')->label('Adult Charges')
+                    ->formatStateUsing(fn ($record) => number_format($record->adult_payment, 2))
+                    ->prefix('₱ '),
+                TextEntry::make('child_payment')->label('Child Charges')
+                    ->formatStateUsing(fn ($record) => number_format($record->child_payment, 2))
+                    ->prefix('₱ '),
                 TextEntry::make('balance')->label('Balance Due')
                     ->formatStateUsing(function ($state, $record) {
                         $chargesAmount = 0;
                         foreach ($record['additional_charges'] ?? [] as $charge) {
-                            $chargesAmount += $charge['amount'];
+                            $chargesAmount += $charge['total_charges'];
                         }
 
-                        return number_format($state + $chargesAmount, 2);
+                        $foodChargesAmount = 0;
+                        foreach ($record['food_charges'] ?? [] as $charge) {
+                            $foodChargesAmount += $charge['total_charges'];
+                        }
+
+                        return number_format($state + $chargesAmount + $foodChargesAmount, 2);
                     })
                     ->prefix('₱ '),
                 TextEntry::make('room.name')->label('Suite Type'),

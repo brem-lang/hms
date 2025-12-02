@@ -349,13 +349,13 @@
                                                 @endforeach
                                             @endif
                                         </td>
-                                        <td class="px-2 py-3 font-semibold text-gray-600 dark:text-gray-400">Total
-                                            Persons</td>
+                                        <td class="px-2 py-3 font-semibold text-gray-600 dark:text-gray-400">
+                                            Total Persons</td>
                                         <td class="px-2 py-3 text-gray-900 dark:text-white">
                                             {{ $booking->type != 'bulk_head_online' ? $booking->no_persons : $booking->relatedBookings->sum('no_persons') }}
                                             base
                                             (+
-                                            {{ $booking->type != 'bulk_head_online' ? $booking->additional_persons : $booking->relatedBookings->sum('additional_persons') }}
+                                            {{ $booking->type != 'bulk_head_online' ? $booking->additional_persons + $booking->additional_child : $booking->relatedBookings->sum('additional_persons') + $booking->relatedBookings->sum('additional_child') }}
                                             extra)
                                         </td>
                                     </tr>
@@ -397,6 +397,16 @@
                                     <span class="text-gray-600">Food Charges:</span>
                                     <span class="text-red-500 font-medium">₱
                                         {{ number_format($foodChargesAmount, 2) }}</span>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                    <span class="text-gray-600">Adult Charges:</span>
+                                    <span class="text-red-500 font-medium">₱
+                                        {{ number_format($booking->adult_payment, 2) }}</span>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                    <span class="text-gray-600">Child Charges:</span>
+                                    <span class="text-red-500 font-medium">₱
+                                        {{ number_format($booking->child_payment, 2) }}</span>
                                 </div>
                                 <div class="flex justify-between items-center border-b pb-1">
                                     <span class="text-gray-600">Amount Paid:</span>

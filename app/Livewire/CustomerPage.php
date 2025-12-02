@@ -318,7 +318,11 @@ class CustomerPage extends Component implements HasForms
                 ->maxLength(255),
             TextInput::make('additional_persons')
                 ->numeric()
-                ->label('Additional Persons')
+                ->label('Additional Adults')
+                ->maxLength(255),
+            TextInput::make('additional_child')
+                ->numeric()
+                ->label('Additional Children')
                 ->maxLength(255),
             Textarea::make('notes')
                 ->label('Requests / Notes'),
@@ -464,7 +468,11 @@ class CustomerPage extends Component implements HasForms
                 ->maxLength(255),
             TextInput::make('additional_persons')
                 ->numeric()
-                ->label('Additional Persons')
+                ->label('Additional Adults')
+                ->maxLength(255),
+            TextInput::make('additional_child')
+                ->numeric()
+                ->label('Additional Children')
                 ->maxLength(255),
             Textarea::make('notes')
                 ->label('Requests / Notes'),
@@ -609,7 +617,11 @@ class CustomerPage extends Component implements HasForms
                 ->maxLength(255),
             TextInput::make('additional_persons')
                 ->numeric()
-                ->label('Additional Persons')
+                ->label('Additional Adults')
+                ->maxLength(255),
+            TextInput::make('additional_child')
+                ->numeric()
+                ->label('Additional Children')
                 ->maxLength(255),
             Textarea::make('notes')
                 ->label('Requests / Notes'),
@@ -899,8 +911,11 @@ class CustomerPage extends Component implements HasForms
                     'days' => 0,
                     'hours' => $hours,
                     'suite_room_id' => $this->getSuiteRoomHours($data['suiteId'], $start, $end),
-                    'amount_to_pay' => $this->getPayment($hours, $data['suiteId'], $data['no_persons'] + $data['additional_persons'] ?? 0),
+                    'amount_to_pay' => $this->getPayment($hours, $data['suiteId'], $data['no_persons']) + $this->addAdult($data['suiteId'], $data['additional_persons'] ?? 0) + $this->addChild($data['suiteId'], $data['additional_child'] ?? 0),
                     'additional_persons' => $data['additional_persons'] ?? 0,
+                    'additional_child' => $data['additional_child'] ?? 0,
+                    'adult_payment' => $this->addAdult($data['suiteId'], $data['additional_persons'] ?? 0),
+                    'child_payment' => $this->addChild($data['suiteId'], $data['additional_child'] ?? 0),
                 ]);
 
                 Transaction::create([
@@ -988,8 +1003,11 @@ class CustomerPage extends Component implements HasForms
                     'days' => $data['suiteId'] == 4 ? 0 : $days,
                     'hours' => $data['suiteId'] == 4 ? 0 : $hours,
                     'suite_room_id' => null,
-                    'amount_to_pay' => $data['suiteId'] == 4 ? SuiteRoom::where('id', $data['type'])->first()->price : $this->getPayment($hours, $data['suiteId'], $data['no_persons'] + $data['additional_persons'] ?? 0),
+                    'amount_to_pay' => $data['suiteId'] == 4 ? SuiteRoom::where('id', $data['type'])->first()->price : $this->getPayment($hours, $data['suiteId'], $data['no_persons']) + $this->addAdult($data['suiteId'], $data['additional_persons'] ?? 0) + $this->addChild($data['suiteId'], $data['additional_child'] ?? 0),
                     'additional_persons' => $data['additional_persons'] ?? 0,
+                    'additional_child' => $data['additional_child'] ?? 0,
+                    'adult_payment' => $this->addAdult($data['suiteId'], $data['additional_persons'] ?? 0),
+                    'child_payment' => $this->addChild($data['suiteId'], $data['additional_child'] ?? 0),
                 ]);
 
                 Transaction::create([
@@ -1082,8 +1100,11 @@ class CustomerPage extends Component implements HasForms
                     'days' => $data['suiteId'] == 4 ? 0 : $days,
                     'hours' => $data['suiteId'] == 4 ? 0 : $hours,
                     'suite_room_id' => $data['suiteId'] == 4 ? $data['type'] : $this->getSuiteRoom($data['suiteId'], $start->setTime(14, 0)->toDateTimeString(), $end->setTime(12, 0)->toDateTimeString()),
-                    'amount_to_pay' => $data['suiteId'] == 4 ? SuiteRoom::where('id', $data['type'])->first()->price : $this->getPayment($hours, $data['suiteId'], $data['no_persons'] + $data['additional_persons'] ?? 0),
+                    'amount_to_pay' => $data['suiteId'] == 4 ? SuiteRoom::where('id', $data['type'])->first()->price : $this->getPayment($hours, $data['suiteId'], $data['no_persons']) + $this->addAdult($data['suiteId'], $data['additional_persons'] ?? 0) + $this->addChild($data['suiteId'], $data['additional_child'] ?? 0),
                     'additional_persons' => $data['additional_persons'] ?? 0,
+                    'additional_child' => $data['additional_child'] ?? 0,
+                    'adult_payment' => $this->addAdult($data['suiteId'], $data['additional_persons'] ?? 0),
+                    'child_payment' => $this->addChild($data['suiteId'], $data['additional_child'] ?? 0),
                 ]);
 
                 Transaction::create([
@@ -1141,33 +1162,6 @@ class CustomerPage extends Component implements HasForms
         return $availableRoom?->id ?? false;
     }
 
-    // public function getSuiteRoomHours($suiteID, $checkIn, $checkOut)
-    // {
-    //     // $bookedRoomIds = Booking::where('status', '!=', 'cancelled')->where(function ($query) use ($checkIn, $checkOut) {
-    //     //     $query->where('check_in_date', '<', $checkOut)
-    //     //         ->where('check_out_date', '>', $checkIn);
-    //     // })
-    //     //     ->pluck('suite_room_id');
-    //     $bookedRoomIds = Booking::where('status', '!=', 'cancelled')
-    //         // ->where('status', 'pending')
-    //         // ->where('type', '!=', 'bulk_head_online')
-    //         // ->where('status', '!=', 'done')
-    //         ->whereHas('suiteRoom', fn ($q) => $q->where('is_occupied', false))
-    //         // ->where('duration', '<', 24)
-    //         ->where(function ($query) use ($checkIn, $checkOut) {
-    //             $query->where('check_in_date', '<', $checkOut)
-    //                 ->where('check_out_date', '>', $checkIn);
-    //         })
-    //         ->pluck('suite_room_id');
-
-    //     $availableRoom = SuiteRoom::where('room_id', $suiteID)
-    //         ->where('is_active', true)
-    //         ->whereNotIn('id', $bookedRoomIds)
-    //         ->where('is_occupied', false)
-    //         ->first();
-
-    //     return $availableRoom?->id ?? false;
-    // }
     public function getSuiteRoomHours($suiteID, $checkIn, $checkOut)
     {
         // Get rooms that have overlapping bookings (hourly or daily)
@@ -1219,5 +1213,19 @@ class CustomerPage extends Component implements HasForms
         $extraCharge = $extraPersons * $suite->items[5]['price'];
 
         return $value + $extraCharge;
+    }
+
+    public function addAdult($suiteId, $no_persons)
+    {
+        $suite = Room::where('id', $suiteId)->first();
+
+        return $no_persons * $suite->items[5]['price'];
+    }
+
+    public function addChild($suiteId, $no_persons)
+    {
+        $suite = Room::where('id', $suiteId)->first();
+
+        return $no_persons * $suite->items[6]['price'];
     }
 }

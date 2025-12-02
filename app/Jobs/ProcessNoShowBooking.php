@@ -43,6 +43,18 @@ class ProcessNoShowBooking implements ShouldQueue
 
             // --- PART 1: Assign 'no show - call' (2 hours past check-in) ---
             if (! $booking->is_no_show) {
+                // for hourly
+                if ($checkInDate->copy()->addHours(2)->lessThanOrEqualTo($now) && $booking->hours < 24) {
+                    $booking->status = 'done';
+                    $booking->is_occupied = false;
+
+                    // Free the suite room inventory
+                    $booking->suiteRoom->is_occupied = 0;
+                    $booking->suiteRoom->save();
+
+                    $booking->save();
+                }
+                // for daily
                 if ($checkInDate->copy()->addHours(2)->lessThanOrEqualTo($now)) {
 
                     $booking->is_no_show = true;

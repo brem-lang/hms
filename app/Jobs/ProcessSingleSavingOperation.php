@@ -54,8 +54,12 @@ class ProcessSingleSavingOperation implements ShouldQueue
             'days' => $data['suiteId'] == 4 ? 0 : $days,
             'hours' => $data['suiteId'] == 4 ? 0 : $hours,
             'suite_room_id' => $this->getSuiteRoom($data['suiteId'], $start->setTime(14, 0)->toDateTimeString(), $end->setTime(12, 0)->toDateTimeString()),
-            'amount_to_pay' => $this->getPayment($hours, $data['suiteId'], $data['no_persons']),
+            'amount_to_pay' => $this->getPayment($hours, $data['suiteId'], $data['no_persons']) + $this->addAdult($data['suiteId'], $data['additional_persons'] ?? 0) + $this->addChild($data['suiteId'], $data['additional_child'] ?? 0),
             'bulk_head_id' => $this->bulkHeadId,
+            'additional_persons' => $data['additional_persons'] ?? 0,
+            'additional_child' => $data['additional_child'] ?? 0,
+            'adult_payment' => $this->addAdult($data['suiteId'], $data['additional_persons'] ?? 0),
+            'child_payment' => $this->addChild($data['suiteId'], $data['additional_child'] ?? 0),
         ]);
 
         Transaction::create([
@@ -127,5 +131,19 @@ class ProcessSingleSavingOperation implements ShouldQueue
         $extraCharge = $extraPersons * $suite->items[5]['price'];
 
         return $value + $extraCharge;
+    }
+
+    public function addAdult($suiteId, $no_persons)
+    {
+        $suite = Room::where('id', $suiteId)->first();
+
+        return $no_persons * $suite->items[5]['price'];
+    }
+
+    public function addChild($suiteId, $no_persons)
+    {
+        $suite = Room::where('id', $suiteId)->first();
+
+        return $no_persons * $suite->items[6]['price'];
     }
 }

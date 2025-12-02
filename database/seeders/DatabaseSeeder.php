@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\Charge;
 use App\Models\Room;
 use App\Models\User;
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
@@ -30,62 +31,6 @@ class DatabaseSeeder extends Seeder
             'password' => bcrypt('password'),
         ]);
 
-        // User::factory()->create([
-        //     'name' => 'Test User',
-        //     'email' => 'user@user.com',
-        //     'role' => 'customer',
-        //     'password' => bcrypt('password'),
-        // ]);
-
-        // User::factory()->create([
-        //     'name' => 'Test User1',
-        //     'email' => 'user1@user.com',
-        //     'role' => 'customer',
-        //     'password' => bcrypt('password'),
-        // ]);
-
-        // User::factory()->create([
-        //     'name' => 'Test User2',
-        //     'email' => 'user2@user.com',
-        //     'role' => 'customer',
-        //     'password' => bcrypt('password'),
-        // ]);
-
-        // User::factory()->create([
-        //     'name' => 'Test User3',
-        //     'email' => 'user3@user.com',
-        //     'role' => 'customer',
-        //     'password' => bcrypt('password'),
-        // ]);
-
-        // User::factory()->create([
-        //     'name' => 'Test User4',
-        //     'email' => 'user4@user.com',
-        //     'role' => 'customer',
-        //     'password' => bcrypt('password'),
-        // ]);
-
-        // User::factory()->create([
-        //     'name' => 'Test User5',
-        //     'email' => 'user5@user.com',
-        //     'role' => 'customer',
-        //     'password' => bcrypt('password'),
-        // ]);
-
-        // User::factory()->create([
-        //     'name' => 'FrontDesk User',
-        //     'email' => 'frontdesk@user.com',
-        //     'role' => 'front-desk',
-        //     'password' => bcrypt('password'),
-        // ]);
-
-        // User::factory()->create([
-        //     'name' => 'Staff User',
-        //     'email' => 'staff@user.com',
-        //     'role' => 'staff',
-        //     'password' => bcrypt('password'),
-        // ]);
-
         Room::create([
             'name' => 'Standard Suite',
             'image' => 'images/standard.jpg',
@@ -98,7 +43,8 @@ class DatabaseSeeder extends Seeder
                 ['item' => '12 hours stat', 'price' => '800'],
                 ['item' => 'Overnight Stay', 'price' => '1200'],
                 ['item' => 'Extension / hr', 'price' => '100'],
-                ['item' => 'Extra Person / Extra Bed', 'price' => '700'],
+                ['item' => 'Adult / Extra Bed', 'price' => '700'],
+                ['item' => 'Child / Extra Bed', 'price' => '350'],
             ],
         ]);
 
@@ -114,7 +60,8 @@ class DatabaseSeeder extends Seeder
                 ['item' => '12 hours stay', 'price' => '850'],
                 ['item' => 'Overnight Stay', 'price' => '1400'],
                 ['item' => 'Extension/ hour', 'price' => '100'],
-                ['item' => 'Extra bed / person', 'price' => '700'],
+                ['item' => 'Adult / Extra Bed', 'price' => '700'],
+                ['item' => 'Child / Extra Bed', 'price' => '350'],
             ],
         ]);
 
@@ -130,7 +77,8 @@ class DatabaseSeeder extends Seeder
                 ['item' => '12 hours stay', 'price' => '900'],
                 ['item' => 'Overnight Stay', 'price' => '1600'],
                 ['item' => 'Extension / hour', 'price' => '150'],
-                ['item' => 'Extra bed / Extra person', 'price' => '700'],
+                ['item' => 'Adult / Extra Bed', 'price' => '700'],
+                ['item' => 'Child / Extra Bed', 'price' => '350'],
             ],
         ]);
 
@@ -140,6 +88,18 @@ class DatabaseSeeder extends Seeder
             'status' => 1,
             'available_rooms' => 4,
             'total_rooms' => 4,
+        ]);
+
+        Charge::create([
+            'name' => 'Check-Out Extension',
+            'description' => 'Check-Out Extension',
+            'amount' => 100,
+        ]);
+
+        Charge::create([
+            'name' => 'Extend Charge',
+            'description' => 'Extend Charge',
+            'amount' => 120,
         ]);
 
         $this->call([

@@ -5,6 +5,7 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\CheckinResource\Pages;
 use App\Models\Booking;
 use App\Models\Charge;
+use App\Models\Food;
 use Carbon\Carbon;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Repeater;
@@ -220,7 +221,7 @@ class CheckinResource extends Resource
                                     ->readOnly()
                                     ->formatStateUsing(fn ($record) => Carbon::parse($record->check_out_date)->format('F j, Y h:i A')),
                                 TextInput::make('start_date')
-                                    ->label('Start Date')
+                                    ->label('Booking Start')
                                     ->dehydrated(false)
                                     ->readOnly()
                                     ->visible(function ($record) {
@@ -228,7 +229,7 @@ class CheckinResource extends Resource
                                     })
                                     ->formatStateUsing(fn ($record) => Carbon::parse($record->start_date)->format('F j, Y h:i A')),
                                 TextInput::make('amount')
-                                    ->label('Amount')
+                                    ->label('Room Booking Fee')
                                     ->dehydrated(false)
                                     ->readOnly()
                                     ->prefix('₱ ')
@@ -238,7 +239,7 @@ class CheckinResource extends Resource
                                         return $booking->type != 'bulk_head_online' ? number_format($booking->amount_to_pay, 2) : number_format($booking->relatedBookings->sum('amount_to_pay'), 2);
                                     }),
                                 TextInput::make('end_date')
-                                    ->label('End Date')
+                                    ->label('Booking End')
                                     ->dehydrated(false)
                                     ->readOnly()
                                     ->visible(function ($record) {
@@ -264,7 +265,7 @@ class CheckinResource extends Resource
                                     })
                                     ->formatStateUsing(fn ($record) => Carbon::parse($record->created_at)->format('F j, Y h:i A')),
                                 TextInput::make('balance')
-                                    ->label('Balance')
+                                    ->label('Balance Due')
                                     ->dehydrated(false)
                                     ->readOnly()
                                     ->prefix('₱ ')
@@ -287,7 +288,7 @@ class CheckinResource extends Resource
                                         return number_format($booking->balance + $chargesAmount, 2);
                                     }),
                                 TextInput::make('days')
-                                    ->label('Days')
+                                    ->label('Total days')
                                     ->dehydrated(false)
                                     ->readOnly()
                                     ->formatStateUsing(fn ($record) => $record->days),
@@ -302,7 +303,7 @@ class CheckinResource extends Resource
                                     ->readOnly()
                                     ->formatStateUsing(fn ($record) => $record->duration),
                                 TextInput::make('room')
-                                    ->label('Room')
+                                    ->label('Room Number')
                                     ->dehydrated(false)
                                     ->readOnly()
                                     ->formatStateUsing(function ($record) {
@@ -335,12 +336,11 @@ class CheckinResource extends Resource
                             ])
                             ->columns(2),
                         Repeater::make('charges')
-                            ->label('Additional Charges')
+                            ->label('Room Charges')
                             ->reorderable(false)
                             ->schema([
                                 Select::make('name')
                                     ->disableOptionsWhenSelectedInSiblingRepeaterItems()
-                                    // ->required()
                                     ->label('Charge Name')
                                     ->options(Charge::pluck('name', 'id'))
                                     ->live()
@@ -418,77 +418,108 @@ class CheckinResource extends Resource
                             TextInput::make('amount')
                                 ->label('Amount')
                                 ->disabled()
+                                ->prefix('₱ ')
                                 ->formatStateUsing(function ($record) {
-                                    return $record->amount_to_pay;
+                                    return number_format($record->amount_to_pay, 2);
                                 }),
                             TextInput::make('amount_paid')
                                 ->label('Amount Paid')
                                 ->disabled()
+                                ->prefix('₱ ')
                                 ->formatStateUsing(function ($record) {
-                                    return $record->amount_paid;
+                                    // return $record->amount_paid;
+                                    return number_format($record->amount_paid, 2);
                                 }),
                             TextInput::make('balance')
                                 ->label('Balance')
                                 ->disabled()
+                                ->prefix('₱ ')
                                 ->formatStateUsing(function ($record) {
                                     $chargesAmount = 0;
                                     foreach ($record['additional_charges'] ?? [] as $charge) {
                                         $chargesAmount += $charge['total_charges'];
                                     }
 
-                                    return $record->balance + $chargesAmount;
+                                    $foodChargesAmount = 0;
+                                    foreach ($record['food_charges'] ?? [] as $charge) {
+                                        $foodChargesAmount += $charge['total_charges'];
+                                    }
+
+                                    return number_format($record->balance + $chargesAmount + $foodChargesAmount, 2);
                                 }),
 
                             Repeater::make('charges')
-                                ->formatStateUsing(fn ($record) => $record->additional_charges)->label('Additional Charges')
+                                ->formatStateUsing(fn ($record) => $record->additional_charges)->label('Room Charges')
                                 ->reorderable(false)
                                 ->schema([
                                     Select::make('name')
+                                        ->disabled()
                                         ->options(Charge::pluck('name', 'id')),
-                                    TextInput::make('amount')->numeric()->required(),
-                                    TextInput::make('quantity')->numeric()->required(),
-                                    TextInput::make('total_charges')->numeric()->required(),
+                                    TextInput::make('amount')->numeric()->required()->disabled(),
+                                    TextInput::make('quantity')->numeric()->required()->disabled(),
+                                    TextInput::make('total_charges')->numeric()->required()->disabled(),
                                 ])
                                 ->addable(false)
                                 ->deletable(false)
                                 ->reorderable(false)
                                 ->columns(4),
 
-                            Select::make('status')
-                                ->label('Status')
-                                ->options([
-                                    'paid' => 'Paid',
-                                ]),
+                            Repeater::make('food_charges')
+                                ->formatStateUsing(fn ($record) => $record->food_charges)->label('Food Charges')
+                                ->reorderable(false)
+                                ->schema([
+                                    Select::make('name')
+                                        ->disabled()
+                                        ->options(Food::pluck('name', 'id')),
+                                    TextInput::make('amount')->numeric()->required()->disabled(),
+                                    TextInput::make('quantity')->numeric()->required()->disabled(),
+                                    TextInput::make('total_charges')->numeric()->required()->disabled(),
+                                ])
+                                ->addable(false)
+                                ->deletable(false)
+                                ->reorderable(false)
+                                ->columns(4),
+
+                            // Select::make('status')
+                            //     ->label('Status')
+                            //     ->options([
+                            //         'paid' => 'Paid',
+                            //     ]),
                         ];
                     })
                     ->action(function ($record, $data) {
-                        if ($data['status'] == 'paid') {
+                        // if ($data['status'] == 'paid') {
 
-                            $chargesAmount = 0;
-                            foreach ($record['additional_charges'] ?? [] as $charge) {
-                                $chargesAmount += $charge['total_charges'];
-                            }
-
-                            $record->status = 'done';
-                            $record->is_occupied = 0;
-                            $record->balance = 0;
-                            $record->amount_paid = $record->amount_to_pay + $chargesAmount;
-                            $record->amount_to_pay = $record->amount_to_pay + $chargesAmount;
-                            $record->suiteRoom->is_occupied = 0;
-                            $record->suiteRoom->save();
-                            $record->save();
-
-                            if ($record->getBookingHead) {
-                                $record->getBookingHead->update([
-                                    'status' => 'done',
-                                ]);
-                            }
-
-                            Notification::make()
-                                ->success()
-                                ->title('Check Out')
-                                ->send();
+                        $chargesAmount = 0;
+                        foreach ($record['additional_charges'] ?? [] as $charge) {
+                            $chargesAmount += $charge['total_charges'];
                         }
+
+                        $foodChargesAmount = 0;
+                        foreach ($record['food_charges'] ?? [] as $charge) {
+                            $foodChargesAmount += $charge['total_charges'];
+                        }
+
+                        $record->status = 'done';
+                        $record->is_occupied = 0;
+                        $record->balance = 0;
+                        $record->amount_paid = $record->amount_to_pay + $chargesAmount + $foodChargesAmount;
+                        $record->amount_to_pay = $record->amount_to_pay + $chargesAmount + $foodChargesAmount;
+                        $record->suiteRoom->is_occupied = 0;
+                        $record->suiteRoom->save();
+                        $record->save();
+
+                        if ($record->getBookingHead) {
+                            $record->getBookingHead->update([
+                                'status' => 'done',
+                            ]);
+                        }
+
+                        Notification::make()
+                            ->success()
+                            ->title('Check Out')
+                            ->send();
+                        // }
                         // $record->status = 'done';
                         // $record->suiteRoom->is_occupied = 0;
                         // $record->suiteRoom->save();

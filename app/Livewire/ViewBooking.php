@@ -6,6 +6,7 @@ use App\Filament\Resources\BookingResource;
 use App\Mail\MailFrontDesk;
 use App\Models\Booking;
 use App\Models\Charge;
+use App\Models\Food;
 use App\Models\User;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Concerns\InteractsWithForms;
@@ -29,6 +30,8 @@ class ViewBooking extends Component implements HasForms
 
     public $charges = [];
 
+    public $foodCharges = [];
+
     public function render()
     {
         return view('livewire.view-booking');
@@ -41,7 +44,9 @@ class ViewBooking extends Component implements HasForms
         $this->authorize('view', $this->booking);
 
         $chargeIds = collect($this->booking->additional_charges)->pluck('name')->unique();
+        $foodchargeId = collect($this->booking->food_charges)->pluck('name')->unique();
         $this->charges = Charge::whereIn('id', $chargeIds)->pluck('name', 'id');
+        $this->foodCharges = Food::whereIn('id', $foodchargeId)->pluck('name', 'id');
 
         $this->form->fill([
             'proof_of_payment' => $this->booking->proof_of_payment,

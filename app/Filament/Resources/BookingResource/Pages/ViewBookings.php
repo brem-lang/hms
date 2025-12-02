@@ -7,6 +7,7 @@ use App\Filament\Resources\MyBookingResource;
 use App\Mail\MailFrontDesk;
 use App\Models\Booking;
 use App\Models\Charge;
+use App\Models\Food;
 use App\Models\SuiteRoom;
 use App\Models\User;
 use Filament\Actions\Action as ActionsAction;
@@ -54,14 +55,13 @@ class ViewBookings extends Page
     protected function getHeaderActions(): array
     {
         return [
-
             ActionsAction::make('additional_charges')
-                ->label('Charges')
+                ->label('Room Charges')
                 ->icon('heroicon-o-plus-circle')
                 ->form([
                     Repeater::make('charges')
                         ->formatStateUsing(fn () => $this->record->additional_charges)
-                        ->label('Additional Charges')
+                        ->label('Room Charges')
                         ->reorderable(false)
                         ->schema([
                             Select::make('name')
@@ -106,19 +106,83 @@ class ViewBookings extends Page
                                 }),
                         ])
                         ->columns(4),
-                ])->action(function ($data) {
+                ])
+                ->action(function ($data) {
 
                     $this->record->additional_charges = $data['charges'];
                     $this->record->save();
 
                     Notification::make()
                         ->success()
-                        ->title('Charges Updated')
+                        ->title('Room Charges Updated')
                         ->icon('heroicon-o-check-circle')
                         ->send();
                 })
                 ->visible(fn () => $this->record->status === 'completed' && $this->record?->suiteRoom?->is_occupied === 1),
+            ActionsAction::make('additional_charges_food')
+                ->label('Food Charges')
+                ->icon('heroicon-o-plus-circle')
+                ->action(function ($data) {
 
+                    $this->record->food_charges = $data['charges'];
+                    $this->record->save();
+
+                    Notification::make()
+                        ->success()
+                        ->title('Food Charges Updated')
+                        ->icon('heroicon-o-check-circle')
+                        ->send();
+                })
+                ->form([
+                    Repeater::make('charges')
+                        ->formatStateUsing(fn () => $this->record->food_charges)
+                        ->label('Food Charges')
+                        ->reorderable(false)
+                        ->schema([
+                            Select::make('name')
+                                ->disableOptionsWhenSelectedInSiblingRepeaterItems()
+                                ->required()
+                                ->label('Food Name')
+                                ->options(Food::pluck('name', 'id'))
+                                ->live()
+                                ->afterStateUpdated(function (Set $set, ?string $state) {
+                                    $charge = Food::find($state);
+                                    $set('amount', $charge?->price);
+                                })
+                                ->searchable(),
+
+                            TextInput::make('amount')
+                                ->label('Amount')
+                                ->prefix('PHP')
+                                ->numeric()
+                                ->readOnly(),
+
+                            TextInput::make('quantity')
+                                ->label('Quantity')
+                                ->live()
+                                ->numeric()
+                                ->minValue(1)
+                                ->afterStateUpdated(function (Set $set, ?string $state, Get $get) {
+                                    $quantity = (float) $state;
+                                    $amount = (float) $get('amount') ?: 0;
+                                    $set('total_charges', $quantity * $amount);
+                                }),
+
+                            TextInput::make('total_charges')
+                                ->label('Total Charges')
+                                ->prefix('PHP')
+                                ->numeric()
+                                ->readOnly()
+                                ->dehydrateStateUsing(function (Get $get) {
+                                    $quantity = (float) $get('quantity') ?: 0;
+                                    $amount = (float) $get('amount') ?: 0;
+
+                                    return $quantity * $amount;
+                                }),
+                        ])
+                        ->columns(4),
+                ])
+                ->visible(fn () => $this->record->status === 'completed' && $this->record?->suiteRoom?->is_occupied === 1),
             ActionsAction::make('more_details')
                 ->icon('heroicon-o-document-text')
                 ->label('Guest Details')
@@ -358,12 +422,12 @@ class ViewBookings extends Page
                         'completed' => 'For CheckIn',
                         default => __(ucfirst($state)),
                     }),
-                TextEntry::make('start_date')->dateTime()->label('Start Date'),
-                TextEntry::make('end_date')->dateTime()->label('End Date'),
+                TextEntry::make('start_date')->dateTime()->label('Booking Start'),
+                TextEntry::make('end_date')->dateTime()->label('Booking End'),
                 TextEntry::make('created_at')->dateTime()->label('Date of Booking')->formatStateUsing(function ($state) {
                     return \Carbon\Carbon::parse($state)->timezone('Asia/Manila')->format('F j, Y h:i A');
                 }),
-                TextEntry::make('days')->label('Days'),
+                TextEntry::make('days')->label('Total days'),
                 TextEntry::make('duration')->label('Duration Hrs'),
                 TextEntry::make('no_persons')->label('Number of Persons')
                     ->formatStateUsing(function ($record) {
@@ -377,19 +441,21 @@ class ViewBookings extends Page
                     ->formatStateUsing(function ($state) {
                         return \Carbon\Carbon::parse($state)->format('F j, Y h:i A');
                     }),
-                TextEntry::make('amount_to_pay')->label('Amount')->prefix('₱ ')
+                TextEntry::make('amount_to_pay')->label('Room Booking Fee')->prefix('₱ ')
                     ->formatStateUsing(function ($record) {
                         return $record->type != 'bulk_head_online' ? number_format($record->amount_to_pay, 2) : number_format($record->relatedBookings->sum('amount_to_pay'), 2);
                     }),
-                TextEntry::make('amount_paid')->label('Amount Paid')->prefix('₱ '),
-                TextEntry::make('balance')->label('Balance')
+                TextEntry::make('amount_paid')->label('Amount Paid ')
+                    ->formatStateUsing(fn ($record) => number_format($record->amount_paid, 2))
+                    ->prefix('₱ '),
+                TextEntry::make('balance')->label('Balance Due')
                     ->formatStateUsing(function ($state, $record) {
                         $chargesAmount = 0;
                         foreach ($record['additional_charges'] ?? [] as $charge) {
                             $chargesAmount += $charge['amount'];
                         }
 
-                        return $state + $chargesAmount;
+                        return number_format($state + $chargesAmount, 2);
                     })
                     ->prefix('₱ '),
                 TextEntry::make('room.name')->label('Suite Type'),
@@ -400,16 +466,15 @@ class ViewBookings extends Page
                             return ucfirst($record->suiteRoom->name ?? '');
                         }
 
-                        // Collect all related suiteRoom names
                         $names = $record->relatedBookings
                             ->pluck('suiteRoom.name')
-                            ->filter()               // remove nulls
+                            ->filter()
                             ->map('ucfirst')
                             ->implode(', ');
 
                         return $names;
                     })
-                    ->label('Room'),
+                    ->label('Room Number'),
                 TextEntry::make('type')->label('Booking Type')
                     ->formatStateUsing(function ($state) {
                         return $state === 'walkin_booking' ? 'Walk-in' : 'Online';
@@ -486,7 +551,7 @@ class ViewBookings extends Page
             'type' => 'approved_booking',
         ];
 
-        // Mail::to($this->record->user->email)->send(new MailFrontDesk($details));
+        Mail::to($this->record->user->email)->send(new MailFrontDesk($details));
 
         if ($this->record->id) {
             redirect(BookingResource::getUrl('view', ['record' => $this->record->id]));

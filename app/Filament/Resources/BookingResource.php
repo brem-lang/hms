@@ -130,6 +130,9 @@ class BookingResource extends Resource
                         'completed' => 'Completed',
                         'cancelled' => 'Cancelled',
                     ]),
+                SelectFilter::make('room_id')
+                    ->label('Room Type')
+                    ->relationship('room', 'name'),
             ])
             ->poll('3s')
             ->actions([

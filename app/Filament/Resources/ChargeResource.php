@@ -54,24 +54,24 @@ class ChargeResource extends Resource
                             ->label('Status')
                             ->required()
                             ->default(true),
-                        Select::make('type')
-                            ->label('Type')
-                            ->dehydrated(false)
-                            ->live()
-                            ->options([
-                                'food' => 'Food',
-                                'other' => 'Other',
-                            ])
-                            ->required(),
-                        FileUpload::make('image')
-                            ->disk('public_uploads_food')
-                            ->required(function ($get) {
-                                return $get('type') === 'food';
-                            })
-                            ->directory('/')
-                            ->image()
-                            ->label('Image')
-                            ->columnSpanFull(),
+                        // Select::make('type')
+                        //     ->label('Type')
+                        //     ->dehydrated(false)
+                        //     ->live()
+                        //     ->options([
+                        //         'food' => 'Food',
+                        //         'other' => 'Other',
+                        //     ])
+                        //     ->required(),
+                        // FileUpload::make('image')
+                        //     ->disk('public_uploads_food')
+                        //     ->required(function ($get) {
+                        //         return $get('type') === 'food';
+                        //     })
+                        //     ->directory('/')
+                        //     ->image()
+                        //     ->label('Image')
+                        //     ->columnSpanFull(),
                     ])->columns(2),
             ]);
     }

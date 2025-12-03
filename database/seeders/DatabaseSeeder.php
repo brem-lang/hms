@@ -110,6 +110,42 @@ class DatabaseSeeder extends Seeder
             'amount' => 120,
         ]);
 
+        Charge::create([
+            'name' => 'Function Hall Check-Out Extension',
+            'description' => 'Function Hall Check-Out Extension',
+            'amount' => 1000,
+        ]);
+
+        Charge::create([
+            'name' => 'Function Hall Extend Charge',
+            'description' => 'Function Hall Extend Charge',
+            'amount' => 1000,
+        ]);
+
+        Charge::create([
+            'name' => 'Function Hall Basic Package Person Charge',
+            'description' => 'Function Hall Basic Package Person Charge',
+            'amount' => 300,
+        ]);
+
+        Charge::create([
+            'name' => 'Function Hall Standard Package Person Charge',
+            'description' => 'Function Hall Standard Package Person Charge',
+            'amount' => 400,
+        ]);
+
+        Charge::create([
+            'name' => 'Function Hall Premium Package Person Charge',
+            'description' => 'Function Hall Premium Package Person Charge',
+            'amount' => 500,
+        ]);
+
+        Charge::create([
+            'name' => 'Function Hall Corkages',
+            'description' => 'Function Hall Corkages',
+            'amount' => 1000,
+        ]);
+
         $this->call([
             SuitRoomSeeder::class,
         ]);

@@ -460,6 +460,7 @@ class CheckinResource extends Resource
                     ->icon('heroicon-o-check-circle')
                     ->label('Check Out')
                     ->color('warning')
+                    ->modalWidth('5xl')
                     ->modalSubmitActionLabel('Check Out')
                     ->visible(fn ($record) => $record->is_occupied == 1)
                     ->form(function ($record) {
@@ -614,6 +615,7 @@ class CheckinResource extends Resource
                         }
 
                         $existingCharges[] = $newExtendCharge;
+
                         $record->additional_charges = $existingCharges;
                         $record->additional_persons = $data['no_persons'];
                         $record->save();
@@ -676,7 +678,6 @@ class CheckinResource extends Resource
                             }
 
                             $existingCharges[] = $newExtendCharge;
-
                             $record->additional_charges = $existingCharges;
                             $record->is_extend = 1;
                             $record->extend_date = $data['extend_date'];

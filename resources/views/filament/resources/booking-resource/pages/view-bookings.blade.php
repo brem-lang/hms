@@ -36,7 +36,11 @@
                         <section
                             class="fi-section rounded-xl bg-white shadow-sm ring-1 ring-gray-950/5 dark:bg-gray-900 dark:ring-white/10">
                             <div class="fi-section-content-ctn p-6">
-                                {{ $this->infoList }}
+                                @if ($record->room_id == 4)
+                                    {{ $this->infoListFunctionHall }}
+                                @else
+                                    {{ $this->infoList }}
+                                @endif
                                 <br />
                                 {{ $this->paymentForm }}
                                 <br />

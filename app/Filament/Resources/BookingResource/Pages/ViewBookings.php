@@ -10,6 +10,7 @@ use App\Models\Charge;
 use App\Models\Food;
 use App\Models\SuiteRoom;
 use App\Models\User;
+use Carbon\Carbon;
 use Filament\Actions\Action as ActionsAction;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\FileUpload;
@@ -55,6 +56,14 @@ class ViewBookings extends Page
     protected function getHeaderActions(): array
     {
         return [
+            ActionsAction::make('print')
+                ->label('Receipt')
+                ->icon('heroicon-o-printer')
+                ->url(function () {
+                    // This is complex, so we'll route it through a method or a dedicated controller endpoint
+                    return route('bookings.charges.pdf', $this->record);
+                }, shouldOpenInNewTab: true)
+                ->color('primary'),
             ActionsAction::make('additional_charges')
                 ->label('Room Charges')
                 ->icon('heroicon-o-plus-circle')
@@ -261,16 +270,38 @@ class ViewBookings extends Page
                         return;
                     }
 
-                    $room = $this->getSuiteRoom($this->record->room_id, $data['check_in_date'], $data['check_out_date']);
+                    if ($this->record->room_id != 4) {
+                        $room = $this->getSuiteRoom($this->record->room_id, $data['check_in_date'], $data['check_out_date']);
 
-                    if (! $room) {
-                        Notification::make()
-                            ->danger()
-                            ->title('Error')
-                            ->body('Please select different dates for rebooking')
-                            ->send();
+                        if (! $room) {
+                            Notification::make()
+                                ->danger()
+                                ->title('Error')
+                                ->body('Please select different dates for rebooking')
+                                ->send();
 
-                        return;
+                            return;
+                        }
+                    } else {
+                        if ($this->getFunctionHallTime($data['check_in_date'], $data['check_out_date'], $record->suite_room_id) === false) {
+                            Notification::make()
+                                ->danger()
+                                ->title('Error')
+                                ->body('Function Hall is fully booked')
+                                ->send();
+
+                            return null;
+                        }
+
+                        if ($this->getFunctionHallTime($data['check_in_date'], $data['check_out_date'], $record->suite_room_id)) {
+                            Notification::make()
+                                ->danger()
+                                ->title('Error')
+                                ->body('The selected time is not available')
+                                ->send();
+
+                            return null;
+                        }
                     }
 
                     $this->record->suite_room_id = $room;
@@ -278,7 +309,7 @@ class ViewBookings extends Page
                     $this->record->check_out_date = $data['check_out_date'];
                     $this->record->rebook_notes = $data['rebook_notes'] ?? null;
 
-                    $this->record->save();
+                    // $this->record->save();
 
                     Notification::make()
                         ->success()
@@ -327,6 +358,45 @@ class ViewBookings extends Page
                 ->modalCancelAction(false),
 
         ];
+    }
+
+    public function getFunctionHallTime($checkIn, $checkOut, $suiteRoomId)
+    {
+        $newCheckInDate = Carbon::parse($checkIn);
+        $newCheckOutDate = Carbon::parse($checkOut);
+
+        $bookings = Booking::where('suite_room_id', $suiteRoomId)
+            ->where('room_id', 4)
+            ->where('status', 'completed')
+            ->where('type', '!=', 'bulk_head_online')
+            ->whereDate('check_in_date', '<=', $newCheckInDate)
+            ->whereDate('check_out_date', '>=', $newCheckOutDate)
+            ->get();
+
+        if ($bookings->count() >= 2) {
+            return false;
+        }
+
+        $checkInDateOnly = Carbon::parse($checkIn)->toDateString();
+
+        $precedingBooking = Booking::where('suite_room_id', $suiteRoomId)
+            ->where('room_id', 4)
+            ->where('status', 'completed')
+            ->where('type', '!=', 'bulk_head_online')
+            ->whereDate('check_in_date', '<=', $checkInDateOnly)
+            ->whereDate('check_out_date', '>=', $checkInDateOnly)
+            ->first();
+
+        if ($precedingBooking) {
+            $precedingBookingCheckOut = Carbon::parse($precedingBooking->check_out_date);
+            $proposedCheckIn = Carbon::parse($checkIn);
+            $requiredStartBuffer = $precedingBookingCheckOut->copy()->addHours(2);
+            if ($proposedCheckIn->lessThan($requiredStartBuffer)) {
+                return true;
+            } else {
+                return null;
+            }
+        }
     }
 
     public function getSuiteRoom($suiteID, $checkIn, $checkOut)
@@ -398,6 +468,97 @@ class ViewBookings extends Page
                     ->placeholder('Please provide a reason'),
             ])
             ->statePath('cancelData');
+    }
+
+    public function infoListFunctionHall(Infolist $infolist): Infolist
+    {
+        return $infolist
+            ->record($this->record)
+            ->schema([
+                TextEntry::make('organization')
+                    ->label('First Name'),
+                TextEntry::make('position')
+                    ->label('Last Name'),
+                TextEntry::make('status')
+                    ->label('')
+                    ->badge()
+                    ->color(fn (string $state): string => match ($state) {
+                        'pending' => 'gray',
+                        'completed' => 'warning',
+                        'cancelled' => 'danger',
+                        'done' => 'success',
+                        'returned' => 'danger',
+                    })
+                    ->formatStateUsing(fn (string $state): string => match ($state) {
+                        'completed' => 'For CheckIn',
+                        default => __(ucfirst($state)),
+                    }),
+                TextEntry::make('contact_number')
+                    ->label('Contact Number'),
+                TextEntry::make('start_date')->dateTime()->label('Booking Start'),
+                TextEntry::make('end_date')->dateTime()->label('Booking End'),
+                TextEntry::make('duration')->label('Duration Hrs'),
+                TextEntry::make('no_persons')->label('Number of Persons')
+                    ->formatStateUsing(function ($record) {
+                        return $record->no_persons;
+                    }),
+                TextEntry::make('additional_persons')->label('Additional Persons')
+                    ->formatStateUsing(function ($record) {
+                        return $record->additional_persons;
+                    }),
+                TextEntry::make('check_in_date')->dateTime()->label('Check In Time')
+                    ->formatStateUsing(function ($state) {
+                        return \Carbon\Carbon::parse($state)->format('F j, Y h:i A');
+                    }),
+                TextEntry::make('check_out_date')->dateTime()->label('Check Out Time')
+                    ->formatStateUsing(function ($state) {
+                        return \Carbon\Carbon::parse($state)->format('F j, Y h:i A');
+                    }),
+                TextEntry::make('amount_to_pay')->label('Room Booking Fee')->prefix('₱ ')
+                    ->formatStateUsing(function ($record) {
+                        return $record->type != 'bulk_head_online' ? number_format($record->amount_to_pay, 2) : number_format($record->relatedBookings->sum('amount_to_pay'), 2);
+                    }),
+                TextEntry::make('amount_paid')->label('Amount Paid ')
+                    ->formatStateUsing(fn ($record) => number_format($record->amount_paid, 2))
+                    ->prefix('₱ '),
+                TextEntry::make('balance')->label('Balance Due')
+                    ->formatStateUsing(function ($state, $record) {
+                        $chargesAmount = 0;
+                        foreach ($record['additional_charges'] ?? [] as $charge) {
+                            $chargesAmount += $charge['total_charges'];
+                        }
+
+                        $foodChargesAmount = 0;
+                        foreach ($record['food_charges'] ?? [] as $charge) {
+                            $foodChargesAmount += $charge['total_charges'];
+                        }
+
+                        return number_format($state + $chargesAmount + $foodChargesAmount, 2);
+                    })
+                    ->prefix('₱ '),
+                TextEntry::make('room.name')->label('Suite Type'),
+                TextEntry::make('notes')->label('Notes/Requests'),
+                TextEntry::make('created_at')
+                    ->formatStateUsing(function ($record) {
+                        if ($record->type !== 'bulk_head_online') {
+                            return ucfirst($record->suiteRoom->name ?? '');
+                        }
+
+                        $names = $record->relatedBookings
+                            ->pluck('suiteRoom.name')
+                            ->filter()
+                            ->map('ucfirst')
+                            ->implode(', ');
+
+                        return $names;
+                    })
+                    ->label('Room Number'),
+                TextEntry::make('type')->label('Booking Type')
+                    ->formatStateUsing(function ($state) {
+                        return $state === 'walkin_booking' ? 'Walk-in' : 'Online';
+                    }),
+            ])
+            ->columns(3);
     }
 
     public function infoList(Infolist $infolist): Infolist
@@ -549,28 +710,39 @@ class ViewBookings extends Page
             ->send();
 
         // if (auth()->user()?->role == 'customer') {
-        Notification::make()
-            ->success()
-            ->title('Payment Confirmed')
-            ->icon('heroicon-o-check-circle')
-            ->body($this->record->user->name.' your booking has been confirmed')
-            ->actions([
-                Action::make('view')
-                    ->label('View')
-                    ->url(fn () => MyBookingResource::getUrl('payment', ['record' => $this->record->id]))
-                    ->markAsRead(),
-            ])
-            ->sendToDatabase(User::where('id', $this->record->user_id)->get());
+        if ($this->record->room_id != 4) {
+            Notification::make()
+                ->success()
+                ->title('Payment Confirmed')
+                ->icon('heroicon-o-check-circle')
+                ->body($this->record->user->name.' your booking has been confirmed')
+                ->actions([
+                    Action::make('view')
+                        ->label('View')
+                        ->url(fn () => MyBookingResource::getUrl('payment', ['record' => $this->record->id]))
+                        ->markAsRead(),
+                ])
+                ->sendToDatabase(User::where('id', $this->record->user_id)->get());
 
-        $details = [
-            'name' => $this->record->user->name,
-            'message' => 'Your booking has been confirmed. Thank you for choosing us!',
-            'amount_paid' => $this->record->amount_paid,
-            'balance' => $this->record->balance,
-            'type' => 'approved_booking',
-        ];
+            $details = [
+                'name' => $this->record->user->name,
+                'message' => 'Your booking has been confirmed. Thank you for choosing us!',
+                'amount_paid' => $this->record->amount_paid,
+                'balance' => $this->record->balance,
+                'type' => 'approved_booking',
+            ];
 
-        Mail::to($this->record->user->email)->send(new MailFrontDesk($details));
+            Mail::to($this->record->user->email)->send(new MailFrontDesk($details));
+        } else {
+            $details = [
+                'name' => $this->record->organization.' '.$this->record->position,
+                'message' => 'Your booking has been confirmed. Thank you for choosing us!',
+                'amount_paid' => $this->record->amount_paid,
+                'balance' => $this->record->balance,
+                'type' => 'approved_booking',
+            ];
+            // Mail::to($this->record->email)->send(new MailFrontDesk($details));
+        }
 
         if ($this->record->id) {
             redirect(BookingResource::getUrl('view', ['record' => $this->record->id]));

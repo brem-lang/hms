@@ -88,6 +88,14 @@ class DatabaseSeeder extends Seeder
             'status' => 1,
             'available_rooms' => 4,
             'total_rooms' => 4,
+            'items' => [
+                ['item' => 'Basic Package - Option 1', 'price' => '13000'],
+                ['item' => 'Basic Package - Option 2', 'price' => '18000'],
+                ['item' => 'Standard Package - Option 1', 'price' => '23000'],
+                ['item' => 'Standard Package - Option 2', 'price' => '28000'],
+                ['item' => 'Premium Package - Option 1', 'price' => '33000'],
+                ['item' => 'Premium Package - Option 2', 'price' => '38000'],
+            ],
         ]);
 
         Charge::create([

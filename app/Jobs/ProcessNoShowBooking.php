@@ -55,7 +55,7 @@ class ProcessNoShowBooking implements ShouldQueue
                     $booking->save();
                 }
                 // for daily
-                if ($checkInDate->copy()->addHours(2)->lessThanOrEqualTo($now)) {
+                if ($checkInDate->copy()->addHours(1)->lessThanOrEqualTo($now)) {
 
                     $booking->is_no_show = true;
                     $booking->save();

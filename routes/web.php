@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\BookingController;
 use App\Http\Controllers\SocialiteController;
 use App\Livewire\CustomerPage;
 use App\Livewire\MyBooking;
@@ -34,6 +35,9 @@ Route::get('/auth/{provider}/redirect', [SocialiteController::class, 'redirect']
 
 Route::get('/auth/{provider}/callback', [SocialiteController::class, 'callback'])
     ->name('socialite.callback');
+
+Route::get('/bookings/{booking}/charges-pdf', [BookingController::class, 'downloadChargesPdf'])
+    ->name('bookings.charges.pdf');
 
 Route::get('2fa', TwoFactor::class)->name('2fa.index')
     ->middleware('redirect2FA');

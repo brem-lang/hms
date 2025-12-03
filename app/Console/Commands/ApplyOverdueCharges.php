@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Jobs\ProccessOverDueFunctionHall;
 use App\Jobs\ProcessOverdueCharge;
 use App\Models\Booking;
 use Carbon\Carbon;
@@ -38,9 +39,13 @@ class ApplyOverdueCharges extends Command
             ->where('is_occupied', 1)
             ->where('is_extend', 0)
             ->chunk(500, function ($overdueBookings) use (&$count) {
-
                 foreach ($overdueBookings as $booking) {
-                    ProcessOverdueCharge::dispatch($booking);
+                    if ($booking->room_id == 4) {
+                        ProccessOverDueFunctionHall::dispatch($booking);
+                    } else {
+                        ProcessOverdueCharge::dispatch($booking);
+                    }
+
                     $count++;
                 }
             });

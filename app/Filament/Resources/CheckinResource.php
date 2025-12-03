@@ -165,11 +165,11 @@ class CheckinResource extends Resource
                     ->color('success')
                     ->visible(fn ($record) => $record->is_occupied == 0)
                     ->modalWidth('5xl')
-                    // ->disabled(function ($record) {
-                    //     if (Carbon::parse($record->check_in_date, 'Asia/Manila')->setTimezone('UTC')->format('Y-m-d H:i:s') > Carbon::now('UTC')->format('Y-m-d H:i:s')) {
-                    //         return true;
-                    //     }
-                    // })
+                    ->disabled(function ($record) {
+                        if (Carbon::parse($record->check_in_date, 'Asia/Manila')->setTimezone('UTC')->format('Y-m-d H:i:s') > Carbon::now('UTC')->format('Y-m-d H:i:s')) {
+                            return true;
+                        }
+                    })
                     ->form([
                         Section::make()
                             ->schema([

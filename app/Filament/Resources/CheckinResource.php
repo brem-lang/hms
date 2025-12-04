@@ -503,6 +503,7 @@ class CheckinResource extends Resource
                                 ->reorderable(false)
                                 ->schema([
                                     Select::make('name')
+                                        ->columnSpan(3)
                                         ->disabled()
                                         ->options(Charge::pluck('name', 'id')),
                                     TextInput::make('amount')->numeric()->required()->disabled(),
@@ -512,13 +513,14 @@ class CheckinResource extends Resource
                                 ->addable(false)
                                 ->deletable(false)
                                 ->reorderable(false)
-                                ->columns(4),
+                                ->columns(6),
 
                             Repeater::make('food_charges')
                                 ->formatStateUsing(fn ($record) => $record->food_charges)->label('Food Charges')
                                 ->reorderable(false)
                                 ->schema([
                                     Select::make('name')
+                                        ->columnSpan(3)
                                         ->disabled()
                                         ->options(Food::pluck('name', 'id')),
                                     TextInput::make('amount')->numeric()->required()->disabled(),
@@ -528,7 +530,7 @@ class CheckinResource extends Resource
                                 ->addable(false)
                                 ->deletable(false)
                                 ->reorderable(false)
-                                ->columns(4),
+                                ->columns(6),
                         ];
                     })
                     ->action(function ($record, $data) {
@@ -701,7 +703,6 @@ class CheckinResource extends Resource
                             }
 
                             $existingCharges[] = $newExtendCharge;
-
                             $record->additional_charges = $existingCharges;
                             $record->is_extend = 1;
                             $record->extend_date = $data['extend_date'];

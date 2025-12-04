@@ -355,6 +355,7 @@ class ViewBookings extends Page
                         })
                         ->placeholder('Please provide any notes or requests'),
                 ])
+                ->visible(fn () => $this->record->status === 'completed')
                 ->modalCancelAction(false),
 
         ];
@@ -741,7 +742,7 @@ class ViewBookings extends Page
                 'balance' => $this->record->balance,
                 'type' => 'approved_booking',
             ];
-            // Mail::to($this->record->email)->send(new MailFrontDesk($details));
+            Mail::to($this->record->email)->send(new MailFrontDesk($details));
         }
 
         if ($this->record->id) {

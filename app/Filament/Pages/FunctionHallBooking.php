@@ -45,7 +45,13 @@ class FunctionHallBooking extends Page implements HasForms
 
     public $calendarEvents = [];
 
-    public $activePage = 'home';
+    public $activePage = 'book';
+
+    public $corkageValue;
+
+    public $packageValue;
+
+    public $typeValue;
 
     public function book()
     {
@@ -80,6 +86,10 @@ class FunctionHallBooking extends Page implements HasForms
                     'color' => '#2563eb', // Static color is fine
                 ];
             });
+
+        $this->form->fill([
+            // 'total_amount' => 0,
+        ]);
     }
 
     public static function canAccess(): bool
@@ -140,8 +150,15 @@ class FunctionHallBooking extends Page implements HasForms
                             ->options([
                                 'yes' => 'Yes, I will avail the All-In Package',
                                 'no' => 'No, I will arrange my own catering and decoration',
-                            ]),
+                            ])
+                            ->afterStateUpdated(function ($state, $get, $set) {
+                                $set('selected_package', null);
+                                $this->packageValue = 0;
+                                $this->corkageValue = 1000;
+                            }),
                         Select::make('selected_package')
+                            ->live()
+                            ->reactive()
                             ->label('Select Event Package Option')
                             ->hidden(fn (callable $get) => $get('food_corkage') == 'no')
                             ->options(function () {
@@ -176,6 +193,13 @@ class FunctionHallBooking extends Page implements HasForms
 
                                 return $options;
                             })
+                            ->afterStateUpdated(function ($state, $get) {
+
+                                $bookingData = json_decode($state, true);
+                                $price = $bookingData['price'] ?? 0;
+
+                                $this->packageValue = $get('food_corkage') == 'yes' ? $price : 0;
+                            })
                             // ->searchable()
                             ->required()
                             ->placeholder('Choose a package option')
@@ -205,6 +229,11 @@ class FunctionHallBooking extends Page implements HasForms
                                     // Clear the field if the selection is cleared
                                     $set('no_persons', null);
                                 }
+                            })
+
+                            ->afterStateUpdated(function ($state) {
+                                $room = SuiteRoom::find($state);
+                                $this->typeValue = $room->price;
                             }),
 
                         TextInput::make('no_persons')
@@ -260,6 +289,7 @@ class FunctionHallBooking extends Page implements HasForms
 
                         // 2. Required Consent Checkbox
                         Checkbox::make('agreed_to_terms')
+                            ->columnSpanFull()
                             ->label('I have read and agree to the Terms and Conditions.')
                             ->validationMessages([
                                 'accepted' => 'You must agree to the terms and conditions to proceed.',
@@ -389,7 +419,8 @@ class FunctionHallBooking extends Page implements HasForms
                     'days' => $data['suiteId'] == 4 ? 0 : $days,
                     'hours' => $data['suiteId'] == 4 ? 0 : $hours,
                     'suite_room_id' => $data['type'],
-                    'amount_to_pay' => $this->getPayment($data['selected_package'] ?? null, $data['food_corkage'], $data['type']),
+                    'amount_to_pay' => $this->getPayment($data['selected_package'] ?? null, $data['food_corkage'], $data['type'])
+                        + ($data['food_corkage'] == 'no' ? 1000 : 0),
                     'food_corkage_amount' => $data['food_corkage'] == 'no' ? 1000 : null,
                     'additional_charges' => $data['food_corkage'] == 'no' ? $this->corkage() : null,
                 ]);
@@ -433,15 +464,9 @@ class FunctionHallBooking extends Page implements HasForms
 
     public function getPayment($package, $corkage, $type)
     {
-        if ($corkage == 'yes') {
-            $package = json_decode($package);
+        $package = json_decode($package);
 
-            return $package->price;
-        }
-
-        if ($corkage = 'no') {
-            return SuiteRoom::where('id', $type)->first()->price;
-        }
+        return ($package?->price ?? 0) + SuiteRoom::where('id', $type)->first()->price;
     }
 
     public function getFunctionHallTime($checkIn, $checkOut, $suiteRoomId)

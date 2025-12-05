@@ -109,7 +109,7 @@
             border: 1px solid #333;
             padding: 3px 8px;
             text-align: right;
-            width: 60%;
+            width: 52%;
         }
 
         .subtotal-table .label {
@@ -208,26 +208,37 @@
 
                 {{-- 1. BASE PACKAGE CHARGE (ALWAYS PRESENT) --}}
                 @php
-                    // 1. Decode the JSON string safely
                     $packageArray = json_decode($booking->selected_package, true);
 
-                    // 2. Safely extract the item name, defaulting to a descriptive fallback if necessary
                     $itemName = $packageArray['item'] ?? 'Base Package Rental';
                     $itemPrice = $packageArray['price'] ?? 0;
                 @endphp
                 <tr>
                     <td style="text-align: center;">-</td>
                     <td style="font-style: italic; padding-left: 15px;">
-                        {{-- 🛑 FIX: Display the extracted item name --}}
-                        {{ $itemName }}
+                        {{ $booking->suiteRoom->name }}
                     </td>
                     <td style="text-align: right;">₱
-                        {{ number_format($itemPrice == 0 ? $booking->suiteRoom->price : $itemPrice, 2) }}
+                        {{ number_format($booking->suiteRoom->price, 2) }}
                     </td>
                     <td style="text-align: right;">₱
-                        {{ number_format($itemPrice == 0 ? $booking->suiteRoom->price : $itemPrice, 2) }}
+                        {{ number_format($booking->suiteRoom->price, 2) }}
                     </td>
                 </tr>
+                @if ($booking->food_corkage == 'yes')
+                    <tr>
+                        <td style="text-align: center;">-</td>
+                        <td style="font-style: italic; padding-left: 15px;">
+                            {{ $itemName }}
+                        </td>
+                        <td style="text-align: right;">₱
+                            {{ number_format($itemPrice == 0 ? $booking->suiteRoom->price : $itemPrice, 2) }}
+                        </td>
+                        <td style="text-align: right;">₱
+                            {{ number_format($itemPrice == 0 ? $booking->suiteRoom->price : $itemPrice, 2) }}
+                        </td>
+                    </tr>
+                @endif
 
                 {{-- 2. DYNAMIC ADDITIONAL CHARGES --}}
                 @foreach ($combinedCharges as $charge)
@@ -258,6 +269,13 @@
 
             <table class="subtotal-table" style="width: 100%; border-collapse: collapse; font-size: 10pt;">
                 <tbody>
+                    <tr>
+                        <td class="label" style="font-weight: normal;">Amount Paid</td>
+                        <td style="border-left: 1px solid #333; text-align: right;">₱
+                            {{ number_format($booking->amount_paid, 2) }}
+                        </td>
+                    </tr>
+
                     <tr>
                         <td class="label" style="font-weight: normal;">Subtotal</td>
                         <td style="border-left: 1px solid #333; text-align: right;">₱ {{ number_format($subtotal, 2) }}

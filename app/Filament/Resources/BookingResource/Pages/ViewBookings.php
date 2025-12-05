@@ -452,7 +452,11 @@ class ViewBookings extends Page
                     ->disk('public_uploads_payment')
                     ->visible(fn ($get) => $get('payment_type') === 'gcash')
                     ->directory('/')
-                    ->hint('Please upload the proof of payment for gcash.'),
+                    ->hint(function ($get) {
+                        $amount = $this->record->amount_to_pay;
+
+                        return 'Please upload the proof of payment for gcash|| Please pay 50% down payment of ₱'.number_format($amount / 2, 2);
+                    }),
             ])
             ->columns(2)
             ->statePath('formData');

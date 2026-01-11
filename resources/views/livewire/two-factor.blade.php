@@ -10,7 +10,7 @@
                     Two Factor Authentication
                 </h1>
                 <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
-                    Please check your email and enter the verification code below. The code is valid for only 2 minutes.
+                    Please check your email and enter the verification code below. The code is valid for only 1 minute.
                 </p>
             </div>
 
@@ -24,6 +24,7 @@
 
             <div class="mt-4" style="margin-top: 20px;">
                 <a href="#" class="genric-btn info w-full" wire:click="submit">Confirm</a>
+                <a href="#" class="genric-btn info w-full mt-2" wire:click="resend">Resend</a>
             </div>
 
         </div>

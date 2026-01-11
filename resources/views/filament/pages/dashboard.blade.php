@@ -44,7 +44,7 @@
     </div>
 
     @if (auth()->user()->isAdmin())
-        <div id="calendar"
+        <div id="calendar" style="width: 80%; height: 500px;"
             class="filament-stats-card relative p-6 rounded-2xl bg-white shadow dark:bg-gray-800 filament-stats-overview-widget-card">
         </div>
     @endif

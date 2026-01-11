@@ -367,7 +367,7 @@
                         <br>
                         <p style="margin: 0">
                             Note: <b>
-                                The code has a validity period of two minutes.
+                                The code has a validity period of one minute.
                             </b>
                         </p>
 

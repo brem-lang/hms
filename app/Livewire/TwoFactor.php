@@ -2,12 +2,15 @@
 
 namespace App\Livewire;
 
+use App\Mail\TwoFactorMail;
 use App\Models\UserCode;
 use DanHarrin\LivewireRateLimiting\Exceptions\TooManyRequestsException;
 use DanHarrin\LivewireRateLimiting\WithRateLimiting;
+use Exception;
 use Filament\Facades\Filament;
 use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
+use Illuminate\Support\Facades\Mail;
 use Livewire\Component;
 
 class TwoFactor extends Component implements HasForms
@@ -44,7 +47,7 @@ class TwoFactor extends Component implements HasForms
             // }
             $find = UserCode::where('user_id', auth()->id())
                 ->where('code', $data['otp'])
-                ->where('updated_at', '>=', now()->subMinutes(2))
+                ->where('updated_at', '>=', now()->subMinutes(1))
                 ->first();
 
             if ($find) {
@@ -66,6 +69,43 @@ class TwoFactor extends Component implements HasForms
                     'title' => 'Expired or Invalid Code',
                     'icon' => 'error',
                 ]);
+            }
+        } catch (TooManyRequestsException $exception) {
+            $this->dispatch('swal:success', [
+                'title' => 'Too many attempts!',
+                'icon' => 'error',
+            ]);
+        }
+    }
+
+    public function resend()
+    {
+        try {
+            $this->rateLimit(5);
+            $this->form->fill([]);
+
+            $code = rand(100000, 999999);
+
+            UserCode::updateOrCreate(
+                ['user_id' => auth()->user()->id],
+                ['code' => $code]
+            );
+
+            try {
+                $details = [
+                    'title' => 'Email from Millenium Suites',
+                    'code' => $code,
+                    'name' => auth()->user()->name,
+                ];
+
+                Mail::to(auth()->user()->email)->send(new TwoFactorMail($details));
+
+                $this->dispatch('swal:success', [
+                    'title' => 'New code has been successfully sent to your email.',
+                    'icon' => 'success',
+                ]);
+            } catch (Exception $e) {
+                logger('Error: '.$e->getMessage());
             }
         } catch (TooManyRequestsException $exception) {
             $this->dispatch('swal:success', [

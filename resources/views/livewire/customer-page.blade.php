@@ -829,7 +829,7 @@
 
     @auth
         <h3 class="text-heading mt-3">Calendar</h3>
-        <div style="height: 500px;" id="calendar" class="p-4 bg-white rounded-lg shadow" x-data="{
+        <div style="height: 300px;" id="calendar" class="p-4 bg-white rounded-lg shadow" x-data="{
             events: {{ Js::from($this->calendarEvents) }},
             initCalendar() {
                 const calendarEl = document.getElementById('calendar');

@@ -108,6 +108,15 @@
                                 <p class="text-xs text-gray-500">Duration</p>
                                 <p class="font-semibold">{{ $record->duration }} hrs</p>
                             </div>
+
+                            @if ($record->is_extend && $record->extend_date)
+                                <div class="p-4 rounded-xl bg-gray-50 dark:bg-gray-900">
+                                    <p class="text-xs text-gray-500">Extended Until</p>
+                                    <p class="font-semibold">
+                                        {{ \Carbon\Carbon::parse($record->extend_date)->format('F j, Y h:i A') }}
+                                    </p>
+                                </div>
+                            @endif
                         </div>
 
                         {{-- PAYMENT SUMMARY --}}
@@ -254,6 +263,15 @@
                                 <p class="text-xs text-gray-500">Duration</p>
                                 <p class="font-semibold">{{ $record->duration }} hrs</p>
                             </div>
+
+                            @if ($record->is_extend && $record->extend_date)
+                                <div class="p-4 bg-gray-50 dark:bg-gray-900 rounded-xl">
+                                    <p class="text-xs text-gray-500">Extended Until</p>
+                                    <p class="font-semibold">
+                                        {{ \Carbon\Carbon::parse($record->extend_date)->format('F j, Y h:i A') }}
+                                    </p>
+                                </div>
+                            @endif
                         </div>
 
                         {{-- PERSON COUNT --}}

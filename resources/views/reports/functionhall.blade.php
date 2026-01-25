@@ -170,29 +170,51 @@
         <div class="section-header">Payment Information</div>
         @php
             // --- Data Preparation Block ---
-            // 1. Combine all extra charges (additional_charges + food_charges) from all target bookings
+            // 1. Separate extend charges from other charges
+            $extendCharges = collect([]);
             $combinedCharges = collect([]);
 
             // Determine the target bookings (handle single or bulk bookings)
             $targetBookings = $booking->type != 'bulk_head_online' ? collect([$booking]) : $booking->relatedBookings;
 
+            // Extend charge IDs: 2 for regular rooms, 4 for function hall (room_id == 4)
+            $extendChargeIds = [2, 4];
+
             foreach ($targetBookings as $b) {
                 $allCharges = array_merge($b->additional_charges ?? [], $b->food_charges ?? []);
 
                 foreach ($allCharges as $charge) {
-                    // Append the charge data, including the room name for context if needed
-                    $combinedCharges->push([
-                        'name' => $charges[$charge['name']] ?? 'Unknown Charge', // Assuming $charges is a lookup array
-                        'qty' => $charge['quantity'] ?? 1,
-                        'amount' => $charge['amount'] ?? 0,
-                        'total_charges' => $charge['total_charges'] ?? 0,
-                        'room_name' => $b->suiteRoom->name ?? 'N/A', // Context for bulk bookings
-                    ]);
+                    $chargeId = $charge['name'] ?? null;
+                    
+                    // Check if this is an extend charge
+                    if (in_array($chargeId, $extendChargeIds)) {
+                        $extendCharges->push([
+                            'name' => $charges[$chargeId] ?? 'Extension Charge',
+                            'qty' => $charge['quantity'] ?? 1,
+                            'amount' => $charge['amount'] ?? 0,
+                            'total_charges' => $charge['total_charges'] ?? 0,
+                            'room_name' => $b->suiteRoom->name ?? 'N/A',
+                        ]);
+                    } else {
+                        // Regular additional charges
+                        $combinedCharges->push([
+                            'name' => $charges[$chargeId] ?? 'Unknown Charge',
+                            'qty' => $charge['quantity'] ?? 1,
+                            'amount' => $charge['amount'] ?? 0,
+                            'total_charges' => $charge['total_charges'] ?? 0,
+                            'room_name' => $b->suiteRoom->name ?? 'N/A',
+                        ]);
+                    }
                 }
             }
 
-            $dynamicRowCount = $combinedCharges->count();
+            $dynamicRowCount = $combinedCharges->count() + $extendCharges->count();
             $placeholderRowCount = max(0, 7 - (1 + $dynamicRowCount)); // Ensure at least 7 rows total (1 base + dynamic + placeholders)
+            
+            // Calculate base package amount (amount_to_pay)
+            $basePackageAmount = $booking->type != 'bulk_head_online' 
+                ? $booking->amount_to_pay 
+                : $booking->relatedBookings->sum('amount_to_pay');
         @endphp
 
         <table class="payment-table">
@@ -219,10 +241,10 @@
                         {{ $booking->suiteRoom->name }}
                     </td>
                     <td style="text-align: right;">₱
-                        {{ number_format($booking->suiteRoom->price, 2) }}
+                        {{ number_format($basePackageAmount, 2) }}
                     </td>
                     <td style="text-align: right;">₱
-                        {{ number_format($booking->suiteRoom->price, 2) }}
+                        {{ number_format($basePackageAmount, 2) }}
                     </td>
                 </tr>
                 @if ($booking->food_corkage == 'yes')
@@ -240,7 +262,22 @@
                     </tr>
                 @endif
 
-                {{-- 2. DYNAMIC ADDITIONAL CHARGES --}}
+                {{-- 2. EXTEND CHARGES (SEPARATE ROWS) --}}
+                @foreach ($extendCharges as $charge)
+                    <tr>
+                        <td style="text-align: center;">{{ $charge['qty'] }}</td>
+                        <td style="font-style: italic; padding-left: 15px;">
+                            {{ $charge['name'] }}
+                            @if ($booking->type == 'bulk_head_online')
+                                <span style="font-size: 8pt; color: #888;"> ({{ $charge['room_name'] }})</span>
+                            @endif
+                        </td>
+                        <td style="text-align: right;">₱ {{ number_format($charge['amount'], 2) }}</td>
+                        <td style="text-align: right;">₱ {{ number_format($charge['total_charges'], 2) }}</td>
+                    </tr>
+                @endforeach
+
+                {{-- 3. OTHER ADDITIONAL CHARGES --}}
                 @foreach ($combinedCharges as $charge)
                     <tr>
                         <td style="text-align: center;">{{ $charge['qty'] }}</td>
@@ -263,18 +300,15 @@
                                  width: 40%; /* Maintain a reasonable width */
                                  margin-top: 10px;">
             @php
-                $subtotal = $booking->amount_to_pay;
+                // Calculate subtotal: amount_to_pay (base package) + all additional charges
+                $extendChargesTotal = $extendCharges->sum('total_charges');
+                $additionalChargesTotal = $combinedCharges->sum('total_charges');
+                $subtotal = $basePackageAmount + $extendChargesTotal + $additionalChargesTotal;
                 $finalTotal = $subtotal;
             @endphp
 
             <table class="subtotal-table" style="width: 100%; border-collapse: collapse; font-size: 10pt;">
                 <tbody>
-                    <tr>
-                        <td class="label" style="font-weight: normal;">Amount Paid</td>
-                        <td style="border-left: 1px solid #333; text-align: right;">₱
-                            {{ number_format($booking->amount_paid, 2) }}
-                        </td>
-                    </tr>
 
                     <tr>
                         <td class="label" style="font-weight: normal;">Subtotal</td>

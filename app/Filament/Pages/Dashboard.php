@@ -29,7 +29,7 @@ class Dashboard extends BasePage
                 ->map(
                     fn (Booking $booking) => [
                         'id' => $booking->id,
-                        'title' => 'Booking for '.$booking->user->name,
+                        'title' => 'Booking for '.($booking?->user?->name ?? 'Walk-in'),
                         'start' => $booking->start_date,
                         'end' => $booking->end_date,
                         'backgroundColor' => $booking->balance == 0 ? '#10B981' : '#F59E0B',

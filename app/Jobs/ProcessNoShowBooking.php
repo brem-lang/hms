@@ -39,6 +39,18 @@ class ProcessNoShowBooking implements ShouldQueue
                 // Always retrieve the latest data to prevent race conditions
                 $booking->refresh();
 
+                // Skip if booking is already checked in - no need to process no-show
+                if ($booking->is_occupied == 1) {
+                    Log::info("Booking {$booking->id} is already checked in, skipping no-show processing.");
+                    return;
+                }
+
+                // Skip if booking is already done/settled
+                if ($booking->status == 'done') {
+                    Log::info("Booking {$booking->id} is already done, skipping no-show processing.");
+                    return;
+                }
+
                 // Validate dates exist and can be parsed
                 if (empty($booking->check_in_date)) {
                     Log::warning("Booking {$booking->id} has no check_in_date, skipping processing.");

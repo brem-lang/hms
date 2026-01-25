@@ -24,6 +24,7 @@ use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\DB;
 
 class CheckinResource extends Resource
 {
@@ -645,74 +646,119 @@ class CheckinResource extends Resource
                             ->label('Extend Date')
                             ->date('F d, Y h:i A')
                             ->default(now())
+                            ->required()
                             ->formatStateUsing(function ($record) {
                                 return $record->extend_date;
                             }),
                     ])
                     ->modalWidth('lg')
                     ->action(function ($record, $data) {
-                        if (CheckinResource::extendChecker($record->room_id, $record->check_out_date, $data['extend_date'], $record->id)) {
+                        try {
+                            // Validate extend_date is provided and after check_out_date
+                            if (empty($data['extend_date'])) {
+                                Notification::make()
+                                    ->danger()
+                                    ->title('Error')
+                                    ->body('Extend date is required')
+                                    ->send();
+
+                                return;
+                            }
+
+                            $extendDate = Carbon::parse($data['extend_date']);
+                            $checkOutDate = Carbon::parse($record->check_out_date);
+
+                            if ($extendDate->lessThanOrEqualTo($checkOutDate)) {
+                                Notification::make()
+                                    ->danger()
+                                    ->title('Error')
+                                    ->body('Extend date must be after the check out date')
+                                    ->send();
+
+                                return;
+                            }
+
+                            // Check for conflicts
+                            if (CheckinResource::extendChecker($record->room_id, $record->check_out_date, $data['extend_date'], $record->id)) {
+                                Notification::make()
+                                    ->danger()
+                                    ->title('Error')
+                                    ->body('Please select different dates for extending')
+                                    ->send();
+
+                                return;
+                            }
+
+                            $diffHours = (int) abs($extendDate->diffInHours($checkOutDate));
+
+                            DB::transaction(function () use ($record, $data, $diffHours) {
+                                // Refresh record to get latest data
+                                $record->refresh();
+
+                                if ($record->room_id != 4) {
+                                    $extendCharge = Charge::find(2);
+
+                                    if (! $extendCharge) {
+                                        throw new \Exception('Extend charge not found (ID: 2)');
+                                    }
+
+                                    $newExtendCharge = [
+                                        'name' => (string) $extendCharge->id,
+                                        'amount' => number_format($extendCharge->amount, 2, '.', ''),
+                                        'quantity' => (string) $diffHours,
+                                        'total_charges' => $extendCharge->amount * $diffHours,
+                                    ];
+
+                                    $existingCharges = $record->additional_charges ?? [];
+
+                                    if (! is_array($existingCharges)) {
+                                        $existingCharges = [];
+                                    }
+
+                                    $existingCharges[] = $newExtendCharge;
+                                    $record->additional_charges = $existingCharges;
+                                    $record->is_extend = 1;
+                                    $record->extend_date = $data['extend_date'];
+                                    $record->save();
+                                } elseif ($record->room_id == 4) {
+                                    $extendCharge = Charge::find(4);
+
+                                    if (! $extendCharge) {
+                                        throw new \Exception('Extend charge not found (ID: 4)');
+                                    }
+
+                                    $newExtendCharge = [
+                                        'name' => (string) $extendCharge->id,
+                                        'amount' => number_format($extendCharge->amount, 2, '.', ''),
+                                        'quantity' => (string) $diffHours,
+                                        'total_charges' => $extendCharge->amount * $diffHours,
+                                    ];
+
+                                    $existingCharges = $record->additional_charges ?? [];
+
+                                    if (! is_array($existingCharges)) {
+                                        $existingCharges = [];
+                                    }
+
+                                    $existingCharges[] = $newExtendCharge;
+                                    $record->additional_charges = $existingCharges;
+                                    $record->is_extend = 1;
+                                    $record->extend_date = $data['extend_date'];
+                                    $record->save();
+                                }
+                            });
+
+                            Notification::make()
+                                ->success()
+                                ->title('Booking Extended')
+                                ->send();
+                        } catch (\Exception $e) {
                             Notification::make()
                                 ->danger()
                                 ->title('Error')
-                                ->body('Please select different dates for extending')
+                                ->body('Failed to extend booking: '.$e->getMessage())
                                 ->send();
-
-                            return;
                         }
-
-                        $diffHours = (int) abs(Carbon::parse($data['extend_date'])->diffInHours(Carbon::parse($record->check_out_date)));
-
-                        if ($record->room_id != 4) {
-                            $extendCharge = Charge::find(2);
-
-                            $newExtendCharge = [
-                                'name' => (string) $extendCharge->id,
-                                'amount' => number_format($extendCharge->amount, 2, '.', ''),
-                                'quantity' => (string) $diffHours,
-                                'total_charges' => $extendCharge->amount * $diffHours,
-                            ];
-
-                            $existingCharges = $record->additional_charges ?? [];
-
-                            if (! is_array($existingCharges)) {
-                                $existingCharges = [];
-                            }
-
-                            $existingCharges[] = $newExtendCharge;
-                            $record->additional_charges = $existingCharges;
-                            $record->is_extend = 1;
-                            $record->extend_date = $data['extend_date'];
-                            $record->save();
-                        }
-
-                        if ($record->room_id == 4) {
-                            $extendCharge = Charge::find(4);
-
-                            $newExtendCharge = [
-                                'name' => (string) $extendCharge->id,
-                                'amount' => number_format($extendCharge->amount, 2, '.', ''),
-                                'quantity' => (string) $diffHours,
-                                'total_charges' => $extendCharge->amount * $diffHours,
-                            ];
-
-                            $existingCharges = $record->additional_charges ?? [];
-
-                            if (! is_array($existingCharges)) {
-                                $existingCharges = [];
-                            }
-
-                            $existingCharges[] = $newExtendCharge;
-                            $record->additional_charges = $existingCharges;
-                            $record->is_extend = 1;
-                            $record->extend_date = $data['extend_date'];
-                            $record->save();
-                        }
-
-                        Notification::make()
-                            ->success()
-                            ->title('Booking Extended')
-                            ->send();
                     }),
             ]);
     }
@@ -739,7 +785,7 @@ class CheckinResource extends Resource
         return $cleanedCharges;
     }
 
-    public static function ExtendChecker($roomId, $currentCheckoutDate, $newCheckoutDate, $currentBookingId)
+    public static function extendChecker($roomId, $currentCheckoutDate, $newCheckoutDate, $currentBookingId)
     {
         $extensionStart = $currentCheckoutDate;
         $extensionEnd = $newCheckoutDate;

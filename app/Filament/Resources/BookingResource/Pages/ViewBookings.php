@@ -711,7 +711,7 @@ class ViewBookings extends Page
         Notification::make()
             ->success()
             ->title('Booking Confirmed')
-            ->icon('heroicon-o-check-circle')s
+            ->icon('heroicon-o-check-circle')
             ->send();
 
         // if (auth()->user()?->role == 'customer') {

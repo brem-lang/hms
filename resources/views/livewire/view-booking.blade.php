@@ -125,22 +125,84 @@
                             Booking Details - #{{ $booking->booking_number }}
                         </h1>
 
-                        {{-- Filament Modal Button (RETAINED) --}}
-                        <x-filament::modal id="mail-modal">
-                            <x-slot name="trigger">
-                                <x-filament::button color="success" class="mb-5">
-                                    Mail
-                                </x-filament::button>
-                            </x-slot>
+                        <div class="flex gap-2">
+                            {{-- Rebook Modal Button --}}
+                            @if ($this->canRebook() || $booking->is_proof_send)
+                                <x-filament::modal id="rebook-modal">
+                                    <x-slot name="trigger">
+                                        <x-filament::button color="primary" class="mb-5">
+                                            Rebook
+                                        </x-filament::button>
+                                    </x-slot>
 
-                            <Textarea label="Reason for cancellation" wire:model.defer="reason"></Textarea>
+                                    <div class="space-y-4">
+                                        <div>
+                                            <label for="rebook_check_in_date"
+                                                class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                                Check In Date
+                                            </label>
+                                            <input type="datetime-local" id="rebook_check_in_date"
+                                                wire:model="rebook_check_in_date"
+                                                class="w-full rounded-lg border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                                                required>
+                                            @error('rebook_check_in_date')
+                                                <span class="text-red-500 text-sm">{{ $message }}</span>
+                                            @enderror
+                                        </div>
 
-                            <x-slot name="footerActions">
-                                <a href="#" class="genric-btn info w-full" wire:click="cancel">Confirm</a>
-                                <a href="#" class="genric-btn danger w-full"
-                                    x-on:click.prevent="$dispatch('close-modal', {id: 'mail-modal'})">Cancel</a>
-                            </x-slot>
-                        </x-filament::modal>
+                                        <div>
+                                            <label for="rebook_check_out_date"
+                                                class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                                Check Out Date
+                                            </label>
+                                            <input type="datetime-local" id="rebook_check_out_date"
+                                                wire:model="rebook_check_out_date"
+                                                class="w-full rounded-lg border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                                                required>
+                                            @error('rebook_check_out_date')
+                                                <span class="text-red-500 text-sm">{{ $message }}</span>
+                                            @enderror
+                                        </div>
+
+                                        <div>
+                                            <label for="rebook_notes"
+                                                class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                                Notes/Requests
+                                            </label>
+                                            <textarea id="rebook_notes" wire:model="rebook_notes" rows="4"
+                                                class="w-full rounded-lg border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                                                placeholder="Please provide any notes or requests" required maxlength="255"></textarea>
+                                            @error('rebook_notes')
+                                                <span class="text-red-500 text-sm">{{ $message }}</span>
+                                            @enderror
+                                        </div>
+                                    </div>
+
+                                    <x-slot name="footerActions">
+                                        <a href="#" class="genric-btn info w-full" wire:click="rebook">Confirm</a>
+                                        <a href="#" class="genric-btn danger w-full"
+                                            x-on:click.prevent="$dispatch('close-modal', {id: 'rebook-modal'})">Cancel</a>
+                                    </x-slot>
+                                </x-filament::modal>
+                            @endif
+
+                            {{-- Filament Modal Button (RETAINED) --}}
+                            <x-filament::modal id="mail-modal">
+                                <x-slot name="trigger">
+                                    <x-filament::button color="success" class="mb-5">
+                                        Mail
+                                    </x-filament::button>
+                                </x-slot>
+
+                                <Textarea label="Reason for cancellation" wire:model.defer="reason"></Textarea>
+
+                                <x-slot name="footerActions">
+                                    <a href="#" class="genric-btn info w-full" wire:click="cancel">Confirm</a>
+                                    <a href="#" class="genric-btn danger w-full"
+                                        x-on:click.prevent="$dispatch('close-modal', {id: 'mail-modal'})">Cancel</a>
+                                </x-slot>
+                            </x-filament::modal>
+                        </div>
                     </div>
 
                     {{-- Main Information Section (Using Table for Structure) --}}
@@ -185,7 +247,8 @@
 
                                     {{-- Row 3: Room Info & Guests --}}
                                     <tr class="border-b dark:border-gray-700">
-                                        <td class="px-2 py-3 font-semibold text-gray-600 dark:text-gray-400">Room Type /
+                                        <td class="px-2 py-3 font-semibold text-gray-600 dark:text-gray-400">Room Type
+                                            /
                                             Room</td>
                                         <td class="px-2 py-3 text-gray-900 dark:text-white">
                                             {{ $booking->room->name ?? '-' }} /

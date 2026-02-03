@@ -516,44 +516,31 @@
                     <h3 class="text-heading mt-3">Images</h3>
                     <div class="row gallery-item">
                         @if ($selectedRoom['name'] == 'Function Hall')
-                            <div class="instragram_area p-4">
-                                <div class="single_instagram">
-                                    <img src="img/functionhall/fn1.jpg" alt="">
+                            <div class="functionhall-carousel owl-carousel p-4">
+                                <div class="item">
+                                    <img src="img/functionhall/fn1.jpg" alt="Function Hall Image 1" style="width: 100%; height: auto;">
                                 </div>
-                                <div class="single_instagram">
-                                    <img src="img/functionhall/fn2.jpg" alt="">
+                                <div class="item">
+                                    <img src="img/functionhall/fn2.jpg" alt="Function Hall Image 2" style="width: 100%; height: auto;">
                                 </div>
-                                <div class="single_instagram">
-                                    <img src="img/functionhall/fn3.jpg" alt="">
+                                <div class="item">
+                                    <img src="img/functionhall/fn3.jpg" alt="Function Hall Image 3" style="width: 100%; height: auto;">
                                 </div>
-                                <div class="single_instagram">
-                                    <img src="img/functionhall/fn4.jpg" alt="">
+                                <div class="item">
+                                    <img src="img/functionhall/fn4.jpg" alt="Function Hall Image 4" style="width: 100%; height: auto;">
                                 </div>
-                                <div class="single_instagram">
-                                    <img src="img/functionhall/fn5.jpg" alt="">
+                                <div class="item">
+                                    <img src="img/functionhall/fn5.jpg" alt="Function Hall Image 5" style="width: 100%; height: auto;">
                                 </div>
                             </div>
                         @else
-                            @foreach ($selectedRoom['images'] ?? [] as $image)
-                                <div class="col-md-4">
-                                    <a class="img-pop-up">
-                                        <div class="single-gallery-image"
-                                            style="background-image: url('{{ asset('suite-photo/' . $image) }}');">
-                                        </div>
-                                    </a>
-
-                                    <x-filament::modal>
-                                        <x-slot name="trigger">
-                                            <x-filament::button size="sm" variant="primary"
-                                                icon="heroicon-o-viewfinder-circle">
-                                            </x-filament::button>
-                                        </x-slot>
-
-                                        <img src="{{ asset('suite-photo/' . $image) }}" alt="">
-
-                                    </x-filament::modal>
-                                </div>
-                            @endforeach
+                            <div class="suite-images-carousel owl-carousel p-4">
+                                @foreach ($selectedRoom['images'] ?? [] as $image)
+                                    <div class="item">
+                                        <img src="{{ asset('suite-photo/' . $image) }}" alt="Suite Image" style="width: 100%; height: auto;">
+                                    </div>
+                                @endforeach
+                            </div>
                         @endif
 
                     </div>
@@ -935,5 +922,89 @@
             timer: 3000,
             showConfirmButton: false,
         });
+    });
+</script>
+
+<script>
+    // Initialize Function Hall carousel
+    document.addEventListener('DOMContentLoaded', function() {
+        function initFunctionHallCarousel() {
+            if (typeof jQuery !== 'undefined' && typeof jQuery.fn.owlCarousel !== 'undefined') {
+                var carousel = jQuery('.functionhall-carousel');
+                if (carousel.length && !carousel.hasClass('owl-loaded')) {
+                    carousel.owlCarousel({
+                        loop: true,
+                        margin: 15,
+                        items: 1,
+                        autoplay: true,
+                        autoplayTimeout: 3000,
+                        autoplayHoverPause: true,
+                        nav: true,
+                        navText: ['<i class="fa fa-angle-left"></i>', '<i class="fa fa-angle-right"></i>'],
+                        dots: true,
+                        responsive: {
+                            0: {
+                                items: 1,
+                                nav: false
+                            },
+                            600: {
+                                items: 2,
+                                nav: false
+                            },
+                            992: {
+                                items: 3,
+                                nav: true
+                            }
+                        }
+                    });
+                }
+            }
+        }
+        
+        // Initialize Suite Images carousel
+        function initSuiteImagesCarousel() {
+            if (typeof jQuery !== 'undefined' && typeof jQuery.fn.owlCarousel !== 'undefined') {
+                var carousel = jQuery('.suite-images-carousel');
+                if (carousel.length && !carousel.hasClass('owl-loaded')) {
+                    carousel.owlCarousel({
+                        loop: true,
+                        margin: 15,
+                        items: 1,
+                        autoplay: true,
+                        autoplayTimeout: 3000,
+                        autoplayHoverPause: true,
+                        nav: true,
+                        navText: ['<i class="fa fa-angle-left"></i>', '<i class="fa fa-angle-right"></i>'],
+                        dots: true,
+                        responsive: {
+                            0: {
+                                items: 1,
+                                nav: false
+                            },
+                            600: {
+                                items: 2,
+                                nav: false
+                            },
+                            992: {
+                                items: 3,
+                                nav: true
+                            }
+                        }
+                    });
+                }
+            }
+        }
+        
+        // Initialize on page load
+        setTimeout(initFunctionHallCarousel, 500);
+        setTimeout(initSuiteImagesCarousel, 500);
+        
+        // Re-initialize when Livewire updates
+        if (typeof Livewire !== 'undefined') {
+            Livewire.hook('morph.updated', () => {
+                setTimeout(initFunctionHallCarousel, 500);
+                setTimeout(initSuiteImagesCarousel, 500);
+            });
+        }
     });
 </script>

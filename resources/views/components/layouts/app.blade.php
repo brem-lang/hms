@@ -89,6 +89,12 @@
         });
     </script>
 
+    <script>
+        window.addEventListener('open-pdf', event => {
+            window.open(event.detail.url, '_blank');
+        });
+    </script>
+
     @filamentStyles
     {{-- @vite('resources/css/app.css') --}}
 </head>

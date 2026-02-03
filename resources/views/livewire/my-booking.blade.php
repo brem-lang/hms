@@ -9,9 +9,9 @@
                             <div class="main-menu  d-none d-lg-block">
                                 <nav>
                                     <ul id="navigation">
-                                        <li><a class="" href="{{ route('index') }}">home</a></li>
+                                        <li><a class="" href="{{ route('index') }}"><i class="fa fa-home" style="font-size: 1.5em;"></i> home</a></li>
                                         @auth
-                                            <li><a class="active" href="{{ route('my-bookings') }}">my bookings</a></li>
+                                            <li><a class="active" href="{{ route('my-bookings') }}"><i class="fa fa-calendar" style="font-size: 1.5em;"></i> my bookings</a></li>
                                         @endauth
                                     </ul>
                                 </nav>

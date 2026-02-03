@@ -44,7 +44,7 @@
     </div>
 
     @if (auth()->user()->isAdmin())
-        <div id="calendar" style="width: 80%; height: 500px;"
+        <div wire:ignore id="calendar" style="width: 80%; height: 500px;"
             class="filament-stats-card relative p-6 rounded-2xl bg-white shadow dark:bg-gray-800 filament-stats-overview-widget-card">
         </div>
     @endif
@@ -235,37 +235,168 @@
             $loading.hide();
         });
 
-    var calendarEl = document.getElementById('calendar');
-    var calendar = new FullCalendar.Calendar(calendarEl, {
-        headerToolbar: {
-            left: 'prev,next today',
-            center: 'title',
-            right: 'dayGridMonth,timeGridWeek,timeGridDay'
-        },
-        initialView: 'dayGridMonth',
-        selectable: true,
-        events: @json($this->calendarEvents),
-    });
+    // Store calendar events
+    window.calendarEvents = @json($this->calendarEvents ?? []);
 
-    calendar.render();
-</script>
+    function initializeCalendar() {
+        var calendarEl = document.getElementById('calendar');
+        if (!calendarEl) {
+            return;
+        }
 
+        // Destroy existing calendar if it exists
+        if (window.dashboardCalendar) {
+            try {
+                window.dashboardCalendar.destroy();
+            } catch (e) {
+                // Ignore errors during destroy
+            }
+            window.dashboardCalendar = null;
+        }
 
-<script>
-    function startTime() {
-        const today = new Date();
-        document.getElementById('time').innerHTML = 'Today is ' + today;
-        setTimeout(startTime, 1000);
+        // Clear any existing content
+        calendarEl.innerHTML = '';
+
+        try {
+            window.dashboardCalendar = new FullCalendar.Calendar(calendarEl, {
+                headerToolbar: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: 'dayGridMonth,timeGridWeek,timeGridDay'
+                },
+                initialView: 'dayGridMonth',
+                selectable: true,
+                events: window.calendarEvents,
+                eventClick: function(info) {
+                    if (info.event.url) {
+                        window.open(info.event.url, '_blank');
+                        info.jsEvent.preventDefault();
+                    }
+                },
+            });
+
+            window.dashboardCalendar.render();
+        } catch (e) {
+            console.error('Error initializing calendar:', e);
+        }
     }
-    startTime()
+
+    // Initialize calendar when script loads
+    function tryInitializeCalendar() {
+        if (document.getElementById('calendar')) {
+            initializeCalendar();
+        } else {
+            // Retry after a short delay if element not found
+            setTimeout(tryInitializeCalendar, 100);
+        }
+    }
+
+    // Initialize on DOM ready
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', tryInitializeCalendar);
+    } else {
+        tryInitializeCalendar();
+    }
+
+    // Re-initialize when Livewire/Filament updates the page
+    if (typeof Livewire !== 'undefined') {
+        // Update events and re-initialize when component updates
+        Livewire.hook('morph.updated', ({ el, component }) => {
+            // Update calendar events from the component if available
+            if (component && component.get && typeof component.get === 'function') {
+                try {
+                    var newEvents = component.get('calendarEvents');
+                    if (newEvents) {
+                        window.calendarEvents = newEvents;
+                    }
+                } catch (e) {
+                    // Component might not expose calendarEvents directly
+                }
+            }
+            
+            setTimeout(() => {
+                var calendarEl = document.getElementById('calendar');
+                if (calendarEl && calendarEl.offsetParent !== null) {
+                    initializeCalendar();
+                }
+            }, 300);
+        });
+
+        // Also listen for navigation events
+        Livewire.hook('morph.removed', ({ el, component }) => {
+            if (el && el.id === 'calendar' && window.dashboardCalendar) {
+                try {
+                    window.dashboardCalendar.destroy();
+                    window.dashboardCalendar = null;
+                } catch (e) {
+                    // Ignore errors
+                }
+            }
+        });
+    }
+
+    // Listen for page visibility changes (when navigating back)
+    document.addEventListener('visibilitychange', function() {
+        if (!document.hidden) {
+            setTimeout(() => {
+                if (document.getElementById('calendar')) {
+                    initializeCalendar();
+                }
+            }, 500);
+        }
+    });
+</script>
+
+
+<script>
+    var timeInterval = null;
+
+    function startTime() {
+        const timeEl = document.getElementById('time');
+        if (!timeEl) return;
+
+        const today = new Date();
+        timeEl.innerHTML = 'Today is ' + today;
+        
+        // Clear existing interval if any
+        if (timeInterval) {
+            clearInterval(timeInterval);
+        }
+        
+        timeInterval = setTimeout(startTime, 1000);
+    }
+
+    function initializeTime() {
+        startTime();
+    }
+
+    // Initialize time on page load
+    initializeTime();
+
+    // Re-initialize when Livewire/Filament updates the page
+    if (typeof Livewire !== 'undefined') {
+        Livewire.hook('morph.updated', () => {
+            setTimeout(initializeTime, 100);
+        });
+    }
+
+    // Also listen for DOMContentLoaded
+    document.addEventListener('DOMContentLoaded', initializeTime);
 </script>
 <script>
+    var clockIntervals = [];
+
     /**
      * Updates the digital clock for a specific location with the current time and date.
      * @param {string} elementIdPrefix - The prefix for the HTML element IDs (e.g., 'philippines').
      * @param {string} timeZone - The IANA timezone string (e.g., 'Asia/Manila').
      */
     function updateClock(elementIdPrefix, timeZone) {
+        const timeEl = document.getElementById(`${elementIdPrefix}-time`);
+        const dateEl = document.getElementById(`${elementIdPrefix}-date`);
+        
+        if (!timeEl || !dateEl) return;
+
         const now = new Date(); // Get the current date and time
 
         // Options for time formatting (e.g., 2-digit hour, minute, second)
@@ -291,27 +422,43 @@
         const formattedDate = now.toLocaleDateString('en-US', dateOptions);
 
         // Update the content of the HTML elements
-        document.getElementById(`${elementIdPrefix}-time`).textContent = formattedTime;
-        document.getElementById(`${elementIdPrefix}-date`).textContent = formattedDate;
+        timeEl.textContent = formattedTime;
+        dateEl.textContent = formattedDate;
     }
 
     /**
      * Initializes and continuously updates all three clocks.
      */
     function initializeAllClocks() {
+        // Clear existing intervals
+        clockIntervals.forEach(interval => clearInterval(interval));
+        clockIntervals = [];
+
         // Update each clock with its respective timezone
         updateClock('philippines', 'Asia/Manila');
         updateClock('china', 'Asia/Shanghai'); // China uses Beijing Time (Asia/Shanghai)
         updateClock('london', 'Europe/London'); // Handles GMT/BST automatically
 
         // Set an interval to update all clocks every second
-        setInterval(() => {
+        const interval = setInterval(() => {
             updateClock('philippines', 'Asia/Manila');
             updateClock('china', 'Asia/Shanghai');
             updateClock('london', 'Europe/London');
         }, 1000);
+        
+        clockIntervals.push(interval);
     }
 
-    // Call the initialization function when the window loads
-    window.onload = initializeAllClocks;
+    // Initialize clocks on page load
+    initializeAllClocks();
+
+    // Re-initialize when Livewire/Filament updates the page
+    if (typeof Livewire !== 'undefined') {
+        Livewire.hook('morph.updated', () => {
+            setTimeout(initializeAllClocks, 100);
+        });
+    }
+
+    // Also listen for DOMContentLoaded
+    document.addEventListener('DOMContentLoaded', initializeAllClocks);
 </script>

@@ -2,6 +2,7 @@
 
 namespace App\Filament\Pages;
 
+use App\Filament\Resources\BookingResource;
 use App\Models\Booking;
 use App\Models\SuiteRoom;
 use Filament\Pages\Dashboard as BasePage;
@@ -33,6 +34,7 @@ class Dashboard extends BasePage
                         'start' => $booking->start_date,
                         'end' => $booking->end_date,
                         'backgroundColor' => $booking->balance == 0 ? '#10B981' : '#F59E0B',
+                        'url' => BookingResource::getUrl('view', ['record' => $booking->id]),
                     ]
                 )
                 ->toArray();

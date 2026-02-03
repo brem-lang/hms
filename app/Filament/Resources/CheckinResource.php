@@ -3,14 +3,10 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\CheckinResource\Pages;
-use App\Mail\MailFrontDesk;
 use App\Models\Booking;
 use App\Models\Charge;
-use App\Models\Food;
 use Carbon\Carbon;
 use Filament\Forms\Components\DateTimePicker;
-use Filament\Forms\Components\Repeater;
-use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
 use Filament\Forms\Get;
@@ -24,7 +20,6 @@ use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Mail;
 
 class CheckinResource extends Resource
 {
@@ -166,135 +161,6 @@ class CheckinResource extends Resource
                     ->color('success')
                     ->visible(fn ($record) => $record->is_occupied == 0)
                     ->url(fn ($record) => CheckinResource::getUrl('view', ['record' => $record->id])),
-                // Action::make('check_out')
-                //     ->icon('heroicon-o-check-circle')
-                //     ->label('Check Out')
-                //     ->color('warning')
-                //     ->modalWidth('5xl')
-                //     ->modalSubmitActionLabel('Check Out')
-                //     ->visible(fn ($record) => $record->is_occupied == 1)
-                //     ->form(function ($record) {
-                //         return [
-                //             TextInput::make('amount')
-                //                 ->label('Amount')
-                //                 ->disabled()
-                //                 ->prefix('₱ ')
-                //                 ->formatStateUsing(function ($record) {
-                //                     return number_format($record->amount_to_pay, 2);
-                //                 }),
-                //             TextInput::make('amount_paid')
-                //                 ->label('Amount Paid')
-                //                 ->disabled()
-                //                 ->prefix('₱ ')
-                //                 ->formatStateUsing(function ($record) {
-                //                     return number_format($record->amount_paid, 2);
-                //                 }),
-                //             TextInput::make('balance')
-                //                 ->label('Balance')
-                //                 ->disabled()
-                //                 ->prefix('₱ ')
-                //                 ->formatStateUsing(function ($record) {
-                //                     $chargesAmount = 0;
-                //                     foreach ($record['additional_charges'] ?? [] as $charge) {
-                //                         $chargesAmount += $charge['total_charges'];
-                //                     }
-
-                //                     $foodChargesAmount = 0;
-                //                     foreach ($record['food_charges'] ?? [] as $charge) {
-                //                         $foodChargesAmount += $charge['total_charges'];
-                //                     }
-
-                //                     return number_format($record->balance + $chargesAmount + $foodChargesAmount, 2);
-                //                 }),
-
-                //             Repeater::make('charges')
-                //                 ->formatStateUsing(fn ($record) => $record->additional_charges)->label('Room Charges')
-                //                 ->reorderable(false)
-                //                 ->schema([
-                //                     Select::make('name')
-                //                         ->columnSpan(3)
-                //                         ->disabled()
-                //                         ->options(Charge::pluck('name', 'id')),
-                //                     TextInput::make('amount')->numeric()->required()->disabled(),
-                //                     TextInput::make('quantity')->numeric()->required()->disabled(),
-                //                     TextInput::make('total_charges')->numeric()->required()->disabled(),
-                //                 ])
-                //                 ->addable(false)
-                //                 ->deletable(false)
-                //                 ->reorderable(false)
-                //                 ->columns(6),
-
-                //             Repeater::make('food_charges')
-                //                 ->formatStateUsing(fn ($record) => $record->food_charges)->label('Food Charges')
-                //                 ->reorderable(false)
-                //                 ->schema([
-                //                     Select::make('name')
-                //                         ->columnSpan(3)
-                //                         ->disabled()
-                //                         ->options(Food::pluck('name', 'id')),
-                //                     TextInput::make('amount')->numeric()->required()->disabled(),
-                //                     TextInput::make('quantity')->numeric()->required()->disabled(),
-                //                     TextInput::make('total_charges')->numeric()->required()->disabled(),
-                //                 ])
-                //                 ->addable(false)
-                //                 ->deletable(false)
-                //                 ->reorderable(false)
-                //                 ->columns(6),
-                //         ];
-                //     })
-                //     ->action(function ($record, $data) {
-
-                //         $chargesAmount = 0;
-                //         foreach ($record['additional_charges'] ?? [] as $charge) {
-                //             $chargesAmount += $charge['total_charges'];
-                //         }
-
-                //         $foodChargesAmount = 0;
-                //         foreach ($record['food_charges'] ?? [] as $charge) {
-                //             $foodChargesAmount += $charge['total_charges'];
-                //         }
-
-                //         $record->status = 'done';
-                //         $record->is_occupied = 0;
-                //         $record->balance = 0;
-                //         $record->amount_paid = $record->amount_to_pay + $chargesAmount + $foodChargesAmount;
-                //         $record->amount_to_pay = $record->amount_to_pay + $chargesAmount + $foodChargesAmount;
-                //         $record->suiteRoom->is_occupied = 0;
-                //         $record->suiteRoom->save();
-                //         $record->save();
-
-                //         if ($record->getBookingHead) {
-                //             $record->getBookingHead->update([
-                //                 'status' => 'done',
-                //             ]);
-                //         }
-
-                //         if ($record->room_id != 4) {
-                //             $details = [
-                //                 'name' => $record->user->name,
-                //                 'message' => 'You have been checked out successfully. Thank you for choosing us!',
-                //                 'amount_paid' => $record->amount_paid ?? 0,
-                //                 'balance' => $record->balance ?? 0,
-                //                 'type' => 'check_out',
-                //             ];
-
-                //             Mail::to($record->user->email)->send(new MailFrontDesk($details));
-                //         } else {
-                //             $details = [
-                //                 'name' => $record->organization.' '.$record->position,
-                //                 'message' => 'You have been checked out successfully. Thank you for choosing us!',
-                //                 'amount_paid' => $record->amount_paid ?? 0,
-                //                 'balance' => $record->balance ?? 0,
-                //                 'type' => 'check_out',
-                //             ];
-                //             Mail::to($record->email)->send(new MailFrontDesk($details));
-                //         }
-
-                //         Notification::make()
-                //             ->success()
-                //             ->title('Check Out')
-                //             ->send();
-                //     }),
                 Action::make('check_out')
                     ->icon('heroicon-o-check-circle')
                     ->label('Check Out')

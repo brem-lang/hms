@@ -143,6 +143,19 @@ class ViewCheckin extends Page
 
     public function checkIn()
     {
+        $checkIn = Carbon::parse($this->record->check_in_date)->timezone('Asia/Manila');
+
+        // Compare to today's date in Manila
+        if (! $checkIn->isToday('Asia/Manila')) {
+            Notification::make()
+                ->danger()
+                ->title('Error')
+                ->body('Check-in date is not today')
+                ->send();
+
+            // return;
+        }
+
         $data = $this->form->getState();
 
         $newCharges = CheckinResource::cleanAdditionalCharges($data['room_charges']);

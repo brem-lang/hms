@@ -123,6 +123,9 @@ class Register extends RegisterPage
 
         auth()->user()->generateCode();
 
+        // Set registration flow flag to indicate this is a registration flow
+        session()->put('registration_flow', true);
+
         return app(RegistrationResponse::class);
     }
 }

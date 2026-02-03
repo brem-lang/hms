@@ -19,6 +19,13 @@ class LoginResponse extends \Filament\Http\Responses\Auth\LoginResponse
                 return redirect()->intended(\Filament\Facades\Filament::getUrl());
             }
 
+            // Check if user is a new user (just registered and verified OTP)
+            // New users skip 2FA and go directly to index
+            if ($user->is_new_user) {
+                session()->put('user_2fa', auth()->id());
+                return redirect()->route('index');
+            }
+
             // 4. Regular authenticated user → require 2FA
             if ($user->isCustomer()) {
                 $user->generateCode();

@@ -10,6 +10,7 @@ use Exception;
 use Filament\Facades\Filament;
 use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
 use Livewire\Component;
 
@@ -51,6 +52,20 @@ class TwoFactor extends Component implements HasForms
                 ->first();
 
             if ($find) {
+                // Check if this is a registration flow
+                if (session()->has('registration_flow')) {
+                    // Clear the registration flow flag
+                    session()->forget('registration_flow');
+                    
+                    // Logout the user
+                    Auth::logout();
+                    session()->invalidate();
+                    session()->regenerateToken();
+                    
+                    // Redirect to login page
+                    return redirect(Filament::getLoginUrl());
+                }
+
                 session()->put('user_2fa', auth()->id());
 
                 if (auth()->user()->isCustomer() && ! auth()->user()->is_new_user) {

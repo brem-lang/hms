@@ -372,6 +372,18 @@
                             <h3 style="font-size: 15px">Balance :<b> {{ $details['balance'] }} </b> </h3>
                         @endif
 
+                        @if ($details['type'] == 'check_in')
+                            <h3 style="font-size: 15px">Message :<b> {{ $details['message'] }} </b> </h3>
+                            <h3 style="font-size: 15px">Amount Paid :<b> {{ number_format($details['amount_paid'] ?? 0, 2) }} </b> </h3>
+                            <h3 style="font-size: 15px">Balance :<b> {{ number_format($details['balance'] ?? 0, 2) }} </b> </h3>
+                        @endif
+
+                        @if ($details['type'] == 'check_out')
+                            <h3 style="font-size: 15px">Message :<b> {{ $details['message'] }} </b> </h3>
+                            <h3 style="font-size: 15px">Amount Paid :<b> {{ number_format($details['amount_paid'] ?? 0, 2) }} </b> </h3>
+                            <h3 style="font-size: 15px">Balance :<b> {{ number_format($details['balance'] ?? 0, 2) }} </b> </h3>
+                        @endif
+
                         <p style="margin-bottom: 0"><b>Regards:</b></p>
                         <p style="margin: 0">Millenium Suites</p>
 

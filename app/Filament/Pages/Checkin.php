@@ -3,6 +3,7 @@
 namespace App\Filament\Pages;
 
 use App\Filament\Resources\BookingResource;
+use App\Mail\MailFrontDesk;
 use App\Models\Booking;
 use App\Models\Charge;
 use App\Models\SuiteRoom;
@@ -27,6 +28,7 @@ use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Mail;
 
 use function Symfony\Component\Clock\now;
 
@@ -394,6 +396,28 @@ class Checkin extends Page implements HasForms, HasTable
                             $room->save();
                         }
 
+                        // Send email to guest
+                        if ($record->room_id != 4) {
+                            $details = [
+                                'name' => $record->user->name,
+                                'message' => 'You have been checked in successfully. Thank you for choosing us!',
+                                'amount_paid' => $record->amount_paid,
+                                'balance' => $record->balance,
+                                'type' => 'check_in',
+                            ];
+
+                            Mail::to($record->user->email)->send(new MailFrontDesk($details));
+                        } else {
+                            $details = [
+                                'name' => $record->organization.' '.$record->position,
+                                'message' => 'You have been checked in successfully. Thank you for choosing us!',
+                                'amount_paid' => $record->amount_paid,
+                                'balance' => $record->balance,
+                                'type' => 'check_in',
+                            ];
+                            Mail::to($record->email)->send(new MailFrontDesk($details));
+                        }
+
                         Notification::make()
                             ->success()
                             ->title('Check In')
@@ -454,6 +478,7 @@ class Checkin extends Page implements HasForms, HasTable
                         ];
                     })
                     ->action(function ($record, $data) {
+                        dd($data);
                         if ($data['status'] == 'paid') {
 
                             $chargesAmount = 0;

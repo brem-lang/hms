@@ -3,6 +3,7 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\CheckinResource\Pages;
+use App\Mail\MailFrontDesk;
 use App\Models\Booking;
 use App\Models\Charge;
 use App\Models\Food;
@@ -25,6 +26,7 @@ use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 
 class CheckinResource extends Resource
 {
@@ -166,11 +168,11 @@ class CheckinResource extends Resource
                     ->color('success')
                     ->visible(fn ($record) => $record->is_occupied == 0)
                     ->modalWidth('5xl')
-                    ->disabled(function ($record) {
-                        if (Carbon::parse($record->check_in_date, 'Asia/Manila')->setTimezone('UTC')->format('Y-m-d H:i:s') > Carbon::now('UTC')->format('Y-m-d H:i:s')) {
-                            return true;
-                        }
-                    })
+                    // ->disabled(function ($record) {
+                    //     if (Carbon::parse($record->check_in_date, 'Asia/Manila')->setTimezone('UTC')->format('Y-m-d H:i:s') > Carbon::now('UTC')->format('Y-m-d H:i:s')) {
+                    //         return true;
+                    //     }
+                    // })
                     ->form([
                         Section::make()
                             ->schema([
@@ -452,6 +454,27 @@ class CheckinResource extends Resource
                             $room->save();
                         }
 
+                        if ($record->room_id != 4) {
+                            $details = [
+                                'name' => $record->user->name,
+                                'message' => 'You have been checked in successfully. Thank you for choosing us!',
+                                'amount_paid' => $record->amount_paid ?? 0,
+                                'balance' => $record->balance ?? 0,
+                                'type' => 'check_in',
+                            ];
+
+                            Mail::to($record->user->email)->send(new MailFrontDesk($details));
+                        } else {
+                            $details = [
+                                'name' => $record->organization.' '.$record->position,
+                                'message' => 'You have been checked in successfully. Thank you for choosing us!',
+                                'amount_paid' => $record->amount_paid ?? 0,
+                                'balance' => $record->balance ?? 0,
+                                'type' => 'check_in',
+                            ];
+                            Mail::to($record->email)->send(new MailFrontDesk($details));
+                        }
+
                         Notification::make()
                             ->success()
                             ->title('Check In')
@@ -559,6 +582,27 @@ class CheckinResource extends Resource
                             $record->getBookingHead->update([
                                 'status' => 'done',
                             ]);
+                        }
+
+                        if ($record->room_id != 4) {
+                            $details = [
+                                'name' => $record->user->name,
+                                'message' => 'You have been checked out successfully. Thank you for choosing us!',
+                                'amount_paid' => $record->amount_paid ?? 0,
+                                'balance' => $record->balance ?? 0,
+                                'type' => 'check_out',
+                            ];
+
+                            Mail::to($record->user->email)->send(new MailFrontDesk($details));
+                        } else {
+                            $details = [
+                                'name' => $record->organization.' '.$record->position,
+                                'message' => 'You have been checked out successfully. Thank you for choosing us!',
+                                'amount_paid' => $record->amount_paid ?? 0,
+                                'balance' => $record->balance ?? 0,
+                                'type' => 'check_out',
+                            ];
+                            Mail::to($record->email)->send(new MailFrontDesk($details));
                         }
 
                         Notification::make()

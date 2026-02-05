@@ -254,6 +254,15 @@
                                 <p class="text-xs text-gray-500">Total Days</p>
                                 <p class="font-semibold">{{ $record->days }}</p>
                             </div>
+
+                            @if ($record->is_extend && $record->extend_date)
+                                <div class="p-4 rounded-xl bg-gray-50 dark:bg-gray-900">
+                                    <p class="text-xs text-gray-500">Extended Until</p>
+                                    <p class="font-semibold">
+                                        {{ \Carbon\Carbon::parse($record->extend_date)->format('F j, Y h:i A') }}
+                                    </p>
+                                </div>
+                            @endif
                         </div>
 
                         {{-- PERSON COUNT --}}
@@ -309,7 +318,8 @@
                                 <tr class="bg-gray-50 dark:bg-gray-900">
                                     <td class="p-3 font-bold">Balance Due</td>
                                     <td class="p-3 text-right font-bold text-red-600">
-                                        ₱ {{ number_format(($record->balance ?? 0) + $extraCharges + $foodCharges, 2) }}
+                                        ₱
+                                        {{ number_format(($record->balance ?? 0) + $extraCharges + $foodCharges, 2) }}
                                     </td>
                                 </tr>
 

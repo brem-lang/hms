@@ -198,7 +198,7 @@
                             <span
                                 class="px-3 py-1 rounded-full text-sm font-medium
             {{ $statusColors[$record->status] ?? 'bg-gray-100 text-gray-700' }}">
-                                {{ $record->status == 'completed' ? 'For Check-In' : ($record->status == 'done' ? 'Settled' : ucfirst($record->status)) }}
+                                {{ $record->status == 'completed' ? 'For Check-Out' : ($record->status == 'done' ? 'Settled' : ucfirst($record->status)) }}
                             </span>
                         </div>
 
@@ -254,6 +254,15 @@
                                 <p class="text-xs text-gray-500">Total Days</p>
                                 <p class="font-semibold">{{ $record->days }}</p>
                             </div>
+
+                            @if ($record->is_extend && $record->extend_date)
+                                <div class="p-4 rounded-xl bg-gray-50 dark:bg-gray-900">
+                                    <p class="text-xs text-gray-500">Extended Until</p>
+                                    <p class="font-semibold">
+                                        {{ \Carbon\Carbon::parse($record->extend_date)->format('F j, Y h:i A') }}
+                                    </p>
+                                </div>
+                            @endif
                         </div>
 
                         {{-- PERSON COUNT --}}
@@ -309,7 +318,8 @@
                                 <tr class="bg-gray-50 dark:bg-gray-900">
                                     <td class="p-3 font-bold">Balance Due</td>
                                     <td class="p-3 text-right font-bold text-red-600">
-                                        ₱ {{ number_format(($record->balance ?? 0) + $extraCharges + $foodCharges, 2) }}
+                                        ₱
+                                        {{ number_format(($record->balance ?? 0) + $extraCharges + $foodCharges, 2) }}
                                     </td>
                                 </tr>
 
@@ -352,7 +362,8 @@
                                 @if (!empty($record->additional_charges))
                                     <div class="mb-6">
                                         <h3 class="text-lg font-semibold mb-4">Room Charges</h3>
-                                        <table class="w-full text-sm border border-gray-200 dark:border-gray-700 rounded-lg">
+                                        <table
+                                            class="w-full text-sm border border-gray-200 dark:border-gray-700 rounded-lg">
                                             <thead class="bg-gray-50 dark:bg-gray-800">
                                                 <tr>
                                                     <th class="p-3 text-left font-medium">Charge Name</th>
@@ -368,9 +379,11 @@
                                                     @endphp
                                                     <tr>
                                                         <td class="p-3">{{ $chargeModel->name ?? '-' }}</td>
-                                                        <td class="p-3 text-right">₱ {{ number_format($charge['amount'] ?? 0, 2) }}</td>
+                                                        <td class="p-3 text-right">₱
+                                                            {{ number_format($charge['amount'] ?? 0, 2) }}</td>
                                                         <td class="p-3 text-right">{{ $charge['quantity'] ?? 0 }}</td>
-                                                        <td class="p-3 text-right font-semibold">₱ {{ number_format($charge['total_charges'] ?? 0, 2) }}</td>
+                                                        <td class="p-3 text-right font-semibold">₱
+                                                            {{ number_format($charge['total_charges'] ?? 0, 2) }}</td>
                                                     </tr>
                                                 @endforeach
                                             </tbody>
@@ -382,7 +395,8 @@
                                 @if (!empty($record->food_charges))
                                     <div class="mb-6">
                                         <h3 class="text-lg font-semibold mb-4">Food Charges</h3>
-                                        <table class="w-full text-sm border border-gray-200 dark:border-gray-700 rounded-lg">
+                                        <table
+                                            class="w-full text-sm border border-gray-200 dark:border-gray-700 rounded-lg">
                                             <thead class="bg-gray-50 dark:bg-gray-800">
                                                 <tr>
                                                     <th class="p-3 text-left font-medium">Charge Name</th>
@@ -398,9 +412,11 @@
                                                     @endphp
                                                     <tr>
                                                         <td class="p-3">{{ $foodModel->name ?? '-' }}</td>
-                                                        <td class="p-3 text-right">₱ {{ number_format($charge['amount'] ?? 0, 2) }}</td>
+                                                        <td class="p-3 text-right">₱
+                                                            {{ number_format($charge['amount'] ?? 0, 2) }}</td>
                                                         <td class="p-3 text-right">{{ $charge['quantity'] ?? 0 }}</td>
-                                                        <td class="p-3 text-right font-semibold">₱ {{ number_format($charge['total_charges'] ?? 0, 2) }}</td>
+                                                        <td class="p-3 text-right font-semibold">₱
+                                                            {{ number_format($charge['total_charges'] ?? 0, 2) }}</td>
                                                     </tr>
                                                 @endforeach
                                             </tbody>

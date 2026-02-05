@@ -8,6 +8,7 @@ use App\Models\Booking;
 use App\Models\Charge;
 use App\Models\Food;
 use Carbon\Carbon;
+use Filament\Actions\Action;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
@@ -31,6 +32,39 @@ class ViewCheckin extends Page
     public function getTitle(): string
     {
         return 'Check-In Details - '.$this->record->booking_number;
+    }
+
+    protected function getHeaderActions(): array
+    {
+        return [
+            Action::make('transfer')
+                ->label('Transfer')
+                ->icon('heroicon-o-arrow-right-on-rectangle')
+                ->disabled($this->record->is_occupied)
+                ->form(
+                    [
+                        Select::make('room')
+                            ->label('Room')
+                            ->options($this->record->room
+                                ->suite_rooms()
+                                ->where('id', '!=', $this->record->suite_room_id)
+                                ->where('is_occupied', 0)
+                                ->pluck('name', 'id')),
+                    ]
+                )
+                ->action(function ($data, $record) {
+                    $this->record->update([
+                        'suite_room_id' => (int) $data['room'],
+                    ]);
+
+                    Notification::make()
+                        ->success()
+                        ->title('Transfer')
+                        ->body('Transfer has been successful.')
+                        ->send();
+                })
+                ->requiresConfirmation(),
+        ];
     }
 
     public function mount(Booking $record): void
@@ -153,7 +187,7 @@ class ViewCheckin extends Page
                 ->body('Check-in date is not today')
                 ->send();
 
-            // return;
+            return;
         }
 
         $data = $this->form->getState();
@@ -172,6 +206,17 @@ class ViewCheckin extends Page
             ->where('id', '!=', $this->record->id)
             ->where('is_occupied', 1)
             ->exists();
+
+        if ($active) {
+
+            Notification::make()
+                ->danger()
+                ->title('Error')
+                ->body('Room is already occupied by another booking. Transfer the booking to another room.')
+                ->send();
+
+            return;
+        }
 
         // Only mark room as occupied if no other booking has occupied it
         if (! $active) {

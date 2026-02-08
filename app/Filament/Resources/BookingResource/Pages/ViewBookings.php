@@ -737,7 +737,7 @@ class ViewBookings extends Page
                 'type' => 'approved_booking',
             ];
 
-            Mail::to($this->record->user->email)->send(new MailFrontDesk($details));
+            Mail::to($this->record->type == 'online' ? $this->record->user->email : $this->record->walkingGuest->email)->send(new MailFrontDesk($details));
         } else {
             $details = [
                 'name' => $this->record->organization.' '.$this->record->position,

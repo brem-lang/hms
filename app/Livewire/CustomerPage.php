@@ -659,7 +659,7 @@ class CustomerPage extends Component implements HasForms
                 }
 
                 return [
-                    'title' => $booking->start_date->format('Y-m-d').' - '.$booking->end_date->format('Y-m-d'),
+                    'title' => 'Occupied Room - '.$booking->suiteRoom->name,
                     'start' => $booking->start_date->format('Y-m-d').'T'.$booking->start_date->format('H:i:s'),
                     'end' => $booking->end_date->format('Y-m-d').'T'.$booking->end_date->format('H:i:s'),
                     'color' => $color,

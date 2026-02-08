@@ -46,6 +46,8 @@ class RemoteGuestBooking extends Page implements HasForms
 
     protected static ?string $navigationGroup = 'Entry';
 
+    protected static ?string $title = 'ASSISSTED BOOKING PROCESS';
+
     protected static ?int $navigationSort = 2;
 
     public $record = [];
@@ -792,7 +794,7 @@ class RemoteGuestBooking extends Page implements HasForms
 
                 $booking = Booking::create([
                     'booking_number' => 'BKG-'.strtoupper(uniqid()),
-                    'type' => 'walkin_booking',
+                    'type' => 'online',
                     'user_id' => $data['userId'],
                     'room_id' => $data['suiteId'],
                     'status' => 'pending',
@@ -873,7 +875,7 @@ class RemoteGuestBooking extends Page implements HasForms
 
                 $booking = Booking::create([
                     'booking_number' => 'BKG-'.strtoupper(uniqid()),
-                    'type' => 'walkin_booking',
+                    'type' => 'online',
                     'user_id' => $data['userId'],
                     'room_id' => $data['suiteId'],
                     'status' => 'pending',

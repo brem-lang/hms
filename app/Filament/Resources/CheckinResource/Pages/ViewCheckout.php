@@ -5,12 +5,6 @@ namespace App\Filament\Resources\CheckinResource\Pages;
 use App\Filament\Resources\CheckinResource;
 use App\Mail\MailFrontDesk;
 use App\Models\Booking;
-use App\Models\Charge;
-use App\Models\Food;
-use Filament\Forms\Components\Repeater;
-use Filament\Forms\Components\Select;
-use Filament\Forms\Components\TextInput;
-use Filament\Forms\Form;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\Page;
 use Illuminate\Support\Facades\Mail;
@@ -69,7 +63,7 @@ class ViewCheckout extends Page
                 'type' => 'check_out',
             ];
 
-            Mail::to($this->record->user->email)->send(new MailFrontDesk($details));
+            Mail::to($this->record->type == 'online' ? $this->record->user->email : $this->record->walkingGuest->email)->send(new MailFrontDesk($details));
         } else {
             $details = [
                 'name' => $this->record->organization.' '.$this->record->position,

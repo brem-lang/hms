@@ -9,9 +9,13 @@
                             <div class="main-menu  d-none d-lg-block">
                                 <nav>
                                     <ul id="navigation">
-                                        <li><a class="" href="{{ route('index') }}">home</a></li>
-                                        <li><a class="active" href="{{ route('my-bookings') }}">my bookings</a>
-                                        </li>
+                                        <li><a class="" href="{{ route('index') }}" style="color: black"><i
+                                                    class="fa fa-home" style="font-size: 1.5em;"></i> home</a></li>
+                                        @auth
+                                            <li><a class="active" href="{{ route('my-bookings') }}" style="color: black"><i
+                                                        class="fa fa-calendar" style="font-size: 1.5em;"></i> my
+                                                    bookings</a></li>
+                                        @endauth
                                     </ul>
                                 </nav>
                             </div>
@@ -241,7 +245,8 @@
                                         </td>
                                         <td class="px-2 py-3 font-semibold text-gray-600 dark:text-gray-400">Duration
                                         </td>
-                                        <td class="px-2 py-3 text-gray-900 dark:text-white">{{ $booking->days }} Days /
+                                        <td class="px-2 py-3 text-gray-900 dark:text-white">{{ $booking->days }} Days
+                                            /
                                             {{ $booking->duration }} Hrs</td>
                                     </tr>
 

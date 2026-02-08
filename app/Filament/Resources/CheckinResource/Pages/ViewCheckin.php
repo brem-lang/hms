@@ -233,7 +233,7 @@ class ViewCheckin extends Page
                 'type' => 'check_in',
             ];
 
-            Mail::to($this->record->user->email)->send(new MailFrontDesk($details));
+            Mail::to($this->record->type == 'online' ? $this->record->user->email : $this->record->walkingGuest->email)->send(new MailFrontDesk($details));
         } else {
             $details = [
                 'name' => $this->record->organization.' '.$this->record->position,

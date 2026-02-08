@@ -93,14 +93,14 @@
                             <div class="p-4 rounded-xl bg-gray-50 dark:bg-gray-900">
                                 <p class="text-xs text-gray-500">Booking Start</p>
                                 <p class="font-semibold">
-                                    {{ \Carbon\Carbon::parse($record->start_date)->format('F j, Y h:i A') }}
+                                    {{ \Carbon\Carbon::parse($record->check_in_date)->format('F j, Y h:i A') }}
                                 </p>
                             </div>
 
                             <div class="p-4 rounded-xl bg-gray-50 dark:bg-gray-900">
                                 <p class="text-xs text-gray-500">Booking End</p>
                                 <p class="font-semibold">
-                                    {{ \Carbon\Carbon::parse($record->end_date)->format('F j, Y h:i A') }}
+                                    {{ \Carbon\Carbon::parse($record->check_out_date)->format('F j, Y h:i A') }}
                                 </p>
                             </div>
 
@@ -248,14 +248,14 @@
                             <div class="p-4 bg-gray-50 dark:bg-gray-900 rounded-xl">
                                 <p class="text-xs text-gray-500">Booking Start</p>
                                 <p class="font-semibold">
-                                    {{ \Carbon\Carbon::parse($record->start_date)->format('F j, Y h:i A') }}
+                                    {{ \Carbon\Carbon::parse($record->check_in_date)->format('F j, Y h:i A') }}
                                 </p>
                             </div>
 
                             <div class="p-4 bg-gray-50 dark:bg-gray-900 rounded-xl">
                                 <p class="text-xs text-gray-500">Booking End</p>
                                 <p class="font-semibold">
-                                    {{ \Carbon\Carbon::parse($record->end_date)->format('F j, Y h:i A') }}
+                                    {{ \Carbon\Carbon::parse($record->check_out_date)->format('F j, Y h:i A') }}
                                 </p>
                             </div>
 

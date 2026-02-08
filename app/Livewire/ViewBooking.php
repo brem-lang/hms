@@ -47,8 +47,8 @@ class ViewBooking extends Component implements HasForms
             return false;
         }
 
-        $checkInDate = is_string($this->booking->check_in_date) 
-            ? Carbon::parse($this->booking->check_in_date) 
+        $checkInDate = is_string($this->booking->check_in_date)
+            ? Carbon::parse($this->booking->check_in_date)
             : $this->booking->check_in_date;
 
         // Check if current date is at least 2 days before check-in date
@@ -279,17 +279,19 @@ class ViewBooking extends Component implements HasForms
         $checkOutDate = Carbon::parse($this->rebook_check_out_date);
 
         // Convert booking dates to Carbon if they're strings
-        $bookingCheckIn = is_string($this->booking->check_in_date) 
-            ? Carbon::parse($this->booking->check_in_date) 
+        $bookingCheckIn = is_string($this->booking->check_in_date)
+            ? Carbon::parse($this->booking->check_in_date)
             : $this->booking->check_in_date;
-        
-        $bookingCheckOut = is_string($this->booking->check_out_date) 
-            ? Carbon::parse($this->booking->check_out_date) 
+
+        $bookingCheckOut = is_string($this->booking->check_out_date)
+            ? Carbon::parse($this->booking->check_out_date)
             : $this->booking->check_out_date;
 
         // Check if dates are different
-        if ($bookingCheckIn->format('Y-m-d H:i:s') == $checkInDate->format('Y-m-d H:i:s') && 
-            $bookingCheckOut->format('Y-m-d H:i:s') == $checkOutDate->format('Y-m-d H:i:s')) {
+        if (
+            $bookingCheckIn->format('Y-m-d H:i:s') == $checkInDate->format('Y-m-d H:i:s') &&
+            $bookingCheckOut->format('Y-m-d H:i:s') == $checkOutDate->format('Y-m-d H:i:s')
+        ) {
             $this->dispatch('swal:success', [
                 'title' => 'Please select different dates for rebooking',
                 'icon' => 'error',

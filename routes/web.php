@@ -3,6 +3,7 @@
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\SocialiteController;
+use App\Http\Controllers\UserController;
 use App\Livewire\CustomerPage;
 use App\Livewire\MyBooking;
 use App\Livewire\NewUserPrompt;
@@ -43,6 +44,9 @@ Route::get('/bookings/{booking}/charges-pdf', [BookingController::class, 'downlo
 Route::get('/reports/stream', [ReportController::class, 'streamReport'])
     ->name('reports.stream')
     ->middleware('auth');
+
+Route::get('/verify-email/{id}/{hash}', [UserController::class, 'verifyEmail'])
+    ->name('verification.verify');
 
 Route::get('2fa', TwoFactor::class)->name('2fa.index')
     ->middleware('redirect2FA');

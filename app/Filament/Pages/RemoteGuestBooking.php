@@ -4,6 +4,7 @@ namespace App\Filament\Pages;
 
 use App\Filament\Resources\BookingResource;
 use App\Jobs\ProcessSingleSavingOperation;
+use App\Mail\UserVerificationMail;
 use App\Models\Booking;
 use App\Models\Room;
 use App\Models\SuiteRoom;
@@ -13,6 +14,7 @@ use App\Models\WalkinGuest;
 use Carbon\Carbon;
 use Closure;
 use DateTime;
+use Exception;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Select;
@@ -27,6 +29,8 @@ use Filament\Forms\Set;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\URL;
 
 class RemoteGuestBooking extends Page implements HasForms
 {
@@ -46,7 +50,7 @@ class RemoteGuestBooking extends Page implements HasForms
 
     protected static ?string $navigationGroup = 'Entry';
 
-    protected static ?string $title = 'ASSISSTED BOOKING PROCESS';
+    protected static ?string $title = 'Assisted Booking Process';
 
     protected static ?int $navigationSort = 2;
 
@@ -260,15 +264,21 @@ class RemoteGuestBooking extends Page implements HasForms
             Section::make('')
                 ->description('Guest Details')
                 ->schema([
-                    Select::make('user_id')
-                        ->label('User')
-                        ->options(
-                            User::where('role', 'customer')->pluck('name', 'id')->toArray()
-                        )
-                        ->columnSpanFull()
-                        ->searchable()
-                        ->reactive()
-                        ->required(),
+                    TextInput::make('first_name')
+                        ->label('First Name')
+                        ->required()
+                        ->maxLength(255),
+                    TextInput::make('last_name')
+                        ->label('Last Name')
+                        ->required()
+                        ->maxLength(255),
+                    TextInput::make('email')
+                        ->label('Email')
+                        ->maxLength(255),
+                    TextInput::make('phone')
+                        ->label('Phone')
+                        ->required()
+                        ->maxLength(255),
                 ])
                 ->columns(2),
         ])
@@ -416,15 +426,21 @@ class RemoteGuestBooking extends Page implements HasForms
             Section::make('')
                 ->description('Guest Details')
                 ->schema([
-                    Select::make('user_id')
-                        ->label('User')
-                        ->options(
-                            User::where('role', 'customer')->pluck('name', 'id')->toArray()
-                        )
-                        ->columnSpanFull()
-                        ->searchable()
-                        ->reactive()
-                        ->required(),
+                    TextInput::make('first_name')
+                        ->label('First Name')
+                        ->required()
+                        ->maxLength(255),
+                    TextInput::make('last_name')
+                        ->label('Last Name')
+                        ->required()
+                        ->maxLength(255),
+                    TextInput::make('email')
+                        ->label('Email')
+                        ->maxLength(255),
+                    TextInput::make('phone')
+                        ->label('Phone')
+                        ->required()
+                        ->maxLength(255),
                 ])
                 ->columns(2),
         ])
@@ -572,15 +588,21 @@ class RemoteGuestBooking extends Page implements HasForms
             Section::make('')
                 ->description('Guest Details')
                 ->schema([
-                    Select::make('user_id')
-                        ->label('User')
-                        ->options(
-                            User::where('role', 'customer')->pluck('name', 'id')->toArray()
-                        )
-                        ->columnSpanFull()
-                        ->searchable()
-                        ->reactive()
-                        ->required(),
+                    TextInput::make('first_name')
+                        ->label('First Name')
+                        ->required()
+                        ->maxLength(255),
+                    TextInput::make('last_name')
+                        ->label('Last Name')
+                        ->required()
+                        ->maxLength(255),
+                    TextInput::make('email')
+                        ->label('Email')
+                        ->maxLength(255),
+                    TextInput::make('phone')
+                        ->label('Phone')
+                        ->required()
+                        ->maxLength(255),
                 ])
                 ->columns(2),
         ])
@@ -626,7 +648,42 @@ class RemoteGuestBooking extends Page implements HasForms
 
         $data = $this->standardSuiteForm->getState();
         $data['suiteId'] = 1;
-        $data['userId'] = $data['user_id'];
+
+        $user = User::create([
+            'name' => $data['first_name'].' '.$data['last_name'],
+            'email' => $data['email'],
+            'contact_number' => $data['phone'],
+            'role' => 'customer',
+            'password' => bcrypt('password'),
+        ]);
+
+        unset($data['firstName']);
+
+        unset($data['lastName']);
+
+        $data['userId'] = $user->id;
+
+        // Generate verification URL
+        $verificationUrl = URL::temporarySignedRoute(
+            'verification.verify',
+            now()->addHours(24),
+            ['id' => $user->id, 'hash' => sha1($user->email)]
+        );
+
+        // Send verification email with credentials
+        try {
+            $emailDetails = [
+                'name' => $user->name,
+                'email' => $user->email,
+                'password' => 'password',
+                'verification_url' => $verificationUrl,
+            ];
+
+            Mail::to($user->email)->send(new UserVerificationMail($emailDetails));
+        } catch (Exception $e) {
+            // Log error but don't fail the booking process
+            info('Failed to send verification email: '.$e->getMessage());
+        }
 
         if ($data['bookingType'] == 'daily') {
             $start = Carbon::parse($data['start_date']);
@@ -674,7 +731,19 @@ class RemoteGuestBooking extends Page implements HasForms
         $data = $this->deluxeSuiteForm->getState();
 
         $data['suiteId'] = 2;
-        $data['userId'] = $data['user_id'];
+        $user = User::create([
+            'name' => $data['first_name'].' '.$data['last_name'],
+            'email' => $data['email'],
+            'contact_number' => $data['phone'],
+            'role' => 'customer',
+            'password' => bcrypt('password'),
+        ]);
+
+        unset($data['firstName']);
+
+        unset($data['lastName']);
+
+        $data['userId'] = $user->id;
         $start = Carbon::parse($data['start_date']);
         $end = $data['suiteId'] == 4 ? $start : Carbon::parse($data['end_date']);
 
@@ -722,7 +791,19 @@ class RemoteGuestBooking extends Page implements HasForms
         $data = $this->executiveSuiteForm->getState();
 
         $data['suiteId'] = 3;
-        $data['userId'] = $data['user_id'];
+        $user = User::create([
+            'name' => $data['first_name'].' '.$data['last_name'],
+            'email' => $data['email'],
+            'contact_number' => $data['phone'],
+            'role' => 'customer',
+            'password' => bcrypt('password'),
+        ]);
+
+        unset($data['firstName']);
+
+        unset($data['lastName']);
+
+        $data['userId'] = $user->id;
         $start = Carbon::parse($data['start_date']);
         $end = $data['suiteId'] == 4 ? $start : Carbon::parse($data['end_date']);
 

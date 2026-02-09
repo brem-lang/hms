@@ -12,6 +12,8 @@
                                         <li><a class="" href="{{ route('index') }}" style="color: black"><i
                                                     class="fa fa-home" style="font-size: 1.5em;"></i> home</a></li>
                                         @auth
+                                            <li><a href="{{ route('rooms') }}" style="color: black"><i class="fa fa-list"
+                                                        style="font-size: 1.5em;"></i> Rooms</a></li>
                                             <li><a class="active" href="{{ route('my-bookings') }}" style="color: black"><i
                                                         class="fa fa-calendar" style="font-size: 1.5em;"></i> my
                                                     bookings</a></li>

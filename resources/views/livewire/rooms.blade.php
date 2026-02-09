@@ -1,6 +1,74 @@
 <div x-data="{ open: false }">
 
     @if ($activePage == 'home')
+        <!-- header-start -->
+        {{-- <header>
+            <div class="header-area ">
+                <div id="sticky-header" class="main-header-area">
+                    <div class="container-fluid p-0">
+                        <div class="row align-items-center no-gutters">
+                            <div class="col-xl-5 col-lg-6">
+                                <div class="main-menu  d-none d-lg-block">
+                                    <nav>
+                                        <ul id="navigation">
+                                            <li><a class="active" href="{{ route('index') }}"><i class="fa fa-home" style="font-size: 1.5em;"></i> home</a></li>
+
+                                            @auth
+                                                <li><a class="" href="{{ route('my-bookings') }}"><i class="fa fa-calendar" style="font-size: 1.5em;"></i> my bookings</a></li>
+                                            @endauth
+                                        </ul>
+                                    </nav>
+                                </div>
+                            </div>
+                            <div class="col-xl-2 col-lg-2">
+                                <div class="logo-img">
+                                    <a href="{{ route('index') }}">
+                                        <img src="img/logo.png" alt="">
+                                    </a>
+                                </div>
+                            </div>
+                            <div class="col-xl-5 col-lg-4 d-none d-lg-block">
+                                <div class="book_room">
+                                    <div class="socail_links">
+                                        <ul>
+                                            <li>
+                                                <a href="https://www.facebook.com/MilleniumSuitesPanabo">
+                                                    <i class="fa fa-facebook-square"></i>
+                                                </a>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                    @auth
+                                        <button @click="open = true" class="btn btn-outline-secondary position-relative ">
+                                            <i class="fa fa-bell fs-5"></i>
+                                            @if ($unreadNotificationsCount)
+                                                <span
+                                                    class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                                                    {{ $unreadNotificationsCount }}
+                                                </span>
+                                            @endif
+                                        </button>
+                                    @endauth
+
+                                    <div class="book_btn d-none d-lg-block">
+                                        @auth
+                                            <a wire:click.prevent="logout">Logout</a>
+                                        @endauth
+
+                                        @guest
+                                            <a href="login">Login</a>
+                                        @endguest
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <div class="mobile_menu d-block d-lg-none"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header> --}}
         <header>
             <div class="header-area ">
                 <div id="sticky-header" class="main-header-area">
@@ -14,13 +82,12 @@
                                 <div class="main-menu d-none d-lg-block">
                                     <nav>
                                         <ul id="navigation">
-                                            <li><a class="active" href="{{ route('index') }}"><i class="fa fa-home"
-                                                        style="font-size: 1.5em;"></i> home</a></li>
-
+                                            <li><a class="" href="{{ route('index') }}" style="color: black"><i
+                                                        class="fa fa-home" style="font-size: 1.5em;"></i> home</a></li>
                                             @auth
-                                                <li><a class="" href="{{ route('rooms') }}"><i class="fa fa-list"
-                                                            style="font-size: 1.5em;"></i> Rooms</a></li>
-                                                <li><a class="" href="{{ route('my-bookings') }}"><i
+                                                <li><a class="active" href="{{ route('rooms') }}" style="color: black"><i
+                                                            class="fa fa-list" style="font-size: 1.5em;"></i> Rooms</a></li>
+                                                <li><a href="{{ route('my-bookings') }}" style="color: black"><i
                                                             class="fa fa-calendar" style="font-size: 1.5em;"></i> my
                                                         bookings</a></li>
                                             @endauth
@@ -176,7 +243,7 @@
 
 
         <!-- slider_area_start -->
-        <div class="slider_area">
+        {{-- <div class="slider_area">
             <div class="slider_active owl-carousel">
                 <div class="single_slider d-flex align-items-center justify-content-center slider_bg_1">
                     <div class="container">
@@ -213,7 +280,7 @@
                     </div>
                 </div>
             </div>
-        </div>
+        </div> --}}
 
         @guest
             <!-- slider_area_end -->

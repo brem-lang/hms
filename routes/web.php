@@ -8,6 +8,7 @@ use App\Livewire\CustomerPage;
 use App\Livewire\MyBooking;
 use App\Livewire\NewUserPrompt;
 use App\Livewire\Policy;
+use App\Livewire\Rooms;
 use App\Livewire\TwoFactor;
 use App\Livewire\ViewBooking;
 use Illuminate\Support\Facades\Route;
@@ -28,6 +29,9 @@ Route::get('/new-prompt', NewUserPrompt::class)->name('new-prompt');
 Route::get('policy', Policy::class)->name('policy');
 
 Route::get('/my-bookings', MyBooking::class)->name('my-bookings')
+    ->middleware('auth');
+
+Route::get('/rooms', Rooms::class)->name('rooms')
     ->middleware('auth');
 
 Route::get('/view-booking/{id}', ViewBooking::class)->name('view-booking');

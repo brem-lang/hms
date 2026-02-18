@@ -309,6 +309,19 @@
                                 </tr>
 
                                 <tr>
+                                    <td class="p-3 font-medium">50% Deposit</td>
+                                    <td class="p-3 text-right font-semibold">
+                                        ₱
+                                        {{ number_format(
+                                            $record->type !== 'bulk_head_online'
+                                                ? $record->amount_to_pay / 2
+                                                : $record->relatedBookings->sum('amount_to_pay') / 2,
+                                            2,
+                                        ) }}
+                                    </td>
+                                </tr>
+
+                                <tr>
                                     <td class="p-3 font-medium">Amount Paid</td>
                                     <td class="p-3 text-right text-green-600 font-semibold">
                                         ₱ {{ number_format($record->amount_paid ?? 0, 2) }}

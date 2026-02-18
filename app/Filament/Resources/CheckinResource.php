@@ -85,16 +85,16 @@ class CheckinResource extends Resource
                 TextColumn::make('is_occupied')
                     ->label('Occupied')
                     ->toggleable()
-                    ->badge()->color(fn (string $state): string => match ($state) {
+                    ->badge()->color(fn(string $state): string => match ($state) {
                         '1' => 'success',
                         '0' => 'danger',
                     })
-                    ->formatStateUsing(fn (string $state): string => $state ? 'Yes' : 'No'),
+                    ->formatStateUsing(fn(string $state): string => $state ? 'Yes' : 'No'),
                 TextColumn::make('suiteRoom.name')
                     ->label('Room Number')
                     ->sortable()
                     ->toggleable()
-                    ->formatStateUsing(fn ($state) => ucfirst($state))
+                    ->formatStateUsing(fn($state) => ucfirst($state))
                     ->searchable(),
                 TextColumn::make('type')
                     ->label('Booking Type')
@@ -107,12 +107,12 @@ class CheckinResource extends Resource
                     ->label('Guest Status')
                     ->toggleable()
                     ->badge()
-                    ->formatStateUsing(fn (string $state): string => match ($state) {
+                    ->formatStateUsing(fn(string $state): string => match ($state) {
                         '1' => 'No Show', // ⬅️ If TRUE (1), display the label "No Show"
                         '0' => '',        // ⬅️ If FALSE (0), display EMPTY STRING
                         default => '',
                     })
-                    ->color(fn (string $state): string => match ($state) {
+                    ->color(fn(string $state): string => match ($state) {
                         // Apply the color only when the badge is visible (i.e., when $state is '1')
                         '1' => 'danger', // ⬅️ Use danger/red color when the status is true
                         '0' => 'gray',   // If false, the color doesn't matter much as the badge is empty
@@ -130,11 +130,11 @@ class CheckinResource extends Resource
                         return $query
                             ->when(
                                 $data['name'],
-                                fn (Builder $query, $name): Builder => $query->whereHas('user', fn ($q) => $q->where('name', 'like', '%'.$name.'%'))
+                                fn(Builder $query, $name): Builder => $query->whereHas('user', fn($q) => $q->where('name', 'like', '%' . $name . '%'))
                                     ->orWhereHas(
                                         'walkingGuest',
-                                        fn ($q) => $q->where('first_name', 'like', '%'.$name.'%')
-                                            ->orWhere('last_name', 'like', '%'.$name.'%')
+                                        fn($q) => $q->where('first_name', 'like', '%' . $name . '%')
+                                            ->orWhere('last_name', 'like', '%' . $name . '%')
                                     )
                             );
                     }),
@@ -153,25 +153,25 @@ class CheckinResource extends Resource
                 Action::make('view')
                     ->icon('heroicon-o-eye')
                     ->color('primary')
-                    ->url(fn ($record) => CheckinResource::getUrl('view', ['record' => $record->id]))
+                    ->url(fn($record) => BookingResource::getUrl('view', ['record' => $record->id]))
                     ->openUrlInNewTab(),
                 Action::make('check_in')
                     ->icon('heroicon-o-check-circle')
                     ->label('Check In')
                     ->color('success')
-                    ->visible(fn ($record) => $record->is_occupied == 0)
-                    ->url(fn ($record) => CheckinResource::getUrl('view', ['record' => $record->id])),
+                    ->visible(fn($record) => $record->is_occupied == 0)
+                    ->url(fn($record) => CheckinResource::getUrl('view', ['record' => $record->id])),
                 Action::make('check_out')
                     ->icon('heroicon-o-check-circle')
                     ->label('Check Out')
                     ->color('warning')
-                    ->visible(fn ($record) => $record->is_occupied == 1)
-                    ->url(fn ($record) => CheckinResource::getUrl('checkout', ['record' => $record->id])),
+                    ->visible(fn($record) => $record->is_occupied == 1)
+                    ->url(fn($record) => CheckinResource::getUrl('checkout', ['record' => $record->id])),
                 Action::make('add_person')
                     ->icon('heroicon-o-user-plus')
                     ->label('Add Person')
                     ->color('warning')
-                    ->visible(fn ($record) => $record->is_occupied == 1 && $record->room_id == 4)
+                    ->visible(fn($record) => $record->is_occupied == 1 && $record->room_id == 4)
                     ->form([
                         TextInput::make('no_persons')
                             ->numeric()
@@ -233,7 +233,7 @@ class CheckinResource extends Resource
                     ->icon('heroicon-o-clock')
                     ->label('Extend')
                     ->color('warning')
-                    ->visible(fn ($record) => $record->is_occupied == 1 && $record->is_extend == 0)
+                    ->visible(fn($record) => $record->is_occupied == 1 && $record->is_extend == 0)
                     ->form([
                         DateTimePicker::make('check_out_date')
                             ->label('Check Out Date')
@@ -357,7 +357,7 @@ class CheckinResource extends Resource
                             Notification::make()
                                 ->danger()
                                 ->title('Error')
-                                ->body('Failed to extend booking: '.$e->getMessage())
+                                ->body('Failed to extend booking: ' . $e->getMessage())
                                 ->send();
                         }
                     }),

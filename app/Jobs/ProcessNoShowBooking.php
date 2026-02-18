@@ -66,7 +66,7 @@ class ProcessNoShowBooking implements ShouldQueue
                     $checkInDate = Carbon::parse($booking->check_in_date);
                     $checkOutDate = Carbon::parse($booking->check_out_date);
                 } catch (\Exception $e) {
-                    Log::error("Booking {$booking->id} has invalid date format: ".$e->getMessage());
+                    Log::error("Booking {$booking->id} has invalid date format: " . $e->getMessage());
                     return;
                 }
 
@@ -133,7 +133,7 @@ class ProcessNoShowBooking implements ShouldQueue
                 }
             });
         } catch (\Exception $e) {
-            Log::error("Error processing no-show booking {$booking->id}: ".$e->getMessage(), [
+            Log::error("Error processing no-show booking {$booking->id}: " . $e->getMessage(), [
                 'exception' => $e,
                 'booking_id' => $booking->id ?? null,
             ]);

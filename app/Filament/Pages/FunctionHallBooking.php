@@ -160,7 +160,7 @@ class FunctionHallBooking extends Page implements HasForms
                             ->live()
                             ->reactive()
                             ->label('Select Event Package Option')
-                            ->hidden(fn (callable $get) => $get('food_corkage') == 'no')
+                            ->hidden(fn(callable $get) => $get('food_corkage') == 'no')
                             ->options(function () {
                                 // Assume you need to fetch the structured data from a specific room (ID 4)
                                 $functionHall = Room::find(4);
@@ -185,7 +185,7 @@ class FunctionHallBooking extends Page implements HasForms
                                     ]);
 
                                     // 2. Define the USER-FRIENDLY LABEL (for the dropdown display)
-                                    $userLabel = $item.' (₱'.number_format($price, 2).')';
+                                    $userLabel = $item . ' (₱' . number_format($price, 2) . ')';
 
                                     // Add to the options array: [VALUE => LABEL]
                                     $options[$valueToStore] = $userLabel;
@@ -276,8 +276,10 @@ class FunctionHallBooking extends Page implements HasForms
             <ol>
                 <li>A non-refundable 50% down payment is required for confirmation.</li>
                 <li>Balance is due 7 days prior to the event date.</li>
-                <li>Overtime charges 1000 PHP per hour.</li>
+                <li>Overtime charges: 1,000 PHP per hour.</li>
                 <li>The client is fully liable for any damages to the property.</li>
+                <li><strong>Rebooking Policy:</strong> Rebooking is allowed up to 1 day before the event.</li>
+                <li><strong>Change of Schedule:</strong> Change of schedule is permitted one (1) time only.</li>
             </ol>
             <p style="font-weight: bold; margin-top: 10px;">Please read the full contract before proceeding.</p>
         </div>';
@@ -396,7 +398,7 @@ class FunctionHallBooking extends Page implements HasForms
                 DB::beginTransaction();
 
                 $data = Booking::create([
-                    'booking_number' => 'BKG-'.strtoupper(uniqid()),
+                    'booking_number' => 'BKG-' . strtoupper(uniqid()),
                     'contact_number' => $data['contact_number'],
                     'food_corkage' => $data['food_corkage'] ?? null,
                     'selected_package' => $data['selected_package'] ?? null,

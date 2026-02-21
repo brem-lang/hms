@@ -19,7 +19,7 @@ class ViewCheckout extends Page
 
     public function getTitle(): string
     {
-        return 'Check-Out Details - '.$this->record->booking_number;
+        return 'Check-Out Details - ' . $this->record->booking_number;
     }
 
     public function mount(Booking $record): void
@@ -66,7 +66,7 @@ class ViewCheckout extends Page
             Mail::to($this->record->type == 'online' ? $this->record->user->email : $this->record->walkingGuest->email)->send(new MailFrontDesk($details));
         } else {
             $details = [
-                'name' => $this->record->organization.' '.$this->record->position,
+                'name' => $this->record->organization . ' ' . $this->record->position,
                 'message' => 'You have been checked out successfully. Thank you for choosing us!',
                 'amount_paid' => $this->record->amount_paid ?? 0,
                 'balance' => $this->record->balance ?? 0,

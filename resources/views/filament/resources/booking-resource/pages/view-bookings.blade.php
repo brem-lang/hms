@@ -406,10 +406,17 @@
                                 <br />
                                 {{ $this->paymentForm }}
                                 <br />
-                                <div class="text-right">
-                                    @if ($record->status == 'completed')
+                                <div class="flex flex-wrap justify-end gap-2">
+                                    @if ($record->status == 'done')
+                                        <x-filament::button size="md" color="success" disabled>
+                                            Already Checked Out
+                                        </x-filament::button>
+                                    @elseif ($record->status == 'completed')
                                         <x-filament::button size="md" color="primary" disabled>
                                             Booking Accepted
+                                        </x-filament::button>
+                                        <x-filament::button size="md" color="warning" wire:click="checkOut">
+                                            Check Out
                                         </x-filament::button>
                                     @else
                                         @if ($record->status == 'cancelled')

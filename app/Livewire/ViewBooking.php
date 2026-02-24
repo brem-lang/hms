@@ -129,6 +129,8 @@ class ViewBooking extends Component implements HasForms
 
         $this->booking->is_proof_send = true;
 
+        $this->booking->amount_paid = $this->booking->amount_to_pay / 2;
+
         $this->booking->relatedBookings()->update([
             'proof_of_payment' => $data['proof_of_payment'],
             'is_proof_send' => true,
@@ -145,11 +147,11 @@ class ViewBooking extends Component implements HasForms
             ->success()
             ->title('Payment Sent')
             ->icon('heroicon-o-check-circle')
-            ->body(auth()->user()->name.' has sent payment')
+            ->body(auth()->user()->name . ' has sent payment')
             ->actions([
                 Action::make('view')
                     ->label('View')
-                    ->url(fn () => BookingResource::getUrl('view', ['record' => $this->booking->id]))
+                    ->url(fn() => BookingResource::getUrl('view', ['record' => $this->booking->id]))
                     ->markAsRead(),
             ])
             ->sendToDatabase(User::where('role', '!=', 'customer')->get());
@@ -183,11 +185,11 @@ class ViewBooking extends Component implements HasForms
             ->success()
             ->title('Received Email Request')
             ->icon('heroicon-o-check-circle')
-            ->body(auth()->user()->name.' has sent an email request')
+            ->body(auth()->user()->name . ' has sent an email request')
             ->actions([
                 Action::make('view')
                     ->label('View')
-                    ->url(fn () => BookingResource::getUrl('view', ['record' => $this->booking->id]))
+                    ->url(fn() => BookingResource::getUrl('view', ['record' => $this->booking->id]))
                     ->markAsRead(),
             ])
             ->sendToDatabase(User::where('role', '!=', 'customer')->get());
@@ -351,11 +353,11 @@ class ViewBooking extends Component implements HasForms
             ->success()
             ->title('Booking Updated')
             ->icon('heroicon-o-check-circle')
-            ->body(auth()->user()->name.' has rebooked your booking')
+            ->body(auth()->user()->name . ' has rebooked your booking')
             ->actions([
                 Action::make('view')
                     ->label('View')
-                    ->url(fn () => BookingResource::getUrl('view', ['record' => $this->booking->id]))
+                    ->url(fn() => BookingResource::getUrl('view', ['record' => $this->booking->id]))
                     ->markAsRead(),
             ])
             ->sendToDatabase(User::where('role', '!=', 'customer')->get());

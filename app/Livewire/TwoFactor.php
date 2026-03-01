@@ -52,32 +52,34 @@ class TwoFactor extends Component implements HasForms
                 ->first();
 
             if ($find) {
+                $redirectUrl = null;
+
                 // Check if this is a registration flow
                 if (session()->has('registration_flow')) {
                     // Clear the registration flow flag
                     session()->forget('registration_flow');
-                    
+
                     // Logout the user
                     Auth::logout();
                     session()->invalidate();
                     session()->regenerateToken();
-                    
-                    // Redirect to login page
-                    return redirect(Filament::getLoginUrl());
+
+                    $redirectUrl = Filament::getLoginUrl();
+                } else {
+                    session()->put('user_2fa', auth()->id());
+
+                    if (auth()->user()->isCustomer() && ! auth()->user()->is_new_user) {
+                        $redirectUrl = route('index');
+                    } elseif (auth()->user()->isCustomer() && auth()->user()->is_new_user) {
+                        $redirectUrl = route('new-prompt');
+                    } elseif (! auth()->user()->isCustomer()) {
+                        $redirectUrl = redirect()->intended(Filament::getUrl())->getTargetUrl();
+                    }
                 }
 
-                session()->put('user_2fa', auth()->id());
-
-                if (auth()->user()->isCustomer() && ! auth()->user()->is_new_user) {
-                    return redirect()->route('index');
-                }
-
-                if (auth()->user()->isCustomer() && auth()->user()->is_new_user) {
-                    return redirect()->route('new-prompt');
-                }
-
-                if (! auth()->user()->isCustomer()) {
-                    return redirect()->intended(Filament::getUrl());
+                if ($redirectUrl) {
+                    $this->dispatch('account-verified', url: $redirectUrl);
+                    return;
                 }
             } else {
                 $this->dispatch('swal:success', [
@@ -120,7 +122,7 @@ class TwoFactor extends Component implements HasForms
                     'icon' => 'success',
                 ]);
             } catch (Exception $e) {
-                logger('Error: '.$e->getMessage());
+                logger('Error: ' . $e->getMessage());
             }
         } catch (TooManyRequestsException $exception) {
             $this->dispatch('swal:success', [

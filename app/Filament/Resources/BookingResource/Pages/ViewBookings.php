@@ -443,7 +443,29 @@ class ViewBookings extends Page
                     ->required(),
                 TextInput::make('amount_paid')
                     ->numeric()
-                    ->required(),
+                    ->required()
+                    ->live()
+                    ->rules([
+                        function () {
+                            $totalAmount = ($this->record->type === 'bulk_head_online')
+                                ? $this->record->relatedBookings->sum('amount_to_pay')
+                                : $this->record->amount_to_pay;
+                            $min = $totalAmount / 2;
+
+                            return function (string $attribute, $value, \Closure $fail) use ($min) {
+                                $num = (float) ($value ?? 0);
+                                if ($num > 0 && $num < $min) {
+                                    $fail('A minimum deposit of 50% (₱'.number_format($min, 2).') is required.');
+                                }
+                            };
+                        },
+                    ])
+                    ->hint(fn () => 'Minimum: ₱'.number_format(
+                        (($this->record->type === 'bulk_head_online')
+                            ? $this->record->relatedBookings->sum('amount_to_pay')
+                            : $this->record->amount_to_pay) / 2,
+                        2
+                    )),
                 FileUpload::make('proof_of_payment')
                     ->openable()
                     ->image()

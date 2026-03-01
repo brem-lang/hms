@@ -52,4 +52,17 @@
             showConfirmButton: false,
         });
     });
+
+    window.addEventListener('account-verified', event => {
+        const url = event.detail?.url;
+        Swal.fire({
+            title: 'Account Verified',
+            icon: 'success',
+            toast: true,
+            position: 'top-end',
+            timer: 2000,
+            showConfirmButton: false,
+        });
+        if (url) setTimeout(() => { window.location.href = url; }, 2000);
+    });
 </script>

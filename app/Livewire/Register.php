@@ -6,6 +6,7 @@ use DanHarrin\LivewireRateLimiting\Exceptions\TooManyRequestsException;
 use Filament\Events\Auth\Registered;
 use Filament\Facades\Filament;
 use Filament\Forms\Components\Component;
+use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\TextInput;
 use Filament\Http\Responses\Auth\Contracts\RegistrationResponse;
 use Filament\Pages\Auth\Register as RegisterPage;
@@ -26,6 +27,12 @@ class Register extends RegisterPage
                         $this->getPasswordFormComponent(),
                         $this->getPasswordConfirmationFormComponent(),
                         $this->getContactNumberFormComponent(),
+                        DatePicker::make('birthday')
+                            ->label('Birthday')
+                            ->native(false)
+                            ->maxDate(now()),
+                        TextInput::make('nationality')
+                            ->label('Nationality'),
                     ])
                     ->statePath('data'),
             ),

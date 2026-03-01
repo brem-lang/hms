@@ -139,7 +139,7 @@ class ViewBooking extends Component implements HasForms
         $this->booking->save();
 
         $this->dispatch('swal:success', [
-            'title' => 'Thank you! Your booking is confirmed. We look forward to serving you.',
+            'title' => 'Transaction successfull . We look forward to serving you.',
             'icon' => 'success',
         ]);
 

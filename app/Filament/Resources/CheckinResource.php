@@ -8,6 +8,7 @@ use App\Models\Charge;
 use Carbon\Carbon;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\TimePicker;
 use Filament\Forms\Form;
 use Filament\Forms\Get;
 use Filament\Notifications\Notification;
@@ -234,24 +235,32 @@ class CheckinResource extends Resource
                     ->label('Extend')
                     ->color('warning')
                     ->visible(fn($record) => $record->is_occupied == 1 && $record->is_extend == 0)
-                    ->form([
-                        DateTimePicker::make('check_out_date')
-                            ->label('Check Out Date')
-                            ->date('F d, Y h:i A')
-                            ->dehydrated(false)
-                            ->readOnly()
-                            ->formatStateUsing(function ($record) {
-                                return $record->check_out_date;
-                            }),
-                        DateTimePicker::make('extend_date')
-                            ->label('Extend Date')
-                            ->date('F d, Y h:i A')
-                            ->default(now())
-                            ->required()
-                            ->formatStateUsing(function ($record) {
-                                return $record->extend_date;
-                            }),
-                    ])
+                    ->form(function ($record) {
+                        $extendField = ($record->duration ?? 0) < 12
+                            ? TimePicker::make('extend_date')
+                                ->label('Extend Date')
+                                ->default(now())
+                                ->formatStateUsing(fn ($record) => $record->extend_date)
+                                ->required()
+                            : DateTimePicker::make('extend_date')
+                                ->label('Extend Date')
+                                ->date('F d, Y h:i A')
+                                ->default(now())
+                                ->formatStateUsing(fn ($record) => $record->extend_date)
+                                ->required();
+
+                        return [
+                            DateTimePicker::make('check_out_date')
+                                ->label('Check Out Date')
+                                ->date('F d, Y h:i A')
+                                ->dehydrated(false)
+                                ->readOnly()
+                                ->formatStateUsing(function ($record) {
+                                    return $record->check_out_date;
+                                }),
+                            $extendField,
+                        ];
+                    })
                     ->modalWidth('lg')
                     ->action(function ($record, $data) {
                         try {
@@ -266,7 +275,9 @@ class CheckinResource extends Resource
                                 return;
                             }
 
-                            $extendDate = Carbon::parse($data['extend_date']);
+                            $extendDate = ($record->duration ?? 0) < 12
+                                ? Carbon::parse($record->check_out_date)->setTimeFromTimeString($data['extend_date'])
+                                : Carbon::parse($data['extend_date']);
                             $checkOutDate = Carbon::parse($record->check_out_date);
 
                             if ($extendDate->lessThanOrEqualTo($checkOutDate)) {
@@ -280,7 +291,7 @@ class CheckinResource extends Resource
                             }
 
                             // Check for conflicts
-                            if (CheckinResource::extendChecker($record->room_id, $record->check_out_date, $data['extend_date'], $record->id)) {
+                            if (CheckinResource::extendChecker($record->room_id, $record->check_out_date, $extendDate->toDateTimeString(), $record->id)) {
                                 Notification::make()
                                     ->danger()
                                     ->title('Error')
@@ -291,8 +302,9 @@ class CheckinResource extends Resource
                             }
 
                             $diffHours = (int) abs($extendDate->diffInHours($checkOutDate));
+                            $extendDateString = $extendDate->toDateTimeString();
 
-                            DB::transaction(function () use ($record, $data, $diffHours) {
+                            DB::transaction(function () use ($record, $data, $diffHours, $extendDateString) {
                                 // Refresh record to get latest data
                                 $record->refresh();
 
@@ -319,7 +331,7 @@ class CheckinResource extends Resource
                                     $existingCharges[] = $newExtendCharge;
                                     $record->additional_charges = $existingCharges;
                                     $record->is_extend = 1;
-                                    $record->extend_date = $data['extend_date'];
+                                    $record->extend_date = $extendDateString;
                                     $record->save();
                                 } elseif ($record->room_id == 4) {
                                     $extendCharge = Charge::find(4);
@@ -344,7 +356,7 @@ class CheckinResource extends Resource
                                     $existingCharges[] = $newExtendCharge;
                                     $record->additional_charges = $existingCharges;
                                     $record->is_extend = 1;
-                                    $record->extend_date = $data['extend_date'];
+                                    $record->extend_date = $extendDateString;
                                     $record->save();
                                 }
                             });

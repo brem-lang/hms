@@ -228,20 +228,96 @@
 
     <div class="summary-box">
         <h3>Summary Overview</h3>
-        <p><strong>Total Revenue:</strong> ₱ {{ number_format($data['total_revenue'], 2) }}</p>
+        <p><strong>Total Revenue (Consolidated Sales):</strong> ₱ {{ number_format($data['total_revenue'], 2) }}</p>
         <p><strong>Total Transactions:</strong> {{ $data['total_transactions'] }}</p>
+        <p><strong>Occupancy Rate:</strong> {{ $data['occupancy_rate'] ?? 0 }}%</p>
+        <p><strong>Utilization Rate:</strong> {{ $data['utilization_rate'] ?? 0 }}%</p>
     </div>
 
     ---
 
+    <h3>Sales Breakdown per Category</h3>
+
     @if ($data['sales_by_room_type']->count() > 0)
-    <h3>Sales Breakdown by Room Type</h3>
+    <h4>By Room Type</h4>
     <p>Visualizing the revenue distribution across different room types.</p>
 
     <img src="{{ $data['chart_image_url'] }}" alt="Sales Distribution Chart"
         style="width: 90%; margin: 10px auto; border: 1px solid #ccc;">
 
     <p style="text-align: center;">(Diagram: Bar chart showing revenue contribution per room type)</p>
+    @endif
+
+    @if (isset($data['sales_by_booking_type']) && $data['sales_by_booking_type']->count() > 0)
+    <h4>By Booking Type</h4>
+    <table>
+        <thead>
+            <tr>
+                <th>Booking Type</th>
+                <th style="text-align: right;">Revenue (₱)</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach ($data['sales_by_booking_type'] as $bookingType => $revenue)
+            <tr>
+                <td>{{ $bookingType }}</td>
+                <td style="text-align: right; font-weight: bold;">₱ {{ number_format($revenue, 2) }}</td>
+            </tr>
+            @endforeach
+        </tbody>
+    </table>
+    @endif
+
+    ---
+
+    <h3>Sales by Month</h3>
+    @if (isset($data['monthly_chart_url']))
+    <img src="{{ $data['monthly_chart_url'] }}" alt="Sales by Month Chart"
+        style="width: 90%; margin: 10px auto; border: 1px solid #ccc;">
+    @if (isset($data['sales_by_month']) && $data['sales_by_month']->count() > 0)
+    <table style="margin-top: 15px;">
+        <thead>
+            <tr>
+                <th>Month</th>
+                <th style="text-align: right;">Revenue (₱)</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach ($data['sales_by_month'] as $month => $revenue)
+            <tr>
+                <td>{{ $month }}</td>
+                <td style="text-align: right;">₱ {{ number_format($revenue, 2) }}</td>
+            </tr>
+            @endforeach
+        </tbody>
+    </table>
+    @endif
+    @endif
+
+    ---
+
+    <h3>Sales by Day</h3>
+    @if (isset($data['daily_chart_url']))
+    <img src="{{ $data['daily_chart_url'] }}" alt="Sales by Day Chart"
+        style="width: 90%; margin: 10px auto; border: 1px solid #ccc;">
+    @if (isset($data['sales_by_day']) && $data['sales_by_day']->count() > 0)
+    <table style="margin-top: 15px;">
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th style="text-align: right;">Revenue (₱)</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach ($data['sales_by_day'] as $day => $revenue)
+            <tr>
+                <td>{{ $day }}</td>
+                <td style="text-align: right;">₱ {{ number_format($revenue, 2) }}</td>
+            </tr>
+            @endforeach
+        </tbody>
+    </table>
+    @endif
     @endif
 
     ---

@@ -19,7 +19,9 @@
                                                 <img src="{{ asset('suite-photo/' . $record['functionHall']['image']) }}"
                                                     alt="Image 1">
                                             </div>
-
+                                            <div class="mt-6 p-4 bg-white dark:bg-gray-800 rounded-lg shadow" x-data="fullCalendarComponent()" x-init="initCalendar(); Livewire.hook('element.updated', () => { $nextTick(() => initCalendar()) });">
+                                                <div x-ref="fullcalendar"></div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -114,49 +116,6 @@
                         </div>
                     </div>
 
-                    <div style="margin-top: 20px;">
-                        {{-- <div id="calendar" class="p-4 bg-white rounded-lg shadow" x-data="{
-                        events: [{
-                                title: 'Wedding Reception',
-                                start: '2025-07-28T14:00:00',
-                                end: '2025-07-28T18:00:00',
-                                color: '#2563eb' // Blue
-                            },
-                            {
-                                title: 'Corporate Seminar',
-                                start: '2025-07-29T09:00:00',
-                                end: '2025-07-29T17:00:00',
-                                color: '#16a34a' // Green
-                            },
-                            {
-                                title: 'Birthday Party',
-                                start: '2025-07-30T18:00:00',
-                                end: '2025-07-30T22:00:00',
-                                color: '#dc2626' // Red
-                            }
-                        ],
-                    
-                        initCalendar() {
-                            const calendarEl = document.getElementById('calendar');
-                            const calendar = new FullCalendar.Calendar(calendarEl, {
-                                initialView: 'dayGridMonth',
-                                headerToolbar: {
-                                    left: 'prev,next today',
-                                    center: 'title',
-                                    right: 'dayGridMonth,timeGridWeek,timeGridDay'
-                                },
-                                events: this.events
-                            });
-                            calendar.render();
-                        }
-                    }"
-                        x-init="initCalendar()">
-                    </div> --}}
-                        <div class="p-4 bg-white rounded-lg shadow" x-data="fullCalendarComponent()" x-init="initCalendar();
-                        Livewire.hook('element.updated', () => { $nextTick(() => initCalendar()) });">
-                            <div x-ref="fullcalendar"></div>
-                        </div>
-                    </div>
                 </div>
             </div>
         @endif
@@ -300,7 +259,13 @@
                         center: 'title',
                         right: 'dayGridMonth,timeGridWeek,timeGridDay'
                     },
-                    events: this.events
+                    events: this.events,
+                    eventDidMount: function(info) {
+                        const tooltip = info.event.extendedProps.tooltip || info.event.title;
+                        if (tooltip) {
+                            info.el.setAttribute('title', tooltip);
+                        }
+                    }
                 });
                 this.calendar.render();
             }

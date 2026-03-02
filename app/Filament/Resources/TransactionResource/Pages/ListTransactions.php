@@ -39,14 +39,14 @@ class ListTransactions extends ListRecords
                         ->required(),
 
                     DatePicker::make('start_date')
-                        ->hidden(fn ($get) => $get('type') === 'reports')
+                        ->hidden(fn($get) => $get('type') === 'reports')
                         ->required(),
 
                     DatePicker::make('end_date')
-                        ->hidden(fn ($get) => $get('type') === 'reports')
+                        ->hidden(fn($get) => $get('type') === 'reports')
                         ->required()
                         ->rules([
-                            fn (callable $get) => function (string $attribute, $value, Closure $fail) use ($get) {
+                            fn(callable $get) => function (string $attribute, $value, Closure $fail) use ($get) {
                                 if (Carbon::parse($value)->lte(Carbon::parse($get('start_date')))) {
                                     $fail('End Date must be ahead of Start Date');
                                 }

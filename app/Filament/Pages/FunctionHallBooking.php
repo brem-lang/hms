@@ -74,18 +74,29 @@ class FunctionHallBooking extends Page implements HasForms
                 ->count(),
         ];
 
-        $this->calendarEvents = Booking::whereNotNull('event_type')
-            ->whereNotNull('email')
+        $this->calendarEvents = Booking::where('room_id', 4)
+            ->whereNotNull('event_type')
+            ->whereNotNull('suite_room_id')
+            ->where('status', '!=', 'cancelled')
+            ->with('suiteRoom')
             ->get()
             ->map(function ($booking) {
+                $hallName = $booking->suiteRoom?->name ?? 'Unknown';
+                $eventType = ucfirst(str_replace('_', ' ', $booking->event_type ?? 'Event'));
+                $startFormatted = Carbon::parse($booking->check_in_date)->format('M j, Y g:i A');
+                $endFormatted = Carbon::parse($booking->check_out_date)->format('M j, Y g:i A');
+
                 return [
-                    // Use properties from the $booking model
-                    'title' => $booking->booking_number, // Assuming 'event_type' is the title
-                    'start' => $booking->check_in_date, // Assuming these fields exist
-                    'end' => $booking->check_out_date,     // Assuming these fields exist
-                    'color' => '#2563eb', // Static color is fine
+                    'title' => "{$hallName} - {$eventType}",
+                    'start' => $booking->check_in_date,
+                    'end' => $booking->check_out_date,
+                    'color' => '#2563eb',
+                    'extendedProps' => [
+                        'tooltip' => "{$hallName} - {$eventType} | {$booking->booking_number} | {$startFormatted} - {$endFormatted}",
+                    ],
                 ];
-            });
+            })
+            ->toArray();
 
         $this->form->fill([
             // 'total_amount' => 0,

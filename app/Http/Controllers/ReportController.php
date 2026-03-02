@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Booking;
 use App\Models\Charge;
 use App\Models\Room;
+use App\Models\SuiteRoom;
 use App\Models\Transaction;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
@@ -55,7 +56,72 @@ class ReportController extends Controller
                 });
             });
 
-            $chartConfig = [
+            $salesByBookingType = $transactions->groupBy(function ($transaction) {
+                $type = $transaction->booking->type ?? 'unknown';
+
+                return $type === 'walkin_booking' ? 'Walk-in' : ($type === 'online' ? 'Online' : ucfirst($type));
+            })->map(function ($groupedTransactions) {
+                return $groupedTransactions->sum(function ($transaction) {
+                    return $transaction->booking->amount_to_pay ?? 0;
+                });
+            });
+
+            $salesByMonth = $transactions->groupBy(function ($transaction) {
+                return Carbon::parse($transaction->created_at)->format('Y-m');
+            })->map(function ($groupedTransactions) {
+                return $groupedTransactions->sum(function ($transaction) {
+                    return $transaction->booking->amount_to_pay ?? 0;
+                });
+            })->sortKeys();
+
+            $salesByDay = $transactions->groupBy(function ($transaction) {
+                return Carbon::parse($transaction->created_at)->format('Y-m-d');
+            })->map(function ($groupedTransactions) {
+                return $groupedTransactions->sum(function ($transaction) {
+                    return $transaction->booking->amount_to_pay ?? 0;
+                });
+            })->sortKeys();
+
+            $daysInPeriod = $startDate->diffInDays($endDate) + 1;
+            $totalActiveSuiteRooms = SuiteRoom::where('is_active', true)->count() ?: 1;
+            $roomNightsAvailable = $totalActiveSuiteRooms * $daysInPeriod;
+
+            $roomNightsSold = Booking::where('status', 'done')
+                ->where('type', '!=', 'bulk_head_online')
+                ->where('room_id', '!=', 4)
+                ->where(function ($query) use ($startDate, $endDate) {
+                    $query->whereBetween('check_in_date', [$startDate, $endDate])
+                        ->orWhereBetween('check_out_date', [$startDate, $endDate])
+                        ->orWhere(function ($q) use ($startDate, $endDate) {
+                            $q->where('check_in_date', '<=', $startDate)
+                                ->where('check_out_date', '>=', $endDate);
+                        });
+                })
+                ->get()
+                ->sum(function ($booking) use ($startDate, $endDate) {
+                    $checkIn = Carbon::parse($booking->check_in_date);
+                    $checkOut = Carbon::parse($booking->check_out_date);
+                    $effectiveStart = $checkIn->lt($startDate) ? $startDate : $checkIn;
+                    $effectiveEnd = $checkOut->gt($endDate) ? $endDate : $checkOut;
+
+                    return max(1, $effectiveStart->diffInDays($effectiveEnd) + 1);
+                });
+
+            $occupancyRate = $roomNightsAvailable > 0
+                ? round(($roomNightsSold / $roomNightsAvailable) * 100, 2)
+                : 0;
+
+            $suiteRoomsWithBookings = $transactions->map(fn ($t) => $t->booking?->suite_room_id)
+                ->filter()
+                ->unique()
+                ->count();
+            $utilizationRate = $totalActiveSuiteRooms > 0
+                ? round(($suiteRoomsWithBookings / $totalActiveSuiteRooms) * 100, 2)
+                : 0;
+
+            $chartTimestamp = time();
+
+            $categoryChartConfig = [
                 'type' => 'bar',
                 'data' => [
                     'labels' => $salesByRoomType->keys()->toArray(),
@@ -72,12 +138,57 @@ class ReportController extends Controller
                     ],
                 ],
             ];
+            $categoryChartJson = urlencode(json_encode($categoryChartConfig));
+            $categoryChartUrl = 'https://quickchart.io/chart?c='.$categoryChartJson.'&width=700&height=400';
+            $categoryChartFileName = 'charts/sales-category-'.$chartTimestamp.'.png';
+            Storage::disk('public_charts')->put($categoryChartFileName, file_get_contents($categoryChartUrl));
 
-            $chartJson = urlencode(json_encode($chartConfig));
-            $quickChartUrl = 'https://quickchart.io/chart?c='.$chartJson.'&width=700&height=400';
-            $imageContents = file_get_contents($quickChartUrl);
-            $chartFileName = 'charts/sales-chart-'.time().'.png';
-            Storage::disk('public_charts')->put($chartFileName, $imageContents);
+            $monthlyChartConfig = [
+                'type' => 'bar',
+                'data' => [
+                    'labels' => $salesByMonth->keys()->toArray(),
+                    'datasets' => [[
+                        'label' => 'Revenue (₱)',
+                        'data' => $salesByMonth->values()->toArray(),
+                        'backgroundColor' => 'rgba(37, 99, 235, 0.7)',
+                        'borderColor' => '#2563eb',
+                    ]],
+                ],
+                'options' => [
+                    'title' => ['display' => true, 'text' => 'Sales by Month'],
+                    'scales' => [
+                        'yAxes' => [['ticks' => ['beginAtZero' => true]]],
+                    ],
+                ],
+            ];
+            $monthlyChartJson = urlencode(json_encode($monthlyChartConfig));
+            $monthlyChartUrl = 'https://quickchart.io/chart?c='.$monthlyChartJson.'&width=700&height=400';
+            $monthlyChartFileName = 'charts/sales-monthly-'.$chartTimestamp.'.png';
+            Storage::disk('public_charts')->put($monthlyChartFileName, file_get_contents($monthlyChartUrl));
+
+            $dailyChartConfig = [
+                'type' => 'line',
+                'data' => [
+                    'labels' => $salesByDay->keys()->toArray(),
+                    'datasets' => [[
+                        'label' => 'Daily Sales (₱)',
+                        'data' => $salesByDay->values()->toArray(),
+                        'backgroundColor' => 'rgba(37, 99, 235, 0.5)',
+                        'borderColor' => '#2563eb',
+                        'fill' => true,
+                    ]],
+                ],
+                'options' => [
+                    'title' => ['display' => true, 'text' => 'Sales by Day'],
+                    'scales' => [
+                        'yAxes' => [['ticks' => ['beginAtZero' => true]]],
+                    ],
+                ],
+            ];
+            $dailyChartJson = urlencode(json_encode($dailyChartConfig));
+            $dailyChartUrl = 'https://quickchart.io/chart?c='.$dailyChartJson.'&width=700&height=400';
+            $dailyChartFileName = 'charts/sales-daily-'.$chartTimestamp.'.png';
+            Storage::disk('public_charts')->put($dailyChartFileName, file_get_contents($dailyChartUrl));
 
             $data = [
                 'type' => 'Sales Reports',
@@ -89,7 +200,14 @@ class ReportController extends Controller
                 'total_revenue' => $totalRevenue,
                 'total_transactions' => $transactions->count(),
                 'sales_by_room_type' => $salesByRoomType,
-                'chart_image_url' => public_path('public_charts/'.$chartFileName),
+                'sales_by_booking_type' => $salesByBookingType,
+                'sales_by_month' => $salesByMonth,
+                'sales_by_day' => $salesByDay,
+                'occupancy_rate' => $occupancyRate,
+                'utilization_rate' => $utilizationRate,
+                'chart_image_url' => public_path('public_charts/'.$categoryChartFileName),
+                'monthly_chart_url' => public_path('public_charts/'.$monthlyChartFileName),
+                'daily_chart_url' => public_path('public_charts/'.$dailyChartFileName),
             ];
 
             $pdf = Pdf::loadView('reports.reports', compact('data'));

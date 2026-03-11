@@ -687,13 +687,12 @@ class WalkinGuests extends Page implements HasForms
         }
 
         $data = $this->deluxeSuiteForm->getState();
-
         $data['suiteId'] = 2;
         $data['userId'] = auth()->user()->id;
-        $start = Carbon::parse($data['start_date']);
-        $end = $data['suiteId'] == 4 ? $start : Carbon::parse($data['end_date']);
 
         if ($data['bookingType'] == 'daily') {
+            $start = Carbon::parse($data['start_date']);
+            $end = $data['suiteId'] == 4 ? $start : Carbon::parse($data['end_date']);
             if ($data['quantity'] == 1) {
                 $data = $this->saving($data);
             } else {
@@ -738,10 +737,10 @@ class WalkinGuests extends Page implements HasForms
 
         $data['suiteId'] = 3;
         $data['userId'] = auth()->user()->id;
-        $start = Carbon::parse($data['start_date']);
-        $end = $data['suiteId'] == 4 ? $start : Carbon::parse($data['end_date']);
 
         if ($data['bookingType'] == 'daily') {
+            $start = Carbon::parse($data['start_date']);
+            $end = $data['suiteId'] == 4 ? $start : Carbon::parse($data['end_date']);
             if ($data['quantity'] == 1) {
                 $data = $this->saving($data);
             } else {

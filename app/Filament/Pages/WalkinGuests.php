@@ -267,7 +267,7 @@ class WalkinGuests extends Page implements HasForms
                         ->maxLength(255),
                     TextInput::make('email')
                         ->label('Email')
-                        ->email()
+                        ->email()->required()
                         ->maxLength(255),
                     TextInput::make('phone')
                         ->label('Phone')
@@ -431,6 +431,7 @@ class WalkinGuests extends Page implements HasForms
                     TextInput::make('email')
                         ->label('Email')
                         ->email()
+                        ->required()
                         ->maxLength(255),
                     TextInput::make('phone')
                         ->label('Phone')
@@ -594,6 +595,7 @@ class WalkinGuests extends Page implements HasForms
                     TextInput::make('email')
                         ->label('Email')
                         ->email()
+                        ->required()
                         ->maxLength(255),
                     TextInput::make('phone')
                         ->label('Phone')

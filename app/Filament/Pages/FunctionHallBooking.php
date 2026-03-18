@@ -130,6 +130,7 @@ class FunctionHallBooking extends Page implements HasForms
                         TextInput::make('email')
                             ->label('Email')
                             ->required()
+                            ->email()
                             ->maxLength(255),
                         DateTimePicker::make('start_date')
                             ->label('Start Date')

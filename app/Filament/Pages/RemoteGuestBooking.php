@@ -248,7 +248,7 @@ class RemoteGuestBooking extends Page implements HasForms
                             $endCarbon = Carbon::parse($endTime);
 
                             if ($endCarbon->lessThanOrEqualTo($startCarbon)) {
-                                $fail('The :attribute must be after '.Carbon::parse($startTime)->format('h:i A').'.');
+                                $fail('The :attribute must be after ' . Carbon::parse($startTime)->format('h:i A') . '.');
                             }
                         };
                     },
@@ -410,7 +410,7 @@ class RemoteGuestBooking extends Page implements HasForms
                             $endCarbon = Carbon::parse($endTime);
 
                             if ($endCarbon->lessThanOrEqualTo($startCarbon)) {
-                                $fail('The :attribute must be after '.Carbon::parse($startTime)->format('h:i A').'.');
+                                $fail('The :attribute must be after ' . Carbon::parse($startTime)->format('h:i A') . '.');
                             }
                         };
                     },
@@ -572,7 +572,7 @@ class RemoteGuestBooking extends Page implements HasForms
                             $endCarbon = Carbon::parse($endTime);
 
                             if ($endCarbon->lessThanOrEqualTo($startCarbon)) {
-                                $fail('The :attribute must be after '.Carbon::parse($startTime)->format('h:i A').'.');
+                                $fail('The :attribute must be after ' . Carbon::parse($startTime)->format('h:i A') . '.');
                             }
                         };
                     },
@@ -650,7 +650,7 @@ class RemoteGuestBooking extends Page implements HasForms
         $data['suiteId'] = 1;
 
         $user = User::create([
-            'name' => $data['first_name'].' '.$data['last_name'],
+            'name' => $data['first_name'] . ' ' . $data['last_name'],
             'email' => $data['email'],
             'contact_number' => $data['phone'],
             'role' => 'customer',
@@ -682,7 +682,7 @@ class RemoteGuestBooking extends Page implements HasForms
             Mail::to($user->email)->send(new UserVerificationMail($emailDetails));
         } catch (Exception $e) {
             // Log error but don't fail the booking process
-            info('Failed to send verification email: '.$e->getMessage());
+            info('Failed to send verification email: ' . $e->getMessage());
         }
 
         if ($data['bookingType'] == 'daily') {
@@ -732,7 +732,7 @@ class RemoteGuestBooking extends Page implements HasForms
 
         $data['suiteId'] = 2;
         $user = User::create([
-            'name' => $data['first_name'].' '.$data['last_name'],
+            'name' => $data['first_name'] . ' ' . $data['last_name'],
             'email' => $data['email'],
             'contact_number' => $data['phone'],
             'role' => 'customer',
@@ -744,10 +744,33 @@ class RemoteGuestBooking extends Page implements HasForms
         unset($data['lastName']);
 
         $data['userId'] = $user->id;
-        $start = Carbon::parse($data['start_date']);
-        $end = $data['suiteId'] == 4 ? $start : Carbon::parse($data['end_date']);
+
+        // Generate verification URL
+        $verificationUrl = URL::temporarySignedRoute(
+            'verification.verify',
+            now()->addHours(24),
+            ['id' => $user->id, 'hash' => sha1($user->email)]
+        );
+
+        // Send verification email with credentials
+        try {
+            $emailDetails = [
+                'name' => $user->name,
+                'email' => $user->email,
+                'password' => 'password',
+                'verification_url' => $verificationUrl,
+            ];
+
+            Mail::to($user->email)->send(new UserVerificationMail($emailDetails));
+        } catch (Exception $e) {
+            // Log error but don't fail the booking process
+            info('Failed to send verification email: ' . $e->getMessage());
+        }
+
 
         if ($data['bookingType'] == 'daily') {
+            $start = Carbon::parse($data['start_date']);
+            $end = $data['suiteId'] == 4 ? $start : Carbon::parse($data['end_date']);
             if ($data['quantity'] == 1) {
                 $data = $this->saving($data);
             } else {
@@ -792,7 +815,7 @@ class RemoteGuestBooking extends Page implements HasForms
 
         $data['suiteId'] = 3;
         $user = User::create([
-            'name' => $data['first_name'].' '.$data['last_name'],
+            'name' => $data['first_name'] . ' ' . $data['last_name'],
             'email' => $data['email'],
             'contact_number' => $data['phone'],
             'role' => 'customer',
@@ -804,10 +827,32 @@ class RemoteGuestBooking extends Page implements HasForms
         unset($data['lastName']);
 
         $data['userId'] = $user->id;
-        $start = Carbon::parse($data['start_date']);
-        $end = $data['suiteId'] == 4 ? $start : Carbon::parse($data['end_date']);
+
+        // Generate verification URL
+        $verificationUrl = URL::temporarySignedRoute(
+            'verification.verify',
+            now()->addHours(24),
+            ['id' => $user->id, 'hash' => sha1($user->email)]
+        );
+
+        // Send verification email with credentials
+        try {
+            $emailDetails = [
+                'name' => $user->name,
+                'email' => $user->email,
+                'password' => 'password',
+                'verification_url' => $verificationUrl,
+            ];
+
+            Mail::to($user->email)->send(new UserVerificationMail($emailDetails));
+        } catch (Exception $e) {
+            // Log error but don't fail the booking process
+            info('Failed to send verification email: ' . $e->getMessage());
+        }
 
         if ($data['bookingType'] == 'daily') {
+            $start = Carbon::parse($data['start_date']);
+            $end = $data['suiteId'] == 4 ? $start : Carbon::parse($data['end_date']);
             if ($data['quantity'] == 1) {
                 $data = $this->saving($data);
             } else {
@@ -851,8 +896,8 @@ class RemoteGuestBooking extends Page implements HasForms
 
     public function savingHourly($data)
     {
-        $startDateTimeString = $data['hour_date'].' '.$data['at'];
-        $endDateTimeString = $data['hour_date'].' '.$data['end'];
+        $startDateTimeString = $data['hour_date'] . ' ' . $data['at'];
+        $endDateTimeString = $data['hour_date'] . ' ' . $data['end'];
 
         $start = new DateTime($startDateTimeString);
         $end = new DateTime($endDateTimeString);
@@ -874,7 +919,7 @@ class RemoteGuestBooking extends Page implements HasForms
                 DB::beginTransaction();
 
                 $booking = Booking::create([
-                    'booking_number' => 'BKG-'.strtoupper(uniqid()),
+                    'booking_number' => 'BKG-' . strtoupper(uniqid()),
                     'type' => 'online',
                     'user_id' => $data['userId'],
                     'room_id' => $data['suiteId'],
@@ -955,7 +1000,7 @@ class RemoteGuestBooking extends Page implements HasForms
                 DB::beginTransaction();
 
                 $booking = Booking::create([
-                    'booking_number' => 'BKG-'.strtoupper(uniqid()),
+                    'booking_number' => 'BKG-' . strtoupper(uniqid()),
                     'type' => 'online',
                     'user_id' => $data['userId'],
                     'room_id' => $data['suiteId'],

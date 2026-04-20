@@ -22,10 +22,10 @@ class ListCheckins extends ListRecords
     public function getTabs(): array
     {
         return [
-            'all' => Tab::make(),
-            'checkIn' => Tab::make()
+            'all' => Tab::make('All'),
+            'checkIn' => Tab::make('Check-in')
                 ->modifyQueryUsing(fn (Builder $query) => $query->where('is_occupied', 0)),
-            'checkOut' => Tab::make()
+            'checkOut' => Tab::make('Check-out')
                 ->modifyQueryUsing(fn (Builder $query) => $query->where('is_occupied', 1)),
         ];
     }

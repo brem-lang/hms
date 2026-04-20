@@ -438,13 +438,26 @@
                                 @endif
 
                                 <br />
-                                <div class="text-right">
+                                <div class="flex flex-wrap items-center justify-end gap-3">
+                                    @if ($record->is_occupied == 1 && $record->room_id == 4)
+                                        <x-filament::button size="md" color="warning" type="button"
+                                            wire:click="mountAction('add_person')">
+                                            Add Person
+                                        </x-filament::button>
+                                    @endif
+                                    @if ($record->is_occupied == 1 && $record->is_extend == 0)
+                                        <x-filament::button size="md" color="warning" type="button"
+                                            wire:click="mountAction('extend')">
+                                            Extend
+                                        </x-filament::button>
+                                    @endif
                                     @if ($record->status == 'done')
                                         <x-filament::button size="md" color="success" disabled>
                                             Already Checked Out
                                         </x-filament::button>
                                     @else
-                                        <x-filament::button size="md" color="warning" wire:click="checkOut">
+                                        <x-filament::button size="md" color="warning" type="button"
+                                            wire:click="checkOut">
                                             Check Out
                                         </x-filament::button>
                                     @endif

@@ -4,14 +4,8 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\CheckinResource\Pages;
 use App\Models\Booking;
-use App\Models\Charge;
-use Carbon\Carbon;
-use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\TextInput;
-use Filament\Forms\Components\TimePicker;
 use Filament\Forms\Form;
-use Filament\Forms\Get;
-use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Tables\Actions\Action;
 use Filament\Tables\Columns\TextColumn;
@@ -20,7 +14,6 @@ use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Support\Facades\DB;
 
 class CheckinResource extends Resource
 {
@@ -86,16 +79,16 @@ class CheckinResource extends Resource
                 TextColumn::make('is_occupied')
                     ->label('Occupied')
                     ->toggleable()
-                    ->badge()->color(fn(string $state): string => match ($state) {
+                    ->badge()->color(fn (string $state): string => match ($state) {
                         '1' => 'success',
                         '0' => 'danger',
                     })
-                    ->formatStateUsing(fn(string $state): string => $state ? 'Yes' : 'No'),
+                    ->formatStateUsing(fn (string $state): string => $state ? 'Yes' : 'No'),
                 TextColumn::make('suiteRoom.name')
                     ->label('Room Number')
                     ->sortable()
                     ->toggleable()
-                    ->formatStateUsing(fn($state) => ucfirst($state))
+                    ->formatStateUsing(fn ($state) => ucfirst($state))
                     ->searchable(),
                 TextColumn::make('type')
                     ->label('Booking Type')
@@ -108,12 +101,12 @@ class CheckinResource extends Resource
                     ->label('Guest Status')
                     ->toggleable()
                     ->badge()
-                    ->formatStateUsing(fn(string $state): string => match ($state) {
+                    ->formatStateUsing(fn (string $state): string => match ($state) {
                         '1' => 'No Show', // ⬅️ If TRUE (1), display the label "No Show"
                         '0' => '',        // ⬅️ If FALSE (0), display EMPTY STRING
                         default => '',
                     })
-                    ->color(fn(string $state): string => match ($state) {
+                    ->color(fn (string $state): string => match ($state) {
                         // Apply the color only when the badge is visible (i.e., when $state is '1')
                         '1' => 'danger', // ⬅️ Use danger/red color when the status is true
                         '0' => 'gray',   // If false, the color doesn't matter much as the badge is empty
@@ -131,11 +124,11 @@ class CheckinResource extends Resource
                         return $query
                             ->when(
                                 $data['name'],
-                                fn(Builder $query, $name): Builder => $query->whereHas('user', fn($q) => $q->where('name', 'like', '%' . $name . '%'))
+                                fn (Builder $query, $name): Builder => $query->whereHas('user', fn ($q) => $q->where('name', 'like', '%'.$name.'%'))
                                     ->orWhereHas(
                                         'walkingGuest',
-                                        fn($q) => $q->where('first_name', 'like', '%' . $name . '%')
-                                            ->orWhere('last_name', 'like', '%' . $name . '%')
+                                        fn ($q) => $q->where('first_name', 'like', '%'.$name.'%')
+                                            ->orWhere('last_name', 'like', '%'.$name.'%')
                                     )
                             );
                     }),
@@ -153,226 +146,11 @@ class CheckinResource extends Resource
             ->actions([
                 Action::make('view')
                     ->icon('heroicon-o-eye')
+                    ->label('View')
                     ->color('primary')
-                    ->url(fn($record) => BookingResource::getUrl('view', ['record' => $record->id]))
-                    ->openUrlInNewTab(),
-                Action::make('check_in')
-                    ->icon('heroicon-o-check-circle')
-                    ->label('Check In')
-                    ->color('success')
-                    ->visible(fn($record) => $record->is_occupied == 0)
-                    ->url(fn($record) => CheckinResource::getUrl('view', ['record' => $record->id])),
-                Action::make('check_out')
-                    ->icon('heroicon-o-check-circle')
-                    ->label('Check Out')
-                    ->color('warning')
-                    ->visible(fn($record) => $record->is_occupied == 1)
-                    ->url(fn($record) => CheckinResource::getUrl('checkout', ['record' => $record->id])),
-                Action::make('add_person')
-                    ->icon('heroicon-o-user-plus')
-                    ->label('Add Person')
-                    ->color('warning')
-                    ->visible(fn($record) => $record->is_occupied == 1 && $record->room_id == 4)
-                    ->form([
-                        TextInput::make('no_persons')
-                            ->numeric()
-                            ->label('Number of Persons')
-                            ->formatStateUsing(function ($record) {
-                                return $record->additional_persons;
-                            })
-                            ->required()
-                            ->maxLength(255),
-
-                    ])
-                    ->modalWidth('lg')
-                    ->action(function ($record, $data) {
-
-                        $packageArray = json_decode($record->selected_package, true);
-                        $itemName = $packageArray['item'] ?? null;
-                        $chargeID = null;
-
-                        $chargeID = match ($itemName) {
-                            'Basic Package - Option 1',
-                            'Basic Package - Option 2' => 5,
-
-                            'Standard Package - Option 1',
-                            'Standard Package - Option 2' => 6,
-
-                            'Premium Package - Option 1',
-                            'Premium Package - Option 2' => 7,
-
-                            default => 5,
-                        };
-
-                        $charge = Charge::find($chargeID);
-
-                        $newExtendCharge = [
-                            'name' => (string) $charge->id,
-                            'amount' => number_format($charge->amount, 2, '.', ''),
-                            'quantity' => $data['no_persons'],
-                            'total_charges' => $charge->amount * $data['no_persons'],
-                        ];
-
-                        $existingCharges = $record->additional_charges ?? [];
-
-                        if (! is_array($existingCharges)) {
-                            $existingCharges = [];
-                        }
-
-                        $existingCharges[] = $newExtendCharge;
-
-                        $record->additional_charges = $existingCharges;
-                        $record->additional_persons = $data['no_persons'];
-                        $record->save();
-
-                        Notification::make()
-                            ->success()
-                            ->title('Person Added')
-                            ->send();
-                    }),
-                Action::make('extend')
-                    ->icon('heroicon-o-clock')
-                    ->label('Extend')
-                    ->color('warning')
-                    ->visible(fn($record) => $record->is_occupied == 1 && $record->is_extend == 0)
-                    ->form(function ($record) {
-                        $extendField = ($record->duration ?? 0) < 12
-                            ? TimePicker::make('extend_date')
-                                ->label('Extend Date')
-                                ->default(now())
-                                ->formatStateUsing(fn ($record) => $record->extend_date)
-                                ->required()
-                            : DateTimePicker::make('extend_date')
-                                ->label('Extend Date')
-                                ->date('F d, Y h:i A')
-                                ->default(now())
-                                ->formatStateUsing(fn ($record) => $record->extend_date)
-                                ->required();
-
-                        return [
-                            DateTimePicker::make('check_out_date')
-                                ->label('Check Out Date')
-                                ->date('F d, Y h:i A')
-                                ->dehydrated(false)
-                                ->readOnly()
-                                ->formatStateUsing(function ($record) {
-                                    return $record->check_out_date;
-                                }),
-                            $extendField,
-                        ];
-                    })
-                    ->modalWidth('lg')
-                    ->action(function ($record, $data) {
-                        try {
-                            // Validate extend_date is provided and after check_out_date
-                            if (empty($data['extend_date'])) {
-                                Notification::make()
-                                    ->danger()
-                                    ->title('Error')
-                                    ->body('Extend date is required')
-                                    ->send();
-
-                                return;
-                            }
-
-                            $extendDate = ($record->duration ?? 0) < 12
-                                ? Carbon::parse($record->check_out_date)->setTimeFromTimeString($data['extend_date'])
-                                : Carbon::parse($data['extend_date']);
-                            $checkOutDate = Carbon::parse($record->check_out_date);
-
-                            if ($extendDate->lessThanOrEqualTo($checkOutDate)) {
-                                Notification::make()
-                                    ->danger()
-                                    ->title('Error')
-                                    ->body('Extend date must be after the check out date')
-                                    ->send();
-
-                                return;
-                            }
-
-                            // Check for conflicts
-                            if (CheckinResource::extendChecker($record->room_id, $record->check_out_date, $extendDate->toDateTimeString(), $record->id)) {
-                                Notification::make()
-                                    ->danger()
-                                    ->title('Error')
-                                    ->body('Please select different dates for extending')
-                                    ->send();
-
-                                return;
-                            }
-
-                            $diffHours = (int) abs($extendDate->diffInHours($checkOutDate));
-                            $extendDateString = $extendDate->toDateTimeString();
-
-                            DB::transaction(function () use ($record, $data, $diffHours, $extendDateString) {
-                                // Refresh record to get latest data
-                                $record->refresh();
-
-                                if ($record->room_id != 4) {
-                                    $extendCharge = Charge::find(2);
-
-                                    if (! $extendCharge) {
-                                        throw new \Exception('Extend charge not found (ID: 2)');
-                                    }
-
-                                    $newExtendCharge = [
-                                        'name' => (string) $extendCharge->id,
-                                        'amount' => number_format($extendCharge->amount, 2, '.', ''),
-                                        'quantity' => (string) $diffHours,
-                                        'total_charges' => $extendCharge->amount * $diffHours,
-                                    ];
-
-                                    $existingCharges = $record->additional_charges ?? [];
-
-                                    if (! is_array($existingCharges)) {
-                                        $existingCharges = [];
-                                    }
-
-                                    $existingCharges[] = $newExtendCharge;
-                                    $record->additional_charges = $existingCharges;
-                                    $record->is_extend = 1;
-                                    $record->extend_date = $extendDateString;
-                                    $record->save();
-                                } elseif ($record->room_id == 4) {
-                                    $extendCharge = Charge::find(4);
-
-                                    if (! $extendCharge) {
-                                        throw new \Exception('Extend charge not found (ID: 4)');
-                                    }
-
-                                    $newExtendCharge = [
-                                        'name' => (string) $extendCharge->id,
-                                        'amount' => number_format($extendCharge->amount, 2, '.', ''),
-                                        'quantity' => (string) $diffHours,
-                                        'total_charges' => $extendCharge->amount * $diffHours,
-                                    ];
-
-                                    $existingCharges = $record->additional_charges ?? [];
-
-                                    if (! is_array($existingCharges)) {
-                                        $existingCharges = [];
-                                    }
-
-                                    $existingCharges[] = $newExtendCharge;
-                                    $record->additional_charges = $existingCharges;
-                                    $record->is_extend = 1;
-                                    $record->extend_date = $extendDateString;
-                                    $record->save();
-                                }
-                            });
-
-                            Notification::make()
-                                ->success()
-                                ->title('Booking Extended')
-                                ->send();
-                        } catch (\Exception $e) {
-                            Notification::make()
-                                ->danger()
-                                ->title('Error')
-                                ->body('Failed to extend booking: ' . $e->getMessage())
-                                ->send();
-                        }
-                    }),
+                    ->url(fn ($record) => $record->is_occupied
+                        ? CheckinResource::getUrl('checkout', ['record' => $record->id])
+                        : CheckinResource::getUrl('view', ['record' => $record->id])),
             ]);
     }
 

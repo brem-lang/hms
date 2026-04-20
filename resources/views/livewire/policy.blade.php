@@ -218,6 +218,27 @@
                 </div>
             </div>
 
+            <!-- No Refund Policy -->
+            <div class="col-md-6">
+                <div class="card policy-card shadow-sm h-100">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center mb-2">
+                            <div class="icon-box"><i class="bi bi-x-circle-fill"></i></div>
+                            <h5 class="card-title mb-0">No Refund Policy</h5>
+                        </div>
+                        <ul class="mb-0">
+                            <li>All confirmed bookings and payments are <strong>non-refundable</strong>, except where
+                                required by law.</li>
+                            <li>Deposits, advance payments, and charges for no-shows or early departures are not
+                                refunded.</li>
+                            <li>Unused nights or services are not eligible for a refund or credit unless the hotel
+                                agrees in writing.</li>
+                            <li>For disputes, please contact the front desk; management’s decision is final.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
             <!-- Policy 5 -->
             <div class="col-md-6">
                 <div class="card policy-card shadow-sm h-100">

@@ -7,10 +7,12 @@ use App\Mail\MailFrontDesk;
 use App\Models\Booking;
 use App\Models\User;
 use Filament\Forms\Components\DateTimePicker;
+use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\ToggleButtons;
 use Filament\Forms\Form;
+use Filament\Forms\Get;
 use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Tables;
@@ -84,14 +86,14 @@ class BookingResource extends Resource
                     ->sortable(),
                 TextColumn::make('status')
                     ->toggleable()
-                    ->badge()->color(fn(string $state): string => match ($state) {
+                    ->badge()->color(fn (string $state): string => match ($state) {
                         'pending' => 'gray',
                         'completed' => 'warning',
                         'cancelled' => 'danger',
                         'done' => 'success',
                         'returned' => 'danger',
                     })
-                    ->formatStateUsing(fn(string $state): string => match ($state) {
+                    ->formatStateUsing(fn (string $state): string => match ($state) {
                         'completed' => 'For CheckIn',
                         'pending' => 'Confirmation Payment',
                         default => __(ucfirst($state)),
@@ -109,7 +111,7 @@ class BookingResource extends Resource
                     ->label('Room Number')
                     ->sortable()
                     ->toggleable()
-                    ->formatStateUsing(fn($state) => ucfirst($state))
+                    ->formatStateUsing(fn ($state) => ucfirst($state))
                     ->searchable(),
                 // TextColumn::make('type')
                 //     ->label('Booking Type')
@@ -174,12 +176,12 @@ class BookingResource extends Resource
                         $booking->status = 'cancelled';
                         $booking->save();
                     })
-                    ->visible(fn(Booking $booking) => $booking->status == 'completed' && $booking->type == 'walkin_booking'),
+                    ->visible(fn (Booking $booking) => $booking->status == 'completed' && $booking->type == 'walkin_booking'),
                 ActionsAction::make('view')
                     ->label('View')
                     ->icon('heroicon-o-eye')
                     ->color('success')
-                    ->url(fn($record) => BookingResource::getUrl('view', ['record' => $record->id])),
+                    ->url(fn ($record) => BookingResource::getUrl('view', ['record' => $record->id])),
                 ActionsAction::make('edit_date')
                     ->label('Edit Date')
                     ->icon('heroicon-o-calendar')
@@ -212,13 +214,60 @@ class BookingResource extends Resource
                                 }),
                         ];
                     }),
+                ActionsAction::make('change')
+                    ->label('Change')
+                    ->icon('heroicon-o-arrow-path')
+                    ->color('gray')
+                    ->visible(fn () => auth()->user()?->isAdmin())
+                    ->fillForm(fn (Booking $record): array => [
+                        'type' => in_array($record->type, ['online', 'walkin_booking'], true)
+                            ? $record->type
+                            : null,
+                        'proof_of_payment' => $record->proof_of_payment,
+                    ])
+                    ->form([
+                        Select::make('type')
+                            ->label('Type')
+                            ->live()
+                            ->required()
+                            ->options([
+                                'online' => 'Online',
+                                'walkin_booking' => 'Walk-in',
+                            ]),
+                        FileUpload::make('proof_of_payment')
+                            ->openable()
+                            ->image()
+                            ->columnSpanFull()
+                            ->label('Proof of Payment')
+                            ->disk('public_uploads_payment')
+                            ->directory('/')
+                            ->visible(fn (Get $get) => $get('type') === 'online')
+                            ->required(fn (Get $get) => $get('type') === 'online'),
+                    ])
+                    ->action(function (Booking $record, array $data) {
+                        $record->type = $data['type'];
+                        $record->payment_type = $data['type'] === 'online' ? 'gcash' : 'cash';
+
+                        if ($record->payment_type === 'gcash') {
+                            $record->proof_of_payment = $data['proof_of_payment'] ?? $record->proof_of_payment;
+                        } else {
+                            $record->proof_of_payment = null;
+                        }
+
+                        $record->save();
+
+                        Notification::make()
+                            ->title('Booking updated')
+                            ->success()
+                            ->send();
+                    }),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
                 ]),
             ])
-            ->modifyQueryUsing(fn(Builder $query) => $query->where('type', '!=', 'bulk_online')->latest());
+            ->modifyQueryUsing(fn (Builder $query) => $query->where('type', '!=', 'bulk_online')->latest());
     }
 
     public static function getRelations(): array

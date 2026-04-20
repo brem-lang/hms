@@ -368,8 +368,58 @@
 
                         @if ($details['type'] == 'approved_booking')
                             <h3 style="font-size: 15px">Message :<b> {{ $details['message'] }} </b> </h3>
-                            <h3 style="font-size: 15px">Amount Paid :<b> {{ $details['amount_paid'] }} </b> </h3>
-                            <h3 style="font-size: 15px">Balance :<b> {{ $details['balance'] }} </b> </h3>
+                            <h3 style="font-size: 15px">Amount Paid :<b> ₱
+                                    {{ number_format($details['amount_paid'] ?? 0, 2) }} </b> </h3>
+                            <h3 style="font-size: 15px">Balance :<b> ₱
+                                    {{ number_format($details['balance'] ?? 0, 2) }} </b> </h3>
+                            @if (!empty($details['booking_number']))
+                                <h3 style="font-size: 15px">Booking No. :<b> {{ $details['booking_number'] }} </b>
+                                </h3>
+                            @endif
+                            @if (!empty($details['room_name']))
+                                <h3 style="font-size: 15px">Room :<b> {{ $details['room_name'] }} </b> </h3>
+                            @endif
+                            @if (!empty($details['suite_names']))
+                                <h3 style="font-size: 15px">Suite(s) :<b> {{ $details['suite_names'] }} </b> </h3>
+                            @endif
+                            @if (!empty($details['check_in_formatted']))
+                                <h3 style="font-size: 15px">Check-in :<b> {{ $details['check_in_formatted'] }} </b>
+                                </h3>
+                            @endif
+                            @if (!empty($details['check_out_formatted']))
+                                <h3 style="font-size: 15px">Check-out :<b> {{ $details['check_out_formatted'] }} </b>
+                                </h3>
+                            @endif
+                            @if (!empty($details['extend_check_out_formatted']))
+                                <h3 style="font-size: 15px">Extended check-out :<b>
+                                        {{ $details['extend_check_out_formatted'] }} </b> </h3>
+                            @endif
+                            @isset($details['duration_hours'])
+                                <h3 style="font-size: 15px">Duration :<b> {{ $details['duration_hours'] }} hrs</b>
+                                </h3>
+                            @endisset
+                            @isset($details['no_persons'])
+                                <h3 style="font-size: 15px">Guests :<b> {{ $details['no_persons'] }} </b> </h3>
+                            @endisset
+                            @if (!empty($details['additional_persons']))
+                                <h3 style="font-size: 15px">Additional adults :<b>
+                                        {{ $details['additional_persons'] }} </b> </h3>
+                            @endif
+                            @if (!empty($details['additional_child']))
+                                <h3 style="font-size: 15px">Additional children :<b>
+                                        {{ $details['additional_child'] }} </b> </h3>
+                            @endif
+                            @if (!empty($details['booking_channel']))
+                                <h3 style="font-size: 15px">Booking type :<b> {{ $details['booking_channel'] }} </b>
+                                </h3>
+                            @endif
+                            @if (!empty($details['payment_type']))
+                                <h3 style="font-size: 15px">Payment method :<b> {{ $details['payment_type'] }} </b>
+                                </h3>
+                            @endif
+                            @if (!empty($details['notes']))
+                                <h3 style="font-size: 15px">Notes :<b> {{ $details['notes'] }} </b> </h3>
+                            @endif
                         @endif
 
                         @if ($details['type'] == 'check_in')

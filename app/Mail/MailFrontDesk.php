@@ -25,8 +25,17 @@ class MailFrontDesk extends Mailable
      */
     public function envelope(): Envelope
     {
+        $details = is_array($this->details) ? $this->details : [];
+
+        $subject = ! empty($details['subject'])
+            ? (string) $details['subject']
+            : match ($details['type'] ?? null) {
+                'cancel_booking' => 'Update on your reservation — Millenium Suites',
+                default => 'Mail Front Desk — Millenium Suites',
+            };
+
         return new Envelope(
-            subject: 'Mail Front Desk',
+            subject: $subject,
         );
     }
 

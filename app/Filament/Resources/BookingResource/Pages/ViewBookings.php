@@ -947,6 +947,16 @@ class ViewBookings extends Page
 
     public function checkOut()
     {
+        if (! (int) $this->record->is_occupied) {
+            Notification::make()
+                ->danger()
+                ->title('Cannot check out')
+                ->body('The guest must be checked in before checkout.')
+                ->send();
+
+            return;
+        }
+
         $chargesAmount = 0;
         foreach ($this->record->additional_charges ?? [] as $charge) {
             $chargesAmount += $charge['total_charges'];

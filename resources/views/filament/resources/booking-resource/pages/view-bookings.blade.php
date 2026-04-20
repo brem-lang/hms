@@ -54,7 +54,7 @@
                             <span
                                 class="px-3 py-1 rounded-full text-sm font-medium
             {{ $statusColors[$record->status] ?? 'bg-gray-100 text-gray-700' }}">
-                                {{ $record->status === 'completed' ? 'For Check-In' : ucfirst($record->status) }}
+                                {{ $record->status === 'completed' ? ($record->is_occupied ? 'For Check-Out' : 'For Check-In') : ucfirst($record->status) }}
                             </span>
                         </div>
 
@@ -220,7 +220,7 @@
                             <span
                                 class="px-3 py-1 rounded-full text-sm font-medium
             {{ $statusColors[$record->status] ?? 'bg-gray-100 text-gray-700' }}">
-                                {{ $record->status === 'completed' ? 'For Check-In' : ucfirst($record->status) }}
+                                {{ $record->status === 'completed' ? ($record->is_occupied ? 'For Check-Out' : 'For Check-In') : ucfirst($record->status) }}
                             </span>
                         </div>
 
@@ -415,7 +415,8 @@
                                         <x-filament::button size="md" color="primary" disabled>
                                             Booking Accepted
                                         </x-filament::button>
-                                        <x-filament::button size="md" color="warning" wire:click="checkOut">
+                                        <x-filament::button size="md" color="warning" wire:click="checkOut"
+                                            @if (! $record->is_occupied) disabled @endif>
                                             Check Out
                                         </x-filament::button>
                                     @else

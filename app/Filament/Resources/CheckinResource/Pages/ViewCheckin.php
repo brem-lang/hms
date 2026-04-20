@@ -17,6 +17,7 @@ use Filament\Forms\Get;
 use Filament\Forms\Set;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\Page;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 
 class ViewCheckin extends Page
@@ -192,23 +193,24 @@ class ViewCheckin extends Page
 
         $data = $this->form->getState();
 
-        $newCharges = CheckinResource::cleanAdditionalCharges($data['room_charges']);
-        $existingCharges = (array) ($this->record->additional_charges ?? []);
-        $this->record->food_charges = CheckinResource::cleanAdditionalCharges($data['food_charges']);
-        $this->record->additional_charges = array_merge($existingCharges, $newCharges);
-        $this->record->is_occupied = 1;
-        $this->record->save();
-
         $room = $this->record->suiteRoom;
 
-        // Check if any OTHER active booking is already occupying this room
+        if (! $room) {
+            Notification::make()
+                ->danger()
+                ->title('Error')
+                ->body('No suite room is assigned to this booking. Assign a room before check-in.')
+                ->send();
+
+            return;
+        }
+
         $active = $room->bookings()
             ->where('id', '!=', $this->record->id)
             ->where('is_occupied', 1)
             ->exists();
 
         if ($active) {
-
             Notification::make()
                 ->danger()
                 ->title('Error')
@@ -218,11 +220,18 @@ class ViewCheckin extends Page
             return;
         }
 
-        // Only mark room as occupied if no other booking has occupied it
-        if (! $active) {
+        $newCharges = CheckinResource::cleanAdditionalCharges($data['room_charges']);
+        $existingCharges = (array) ($this->record->additional_charges ?? []);
+
+        DB::transaction(function () use ($newCharges, $existingCharges, $data, $room): void {
+            $this->record->food_charges = CheckinResource::cleanAdditionalCharges($data['food_charges']);
+            $this->record->additional_charges = array_merge($existingCharges, $newCharges);
+            $this->record->is_occupied = 1;
+            $this->record->save();
+
             $room->is_occupied = 1;
             $room->save();
-        }
+        });
 
         if ($this->record->room_id != 4) {
             $details = [

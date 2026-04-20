@@ -99,13 +99,15 @@ class ProcessNoShowBooking implements ShouldQueue
                     }
                 }
 
-                // --- PART 2: Auto-Checkout for Unresponsive 2-Day Bookings ---
+                // --- PART 2: Auto-Checkout for unresponsive no-shows ---
                 if ($booking->is_no_show) {
 
-                    // 2. Check if the current time is beyond the original check-in date + 2 days
                     $secondDayThreshold = $checkInDate->copy()->addDays(1);
+                    $pastSecondDay = $now->greaterThanOrEqualTo($secondDayThreshold);
+                    $pastCheckout = $now->greaterThanOrEqualTo($checkOutDate);
+                    $shouldFinalize = $pastSecondDay || $pastCheckout;
 
-                    if ($now->greaterThanOrEqualTo($secondDayThreshold)) {
+                    if ($shouldFinalize) {
 
                         $booking->status = 'done'; // Finalized status
                         $booking->is_occupied = false;
@@ -128,7 +130,10 @@ class ProcessNoShowBooking implements ShouldQueue
                             ]);
                         }
 
-                        Log::warning("Booking {$booking->id} auto-checked out due to 2-day no-show policy.");
+                        $reason = $pastCheckout
+                            ? 'scheduled check-out time has passed'
+                            : 'check-in date + 1 day no-show policy';
+                        Log::warning("Booking {$booking->id} auto-checked out (no-show): {$reason}.");
                     }
                 }
             });

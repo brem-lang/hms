@@ -104,7 +104,11 @@
                 $balance = $totalAmount - $amountPaid + $chargesAmount + $foodChargesAmount;
                 $depositRequired = $totalAmount / 2;
 
-                // Status Badge Logic
+                // Status Badge Logic (is_no_show set by ProcessNoShowBooking; status may stay "completed")
+                if ($booking->is_no_show) {
+                $statusLabel = 'No show – contact front desk';
+                $statusColor = 'danger';
+                } else {
                 $status = $booking->status;
                 $statusLabel = match ($status) {
                 'completed' => 'For Check In',
@@ -119,6 +123,7 @@
                 'cancelled', 'returned', 'no show - call' => 'danger',
                 default => 'warning',
                 };
+                }
                 @endphp
 
                 <div class="space-y-6">
@@ -228,9 +233,8 @@
                                         <td class="px-2 py-3 font-semibold text-gray-600 dark:text-gray-400 w-1/4">
                                             Status</td>
                                         <td class="px-2 py-3 w-1/4">
-                                            <span
-                                                class="badge badge-{{ $booking->status == 'done' ? 'success' : ($booking->status == 'cancelled' ? 'danger' : ($booking->status == 'completed' ? 'warning' : 'secondary')) }}">
-                                                {{ $booking->status == 'completed' ? 'For CheckIn' : ($booking->status == 'done' ? 'Settled' : ucfirst($booking->status)) }}
+                                            <span class="badge badge-{{ $statusColor }}">
+                                                {{ $statusLabel }}
                                             </span>
                                         </td>
                                     </tr>
@@ -542,6 +546,9 @@
                     x-on:click.prevent="$dispatch('close-modal', {id: 'confirm-modal'})">Cancel</a>
             </x-slot>
         </x-filament::modal>
+        @elseif ($booking->is_no_show)
+        <span class="genric-btn danger mb-4" style="margin-top: 190px; cursor: default; display: inline-block;">No show –
+            contact front desk</span>
         @else
         <a href="#" class="genric-btn info mb-4" style="margin-top: 190px;"> Completed</a>
         @endif

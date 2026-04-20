@@ -190,7 +190,7 @@
                     </div>
                 </div>
             </div>
-            <div class="single_slider  d-flex align-items-center justify-content-center slider_bg_2">
+            <!-- <div class="single_slider  d-flex align-items-center justify-content-center slider_bg_2">
                 <div class="container">
                     <div class="row">
                         <div class="col-xl-12">
@@ -211,7 +211,7 @@
                         </div>
                     </div>
                 </div>
-            </div>
+            </div> -->
         </div>
     </div>
 

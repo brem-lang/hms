@@ -18,6 +18,27 @@
                                                 <img src="{{ asset('suite-photo/' . $record->room->image) }}"
                                                     alt="Image 1">
                                             </div>
+                                            <div class="mt-6 rounded-lg bg-white p-4 shadow-sm ring-1 ring-gray-950/5 dark:bg-gray-800 dark:ring-white/10"
+                                                x-data="checkoutSuiteCalendarComponent()"
+                                                x-init="initCalendar(); Livewire.hook('morph.updated', () => { $nextTick(() => initCalendar()) });">
+                                                <span id="checkout-suite-calendar-events-json"
+                                                    class="hidden">@json($calendarEvents)</span>
+                                                <h3 class="text-sm font-semibold text-gray-800 dark:text-white">
+                                                    Room availability
+                                                </h3>
+                                                @if (empty($record->suite_room_id))
+                                                    <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                                                        Assign a suite room to this booking to see an availability
+                                                        calendar for extensions.
+                                                    </p>
+                                                @else
+                                                    <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                                                        Other stays on this suite (check-in → checkout or extended
+                                                        end).
+                                                    </p>
+                                                @endif
+                                                <div x-ref="fullcalendar" class="mt-3 min-h-[320px]"></div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -469,4 +490,59 @@
             </div>
         </div>
     </div>
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.14/index.global.min.js"></script>
+    <script>
+        function checkoutSuiteCalendarComponent() {
+            return {
+                calendar: null,
+
+                readEvents() {
+                    const el = document.getElementById('checkout-suite-calendar-events-json');
+                    if (!el || !el.textContent) {
+                        return [];
+                    }
+                    try {
+                        return JSON.parse(el.textContent);
+                    } catch (e) {
+                        return [];
+                    }
+                },
+
+                initCalendar() {
+                    if (typeof FullCalendar === 'undefined') {
+                        return;
+                    }
+
+                    if (this.calendar) {
+                        this.calendar.destroy();
+                        this.calendar = null;
+                    }
+
+                    const calendarEl = this.$refs.fullcalendar;
+                    if (!calendarEl) {
+                        return;
+                    }
+
+                    const events = this.readEvents();
+
+                    this.calendar = new FullCalendar.Calendar(calendarEl, {
+                        initialView: 'dayGridMonth',
+                        headerToolbar: {
+                            left: 'prev,next today',
+                            center: 'title',
+                            right: 'dayGridMonth,timeGridWeek,timeGridDay'
+                        },
+                        events,
+                        eventDidMount: function(info) {
+                            const tooltip = info.event.title;
+                            if (tooltip) {
+                                info.el.setAttribute('title', tooltip);
+                            }
+                        },
+                    });
+                    this.calendar.render();
+                },
+            };
+        }
+    </script>
 </x-filament-panels::page>

@@ -20,6 +20,11 @@ class ViewCheckout extends Page
 {
     public $record;
 
+    /**
+     * @var array<int, array{title: string, start: string, end: string, color?: string}>
+     */
+    public array $calendarEvents = [];
+
     protected static string $resource = CheckinResource::class;
 
     protected static string $view = 'filament.resources.checkin-resource.pages.view-checkout';
@@ -31,7 +36,76 @@ class ViewCheckout extends Page
 
     public function mount(Booking $record): void
     {
-        $this->record = $record;
+        $this->record = $record->load(['user', 'walkingGuest', 'suiteRoom']);
+        $this->refreshCalendarEvents();
+    }
+
+    public function refreshCalendarEvents(): void
+    {
+        $record = $this->record instanceof Booking
+            ? $this->record->fresh(['user', 'walkingGuest', 'suiteRoom'])
+            : null;
+
+        if (! $record || empty($record->suite_room_id)) {
+            $this->calendarEvents = [];
+
+            return;
+        }
+
+        $bookings = Booking::query()
+            ->where('suite_room_id', $record->suite_room_id)
+            ->whereIn('status', ['completed', 'done'])
+            ->with(['user', 'walkingGuest'])
+            ->orderBy('check_in_date')
+            ->get();
+
+        $this->calendarEvents = $bookings->map(function (Booking $b) use ($record): array {
+            $start = Carbon::parse($b->check_in_date)->toIso8601String();
+            $endAt = $b->is_extend && $b->extend_date
+                ? Carbon::parse($b->extend_date)
+                : Carbon::parse($b->check_out_date);
+            $end = $endAt->toIso8601String();
+
+            $title = $b->id === $record->id
+                ? ($this->bookingCalendarTitle($b).' (Current)')
+                : $this->bookingCalendarTitle($b);
+
+            $color = match (true) {
+                $b->id === $record->id => '#2563eb',
+                $b->status === 'completed' => '#d97706',
+                default => '#6b7280',
+            };
+
+            return [
+                'title' => $title,
+                'start' => $start,
+                'end' => $end,
+                'color' => $color,
+            ];
+        })->values()->all();
+    }
+
+    protected function bookingCalendarTitle(Booking $b): string
+    {
+        $suffix = filled($b->booking_number) ? ' · #'.$b->booking_number : '';
+
+        if ((int) $b->room_id === 4) {
+            $org = $b->organization ?? '';
+            $pos = $b->position ?? '';
+            $name = trim($org.' '.$pos);
+
+            return ($name !== '' ? $name : 'Function hall').$suffix;
+        }
+
+        if ($b->user) {
+            return $b->user->name.$suffix;
+        }
+
+        if ($b->walkingGuest) {
+            return trim(($b->walkingGuest->first_name ?? '').' '.($b->walkingGuest->last_name ?? '')).$suffix;
+        }
+
+        return 'Booking'.$suffix;
     }
 
     public function add_personAction(): Action
@@ -238,7 +312,8 @@ class ViewCheckout extends Page
                         }
                     });
 
-                    $this->record = $record->fresh();
+                    $this->record = $record->fresh(['user', 'walkingGuest', 'suiteRoom']);
+                    $this->refreshCalendarEvents();
 
                     Notification::make()
                         ->success()

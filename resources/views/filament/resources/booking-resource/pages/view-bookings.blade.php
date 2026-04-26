@@ -415,8 +415,12 @@
                                         <x-filament::button size="md" color="primary" disabled>
                                             Booking Accepted
                                         </x-filament::button>
-                                        <x-filament::button size="md" color="warning" wire:click="checkOut"
-                                            @if (! $record->is_occupied) disabled @endif>
+                                        <x-filament::button
+                                            size="md"
+                                            color="warning"
+                                            wire:click="checkOut"
+                                            :disabled="!$record->is_occupied"
+                                        >
                                             Check Out
                                         </x-filament::button>
                                     @else

@@ -41,17 +41,12 @@ class TwoFactor extends Component implements HasForms
 
             session()->put('user_2fa', auth()->id());
 
-            // if (auth()->user()->isCustomer()) {
-            //     return redirect()->route('index');
-            // } else {
-            //     return redirect()->intended(Filament::getUrl());
-            // }
-            // $find = UserCode::where('user_id', auth()->id())
-            //     ->where('code', $data['otp'])
-            //     ->where('updated_at', '>=', now()->subMinutes(1))
-            //     ->first();
+            $find = UserCode::where('user_id', auth()->id())
+                ->where('code', $data['otp'])
+                ->where('updated_at', '>=', now()->subMinutes(1))
+                ->first();
 
-            if ($data['otp'] == '000000') {
+            if ($find) {
                 $redirectUrl = null;
 
                 // Check if this is a registration flow
